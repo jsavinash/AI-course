@@ -1,0 +1,26 @@
+[project]
+name = "pinn-heat-equation"
+version = "0.1.0"
+description = "Physics-Informed Neural Networks that solve supervised learning tasks while respecting physical differential equations"
+requires-python = ">=3.11"
+dependencies = [
+    "mlops-shared",
+    "numpy>=1.26.0",
+    "pandas>=2.2.0",
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "pydantic>=2.6.0",
+    "prometheus-client>=0.20.0",
+    "matplotlib>=3.7.0",
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+]
+
+[project.scripts]
+pinn_heat_equation-train = "pinn_heat_equation.train:main"
+
+[tool.uv.sources]
+mlops-shared = { workspace = true }
+
+[tool.uv]
+package = true

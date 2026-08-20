@@ -53,12 +53,14 @@ class ModelRegistry:
         if mlflow_uri or mlflow_experiment:
             try:
                 import mlflow
+
                 if mlflow_uri:
                     mlflow.set_tracking_uri(mlflow_uri)
                 if mlflow_experiment:
                     mlflow.set_experiment(mlflow_experiment)
             except Exception as e:
                 import logging
+
                 logging.getLogger(__name__).warning(f"Could not configure MLflow: {e}")
 
     # ---------- Artifact management ----------
@@ -142,7 +144,11 @@ class ModelRegistry:
         with open(model_dir / "model_info.json") as f:
             model_info = json.load(f)
 
-        npz_files = list(model_dir.glob("*.npz")) + list(model_dir.glob("*.pkl")) + list(model_dir.glob("*.joblib"))
+        npz_files = (
+            list(model_dir.glob("*.npz"))
+            + list(model_dir.glob("*.pkl"))
+            + list(model_dir.glob("*.joblib"))
+        )
         if not npz_files:
             raise FileNotFoundError(f"No model weights found in {model_dir}")
 
@@ -284,5 +290,7 @@ class ModelRegistry:
                 if attempt < max_retries:
                     time.sleep(retry_delay)
                 else:
-                    log.error(f"Failed to log to MLflow after {max_retries} attempts. Continuing without MLflow.")
+                    log.error(
+                        f"Failed to log to MLflow after {max_retries} attempts. Continuing without MLflow."
+                    )
                     return None

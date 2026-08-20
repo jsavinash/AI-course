@@ -91,9 +91,7 @@ class DriftDetector:
 
         return results
 
-    def _detect_continuous_drift(
-        self, name: str, ref: np.ndarray, cur: np.ndarray
-    ) -> DriftResult:
+    def _detect_continuous_drift(self, name: str, ref: np.ndarray, cur: np.ndarray) -> DriftResult:
         """Detect drift for continuous features using KS test and PSI."""
         # Kolmogorov-Smirnov test
         ks_stat, ks_pvalue = stats.ks_2samp(ref, cur)
@@ -118,9 +116,7 @@ class DriftDetector:
             current_std=float(np.std(cur)),
         )
 
-    def _detect_categorical_drift(
-        self, name: str, ref: np.ndarray, cur: np.ndarray
-    ) -> DriftResult:
+    def _detect_categorical_drift(self, name: str, ref: np.ndarray, cur: np.ndarray) -> DriftResult:
         """Detect drift for categorical/binary features using chi-squared test."""
         # Get unique values
         all_values = np.unique(np.concatenate([ref, cur]))

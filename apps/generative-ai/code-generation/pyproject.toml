@@ -1,0 +1,26 @@
+[project]
+name = "code-generation"
+version = "0.1.0"
+description = "Generative AI code generation model with code completion, text-to-code, refactoring, testing, and debugging capabilities from scratch using NumPy"
+requires-python = ">=3.11"
+dependencies = [
+    "mlops-shared",
+    "numpy>=1.26.0",
+    "pandas>=2.2.0",
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "pydantic>=2.6.0",
+    "prometheus-client>=0.20.0",
+    "matplotlib>=3.7.0",
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+]
+
+[project.scripts]
+code_generation-train = "code_generation.train:main"
+
+[tool.uv.sources]
+mlops-shared = { workspace = true }
+
+[tool.uv]
+package = true

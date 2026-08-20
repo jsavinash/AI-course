@@ -88,7 +88,11 @@ class BaseConfig:
         errors: list[str] = []
         for f in fields(self):
             val = getattr(self, f.name)
-            if val is None and f.default is None and f.default_factory is field(default_factory=lambda: None):
+            if (
+                val is None
+                and f.default is None
+                and f.default_factory is field(default_factory=lambda: None)
+            ):
                 errors.append(f"Field '{f.name}' is required")
         return errors
 

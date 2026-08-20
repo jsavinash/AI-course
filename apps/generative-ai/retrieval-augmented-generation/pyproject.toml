@@ -1,0 +1,26 @@
+[project]
+name = "retrieval-augmented-generation"
+version = "0.1.0"
+description = "Retrieval-Augmented Generation (RAG) system from scratch: chunking, TF-IDF embeddings, vector search, prompt augmentation, and grounded generation using NumPy"
+requires-python = ">=3.11"
+dependencies = [
+    "mlops-shared",
+    "numpy>=1.26.0",
+    "pandas>=2.2.0",
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "pydantic>=2.6.0",
+    "prometheus-client>=0.20.0",
+    "matplotlib>=3.7.0",
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+]
+
+[project.scripts]
+rag-train = "retrieval_augmented_generation.train:main"
+
+[tool.uv.sources]
+mlops-shared = { workspace = true }
+
+[tool.uv]
+package = true

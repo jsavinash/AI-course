@@ -14,6 +14,18 @@ A **production-ready MLOps monorepo** containing supervised, unsupervised, reinf
 | **Robot Maze Navigation** | Reinforcement Learning - Q-Learning | Navigate a robot through a maze to reach the goal | Tabular Q-Learning | Success Rate, Mean Steps, Mean Reward, TD Error |
 | **Semi-Supervised Email Classification** | Semi-Supervised Learning - Self-Training | Classify emails as SPAM/HAM with limited labeled data | Self-Training + Logistic Regression | Accuracy, Precision, Recall, F1, Pseudo-Label Count |
 | **Self-Supervised Monitoring** | Self-Supervised Learning - Denoising Autoencoder | Detect anomalous server metrics without labeled anomalies | Denoising Autoencoder + Reconstruction Error | Accuracy, Precision, Recall, F1, Reconstruction Error |
+| **Email Spam Detection (NN)** | Feedforward Neural Network - Classification | Classify emails as SPAM or NOT spam | MLP (ReLU + Sigmoid) | Accuracy, Precision, Recall, F1, ROC-AUC |
+| **House Price Prediction (NN)** | Feedforward Neural Network - Regression | Predict house prices from size and location | MLP (ReLU + Linear) | MSE, RMSE, MAE, R2 |
+| **Credit Card Fraud Detection (NN)** | Feedforward Neural Network - Autoencoder | Detect fraudulent credit card transactions | Autoencoder (reconstruction error) | Precision, Recall, F1, Accuracy, FPR |
+| **Handwritten Digit Recognition (NN)** | Feedforward Neural Network - Classification | Recognize handwritten digits 0-9 | MLP (ReLU + Softmax) | Accuracy, Macro-Precision, Macro-Recall, Macro-F1 |
+| **Language Translation (RNN)** | Recurrent Neural Network - Sequence-to-Sequence | Translate word sequences from source to target language | SimpleRNN (tanh + softmax) | Accuracy, Sequence Length |
+| **Sentiment Analysis (RNN)** | Recurrent Neural Network - Classification | Classify text sentiment as positive or negative | SimpleRNN (tanh + sigmoid) | Accuracy, Precision, Recall, F1 |
+| **Text Generation (RNN)** | Recurrent Neural Network - Language Model | Generate next character predictions for text completion | SimpleRNN (tanh + softmax) | Perplexity, Loss |
+| **Speech Recognition (RNN)** | Recurrent Neural Network - Classification | Transcribe spoken audio feature sequences to text | SimpleRNN (tanh + softmax) | Accuracy, Precision, Recall, F1 |
+| **Music Generation (RNN)** | Recurrent Neural Network - Language Model | Generate musical note sequences step-by-step | SimpleRNN (tanh + softmax) | Perplexity, Loss |
+| **Stock Market Prediction (RNN)** | Recurrent Neural Network - Regression | Predict future financial prices from temporal data | SimpleRNN (tanh + linear) | MSE, RMSE, MAE, R² |
+| **Weather Forecasting (RNN)** | Recurrent Neural Network - Regression | Forecast weather trends using historical timelines | SimpleRNN (tanh + linear) | MSE, RMSE, MAE, R² |
+| **Image Captioning (RNN)** | Recurrent Neural Network - Vision-to-Sequence | Generate descriptive captions from image inputs | SimpleRNN Encoder + Decoder | Accuracy, Caption Match Rate |
 
 ---
 
@@ -32,67 +44,165 @@ A **production-ready MLOps monorepo** containing supervised, unsupervised, reinf
 │       ├── drift.py                  # Data drift detection (PSI, KS test, chi-squared)
 │       └── fastapi_middleware.py     # Request logging, security headers, observability
 │
-├── machine-learning/
-│   ├── supervised/
-│   │   ├── pizza-price/              # Supervised Learning - Regression
-│   │   │   └── src/pizza_price/
-│   │   │       ├── model.py          # Linear Regression (MSE, RMSE, R², MAE)
-│   │   │       ├── data.py           # Data loading + train/test split
-│   │   │       ├── train.py          # Production training pipeline
-│   │   │       └── api.py            # FastAPI serving with observability
+├── apps/
+│   ├── machine-learning/
+│   │   ├── supervised/
+│   │   │   ├── pizza-price/              # Supervised Learning - Regression
+│   │   │   │   └── src/pizza_price/
+│   │   │   │       ├── model.py          # Linear Regression (MSE, RMSE, R2, MAE)
+│   │   │   │       ├── data.py           # Data loading + train/test split
+│   │   │   │       ├── train.py          # Production training pipeline
+│   │   │   │       └── api.py            # FastAPI serving with observability
+│   │   │   │
+│   │   │   └── spam-classification/      # Supervised Learning - Binary Classification
+│   │   │       └── src/spam_classification/
+│   │   │           ├── model.py          # Logistic Regression (Acc, Prec, Rec, F1, AUC)
+│   │   │           ├── data.py           # Data loading + feature extraction
+│   │   │           ├── train.py          # Production training pipeline
+│   │   │           └── api.py            # FastAPI serving with observability
 │   │   │
-│   │   └── spam-classification/      # Supervised Learning - Binary Classification
-│   │       └── src/spam_classification/
-│   │           ├── model.py          # Logistic Regression (Acc, Prec, Rec, F1, AUC)
-│   │           ├── data.py           # Data loading + feature extraction
-│   │           ├── train.py          # Production training pipeline
-│   │           └── api.py            # FastAPI serving with observability
-│   │
-│   ├── unsupervised/
-│   │   ├── market-segmentation/      # Unsupervised Learning - Clustering
-│   │   │   └── src/market_segmentation/
-│   │   │       ├── model.py          # K-Means clustering (Inertia, Silhouette)
-│   │   │       ├── data.py           # Synthetic customer data generator
-│   │   │       ├── train.py          # Production training pipeline
-│   │   │       └── api.py            # FastAPI serving with observability
+│   │   ├── unsupervised/
+│   │   │   ├── market-segmentation/      # Unsupervised Learning - Clustering
+│   │   │   │   └── src/market_segmentation/
+│   │   │   │       ├── model.py          # K-Means clustering (Inertia, Silhouette)
+│   │   │   │       ├── data.py           # Synthetic customer data generator
+│   │   │   │       ├── train.py          # Production training pipeline
+│   │   │   │       └── api.py            # FastAPI serving with observability
+│   │   │   │
+│   │   │   ├── recommendation-engine/    # Unsupervised Learning - Association Rules
+│   │   │   │   └── src/recommendation_engine/
+│   │   │   │       ├── model.py          # Apriori (Confidence, Lift, Support)
+│   │   │   │       ├── data.py           # Synthetic transaction generator
+│   │   │   │       ├── train.py          # Training pipeline
+│   │   │   │       └── api.py            # FastAPI serving with observability
+│   │   │   │
+│   │   │   └── anomaly-detection/        # Unsupervised Learning - Dimensionality Reduction
+│   │   │       └── src/anomaly_detection/
+│   │   │           ├── model.py          # PCA + reconstruction error (Prec, Rec, F1)
+│   │   │           ├── data.py           # Synthetic server monitoring metrics
+│   │   │           ├── train.py          # Production training pipeline
+│   │   │           └── api.py            # FastAPI serving with observability
 │   │   │
-│   │   ├── recommendation-engine/    # Unsupervised Learning - Association Rules
-│   │   │   └── src/recommendation_engine/
-│   │   │       ├── model.py          # Apriori (Confidence, Lift, Support)
-│   │   │       ├── data.py           # Synthetic transaction generator
-│   │   │       ├── train.py          # Production training pipeline
-│   │   │       └── api.py            # FastAPI serving with observability
+│   │   ├── reinforcement/
+│   │   │   └── robot-maze-navigation/    # Reinforcement Learning - Q-Learning
+│   │   │       └── src/robot_maze/
+│   │   │           ├── model.py          # Q-Learning agent (Success Rate, Mean Steps, Reward)
+│   │   │           ├── data.py           # Maze generation + reward shaping
+│   │   │           ├── train.py          # Production training pipeline
+│   │   │           └── api.py            # FastAPI serving with observability
 │   │   │
-│   │   └── anomaly-detection/        # Unsupervised Learning - Dimensionality Reduction
-│   │       └── src/anomaly_detection/
-│   │           ├── model.py          # PCA + reconstruction error (Prec, Rec, F1)
-│   │           ├── data.py           # Synthetic server monitoring metrics
-│   │           ├── train.py          # Production training pipeline
-│   │           └── api.py            # FastAPI serving with observability
+│   │   ├── semi-supervised/
+│   │   │   └── semi-supervised-email/    # Semi-Supervised Learning - Self-Training
+│   │   │       └── src/semi_supervised_email/
+│   │   │           ├── model.py          # Self-Training + Logistic Regression
+│   │   │           ├── data.py           # Email data with labeled/unlabeled split
+│   │   │           ├── train.py          # Production training pipeline
+│   │   │           └── api.py            # FastAPI serving with observability
+│   │   │
+│   │   └── self-supervised/
+│   │       └── self-supervised-monitoring/  # Self-Supervised Learning - Autoencoder
+│   │           └── src/self_supervised_monitoring/
+│   │               ├── model.py          # Denoising Autoencoder (Reconstruction Error)
+│   │               ├── data.py           # Synthetic server monitoring metrics
+│   │               ├── train.py          # Production training pipeline
+│   │               └── api.py            # FastAPI serving with observability
 │   │
-│   ├── reinforcement/
-│   │   └── robot-maze-navigation/    # Reinforcement Learning - Q-Learning
-│   │       └── src/robot_maze/
-│   │           ├── model.py          # Q-Learning agent (Success Rate, Mean Steps, Reward)
-│   │           ├── data.py           # Maze generation + reward shaping
-│   │           ├── train.py          # Production training pipeline
-│   │           └── api.py            # FastAPI serving with observability
+│   ├── neural-networks/
+│   │   └── feedforward-neural-networks/
+│   │       ├── classification/
+│   │       │   └── email-spam-detection/         # Feedforward NN - Binary Classification
+│   │       │       └── src/email_spam_detection/
+│   │       │           ├── model.py              # MLP: Input -> Hidden(ReLU) -> Output(Sigmoid)
+│   │       │           ├── data.py               # Synthetic email feature data
+│   │       │           ├── train.py              # Training pipeline (BCE loss + backprop)
+│   │       │           └── api.py                # FastAPI serving with observability
+│   │       │
+│   │       ├── regression/
+│   │       │   └── house-price-prediction/       # Feedforward NN - Regression
+│   │       │       └── src/house_price_prediction/
+│   │       │           ├── model.py              # MLP: Input -> Hidden(ReLU) -> Output(Linear)
+│   │       │           ├── data.py               # Synthetic house feature data
+│   │       │           ├── train.py              # Training pipeline (MSE loss + backprop)
+│   │       │           └── api.py                # FastAPI serving with observability
+│   │       │
+│   │       ├── anomaly-detection/
+│   │       │   └── credit-card-fraud-detection/  # Feedforward Autoencoder - Anomaly Detection
+│   │       │       └── src/credit_card_fraud_detection/
+│   │       │           ├── model.py              # Autoencoder: Input -> Hidden(ReLU) -> Output(Linear)
+│   │       │           ├── data.py               # Synthetic transaction feature data
+│   │       │           ├── train.py              # Training pipeline (reconstruction loss)
+│   │       │           └── api.py                # FastAPI serving with observability
+│   │       │
+│   │       └── pattern-recognition/
+│   │           └── handwritten-digit-recognition/ # Feedforward NN - Multi-class Classification
+│   │               └── src/handwritten_digit_recognition/
+│   │                   ├── model.py              # MLP: Input -> Hidden(ReLU) -> Output(Softmax)
+│   │                   ├── data.py               # Synthetic 8x8 pixel digit images
+│   │                   ├── train.py              # Training pipeline (cross-entropy + backprop)
+│   │                   └── api.py                # FastAPI serving with observability
 │   │
-│   ├── semi-supervised/
-│   │   └── semi-supervised-email/    # Semi-Supervised Learning - Self-Training
-│   │       └── src/semi_supervised_email/
-│   │           ├── model.py          # Self-Training + Logistic Regression
-│   │           ├── data.py           # Email data with labeled/unlabeled split
-│   │           ├── train.py          # Production training pipeline
-│   │           └── api.py            # FastAPI serving with observability
+│   │   └── recurrent-neural-networks/
+│   │       ├── nlp/
+│   │       │   ├── language-translation/         # RNN - Sequence-to-Sequence (many-to-one)
+│   │       │   │   ├── src/language_translation/
+│   │       │   │   │   ├── model.py              # SimpleRNN: Input(seq, vocab) -> Hidden(tanh) -> Output(softmax)
+│   │       │   │   ├── data.py               │   # Synthetic word-index sequences + translations
+│   │       │   │   ├── train.py              │   # Training pipeline (cross-entropy + BPTT)
+│   │       │   │   └── api.py                │   # FastAPI serving with observability
+│   │       │   │
+│   │       │   ├── sentiment-analysis/           # RNN - Binary Classification (many-to-one)
+│   │       │   │   ├── src/sentiment_analysis/
+│   │       │   │   │   ├── model.py              # SimpleRNN: Input(seq, vocab) -> Hidden(tanh) -> Output(sigmoid)
+│   │       │   │   ├── data.py               │   # Synthetic sentiment-labeled word sequences
+│   │       │   │   ├── train.py              │   # Training pipeline (BCE + BPTT)
+│   │       │   │   └── api.py                │   # FastAPI serving with observability
+│   │       │   │
+│   │       │   └── text-generation/              # RNN - Language Model (many-to-many)
+│   │       │       └── src/text_generation/
+│   │       │           ├── model.py              # SimpleRNN: Input(seq, vocab) -> Hidden(tanh) -> Output(softmax)
+│   │       │           ├── data.py           # Synthetic character-level sequences
+│   │       │           ├── train.py          # Training pipeline (cross-entropy + BPTT)
+│   │       │           └── api.py            # FastAPI serving with observability
 │   │
-│   └── self-supervised/
-│       └── self-supervised-monitoring/  # Self-Supervised Learning - Autoencoder
-│           └── src/self_supervised_monitoring/
-│               ├── model.py          # Denoising Autoencoder (Reconstruction Error)
-│               ├── data.py           # Synthetic server monitoring metrics
-│               ├── train.py          # Production training pipeline
-│               └── api.py            # FastAPI serving with observability
+│   │       ├── speech-audio/
+│   │       │   ├── speech-recognition/          # RNN - Audio-to-Text (many-to-one)
+│   │       │   │   └── src/speech_recognition/
+│   │       │   │       ├── model.py              # SimpleRNN: Input(seq, mfcc) -> Hidden(tanh) -> Output(softmax)
+│   │       │   │       ├── data.py           │   # Synthetic audio feature sequences
+│   │       │   │       ├── train.py          │   # Training pipeline (cross-entropy + BPTT)
+│   │       │   │       └── api.py            │   # FastAPI serving with observability
+│   │       │   │
+│   │       │   └── music-generation/             # RNN - Language Model (many-to-many)
+│   │       │       └── src/music_generation/
+│   │       │           ├── model.py              # SimpleRNN: Input(seq, vocab) -> Hidden(tanh) -> Output(softmax)
+│   │       │           ├── data.py           # Synthetic note sequences
+│   │       │           ├── train.py          # Training pipeline (cross-entropy + BPTT)
+│   │       │           └── api.py            # FastAPI serving with observability
+│   │
+│   │       ├── time-series-forecasting/
+│   │       │   ├── stock-market-prediction/    # RNN - Regression (many-to-one)
+│   │       │   │   └── src/stock_market_prediction/
+│   │       │   │       ├── model.py              # SimpleRNN: Input(seq, feats) -> Hidden(tanh) -> Output(linear)
+│   │       │   │       ├── data.py           │   # Synthetic financial time-series data
+│   │       │   │       ├── train.py          │   # Training pipeline (MSE + BPTT)
+│   │       │   │       └── api.py            │   # FastAPI serving with observability
+│   │       │   │
+│   │       │   └── weather-forecasting/         # RNN - Regression (many-to-one)
+│   │       │       └── src/weather_forecasting/
+│   │       │           ├── model.py              # SimpleRNN: Input(seq, feats) -> Hidden(tanh) -> Output(linear)
+│   │       │           ├── data.py           # Synthetic weather time-series data
+│   │       │           ├── train.py          # Training pipeline (MSE + BPTT)
+│   │       │           └── api.py            # FastAPI serving with observability
+│   │
+│   │       └── vision-tasks/
+│   │           └── image-captioning/            # RNN - Vision-to-Sequence
+│   │               └── src/image_captioning/
+│   │                   ├── model.py               # SimpleRNN: Image encoder + RNN decoder (softmax)
+│   │                   ├── data.py            # Synthetic image + caption pairs
+│   │                   ├── train.py          # Training pipeline (cross-entropy + BPTT)
+│   │                   └── api.py            # FastAPI serving with observability
+│
+│
 │
 ├── docker/
 │   ├── train.Dockerfile              # Multi-stage, non-root, optimized training image
@@ -192,6 +302,18 @@ make train-market-segmentation    # Unsupervised - Clustering
 make train-recommendation-engine  # Unsupervised - Association Rules
 make train-anomaly-detection      # Unsupervised - Dimensionality Reduction
 make train-robot-maze             # Reinforcement Learning - Q-Learning
+make train-email-spam-detection-nn      # Feedforward NN - Classification
+make train-house-price-prediction-nn    # Feedforward NN - Regression
+make train-credit-card-fraud-detection-nn # Feedforward NN - Autoencoder
+make train-handwritten-digit-recognition-nn # Feedforward NN - Pattern Recognition
+make train-language-translation-rnn       # Recurrent NN - Sequence-to-Sequence
+make train-sentiment-analysis-rnn         # Recurrent NN - Classification
+make train-text-generation-rnn            # Recurrent NN - Language Model
+make train-speech-recognition-rnn         # Recurrent NN - Audio-to-Text
+make train-music-generation-rnn           # Recurrent NN - Music Generation
+make train-stock-market-prediction-rnn    # Recurrent NN - Regression
+make train-weather-forecasting-rnn        # Recurrent NN - Weather Forecasting
+make train-image-captioning-rnn           # Recurrent NN - Image Captioning
 make train-all                    # Train all models
 ```
 
@@ -203,6 +325,10 @@ make serve-market-segmentation    # http://localhost:8002
 make serve-recommendation-engine  # http://localhost:8003
 make serve-anomaly-detection      # http://localhost:8004
 make serve-robot-maze             # http://localhost:8005
+make serve-email-spam-detection-nn      # http://localhost:8008
+make serve-house-price-prediction-nn    # http://localhost:8009
+make serve-credit-card-fraud-detection-nn # http://localhost:8010
+make serve-handwritten-digit-recognition-nn # http://localhost:8011
 make serve-all                    # Run all APIs locally
 ```
 
@@ -504,6 +630,10 @@ make train-recommendation-engine # Train recommendation engine model locally
 make train-anomaly-detection  # Train anomaly detection model locally
 make train-robot-maze         # Train robot maze navigation model locally
 make train-semi-supervised-email # Train semi-supervised email model locally
+make train-email-spam-detection-nn # Train email-spam-detection NN model locally
+make train-house-price-prediction-nn # Train house-price-prediction NN model locally
+make train-credit-card-fraud-detection-nn # Train fraud-detection NN model locally
+make train-handwritten-digit-recognition-nn # Train digit-recognition NN model locally
 make train-all                # Train all models
 
 # Serving
@@ -514,6 +644,11 @@ make serve-recommendation-engine # Run recommendation engine API locally (port 8
 make serve-anomaly-detection  # Run anomaly detection API locally (port 8004)
 make serve-robot-maze         # Run robot maze navigation API locally (port 8005)
 make serve-semi-supervised-email # Run semi-supervised email API locally (port 8006)
+make serve-self-supervised-monitoring # Run self-supervised monitoring API locally (port 8007)
+make serve-email-spam-detection-nn    # Run email-spam-detection NN API locally (port 8008)
+make serve-house-price-prediction-nn  # Run house-price-prediction NN API locally (port 8009)
+make serve-credit-card-fraud-detection-nn # Run fraud-detection NN API locally (port 8010)
+make serve-handwritten-digit-recognition-nn # Run digit-recognition NN API locally (port 8011)
 make serve-all                # Run all APIs locally
 
 # Docker

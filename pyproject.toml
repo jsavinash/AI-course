@@ -11,7 +11,38 @@ dependencies = [
     "recommendation-engine",
     "anomaly-detection",
     "robot-maze-navigation",
-    "mlops-shared",
+    "semi-supervised-email",
+    "self-supervised-monitoring",
+    "email-spam-detection",
+    "house-price-prediction",
+    "credit-card-fraud-detection",
+    "handwritten-digit-recognition",
+    "language-translation",
+    "sentiment-analysis",
+    "text-generation",
+    "text-gen",
+    "image-generation",
+    "video-generation",
+    "speech-recognition",
+    "music-generation",
+    "stock-market-prediction",
+    "weather-forecasting",
+    "image-captioning",
+    "medical-imaging",
+    "facial-recognition",
+    "video-surveillance",
+    "image-super-resolution",
+    "semantic-segmentation",
+    "generative-art",
+    "autonomous-driving",
+    "medical-scan-analysis",
+    "text-char-recognition",
+    "gnn-social-networks",
+    "pinn-heat-equation",
+    "snn-image-classification",
+    "transformers-language-modeling",
+    "attention-mechanism",
+    "large-language-model",
     "numpy>=1.26.0",
     "scipy>=1.11.0",
     "scikit-learn>=1.4.0",
@@ -35,14 +66,49 @@ dependencies = [
 
 [tool.uv.workspace]
 members = [
-    "machine-learning/supervised/pizza-price",
-    "machine-learning/supervised/spam-classification",
-    "machine-learning/unsupervised/market-segmentation",
-    "machine-learning/unsupervised/recommendation-engine",
-    "machine-learning/unsupervised/anomaly-detection",
-    "machine-learning/reinforcement/robot-maze-navigation",
-    "machine-learning/semi-supervised/semi-supervised-email",
-    "machine-learning/self-supervised/self-supervised-monitoring",
+    "apps/machine-learning/supervised/pizza-price",
+    "apps/machine-learning/supervised/spam-classification",
+    "apps/machine-learning/unsupervised/market-segmentation",
+    "apps/machine-learning/unsupervised/recommendation-engine",
+    "apps/machine-learning/unsupervised/anomaly-detection",
+    "apps/machine-learning/reinforcement/robot-maze-navigation",
+    "apps/machine-learning/semi-supervised/semi-supervised-email",
+    "apps/machine-learning/self-supervised/self-supervised-monitoring",
+    "apps/neural-networks/feedforward-neural-networks/classification/email-spam-detection",
+    "apps/neural-networks/feedforward-neural-networks/regression/house-price-prediction",
+    "apps/neural-networks/feedforward-neural-networks/anomaly-detection/credit-card-fraud-detection",
+    "apps/neural-networks/feedforward-neural-networks/pattern-recognition/handwritten-digit-recognition",
+    "apps/neural-networks/recurrent-neural-networks/nlp/language-translation",
+    "apps/neural-networks/recurrent-neural-networks/nlp/sentiment-analysis",
+    "apps/neural-networks/recurrent-neural-networks/nlp/text-generation",
+    "apps/neural-networks/recurrent-neural-networks/speech-audio/speech-recognition",
+    "apps/neural-networks/recurrent-neural-networks/speech-audio/music-generation",
+    "apps/neural-networks/recurrent-neural-networks/time-series-forecasting/stock-market-prediction",
+    "apps/neural-networks/recurrent-neural-networks/time-series-forecasting/weather-forecasting",
+    "apps/neural-networks/recurrent-neural-networks/vision-tasks/image-captioning",
+    "apps/neural-networks/convolutional-neural-networks/cnn/medical-imaging",
+    "apps/neural-networks/convolutional-neural-networks/cnn/facial-recognition",
+    "apps/neural-networks/convolutional-neural-networks/cnn/video-surveillance",
+    "apps/neural-networks/convolutional-neural-networks/dn/image-super-resolution",
+    "apps/neural-networks/convolutional-neural-networks/dn/semantic-segmentation",
+    "apps/neural-networks/convolutional-neural-networks/dn/generative-art",
+    "apps/neural-networks/convolutional-neural-networks/capsnet/autonomous-driving",
+    "apps/neural-networks/convolutional-neural-networks/capsnet/medical-scan-analysis",
+    "apps/neural-networks/convolutional-neural-networks/capsnet/text-char-recognition",
+    "apps/neural-networks/graph-physics-informed-networks/graph-neural-networks/social-networks",
+    "apps/neural-networks/graph-physics-informed-networks/physics-informed-neural-networks/heat-equation",
+    "apps/neural-networks/graph-physics-informed-networks/spiking-neural-networks/image-classification",
+    "apps/deep-learning/machine-learning/transformers-language-modeling",
+    "apps/deep-learning/machine-learning/attention-mechanism",
+    "apps/deep-learning/machine-learning/large-language-model",
+    "apps/deep-learning/machine-learning/pre-training-fine-tuning",
+    "apps/generative-ai/prompt-engineering",
+    "apps/generative-ai/code-generation",
+    "apps/generative-ai/tool-use-and-functional-calling",
+    "apps/generative-ai/text-gen",
+    "apps/generative-ai/image-generation",
+    "apps/generative-ai/video-generation",
+    "apps/generative-ai/retrieval-augmented-generation",
     "shared",
 ]
 
@@ -56,6 +122,37 @@ anomaly-detection = { workspace = true }
 robot-maze-navigation = { workspace = true }
 semi-supervised-email = { workspace = true }
 self-supervised-monitoring = { workspace = true }
+email-spam-detection = { workspace = true }
+house-price-prediction = { workspace = true }
+credit-card-fraud-detection = { workspace = true }
+handwritten-digit-recognition = { workspace = true }
+language-translation = { workspace = true }
+sentiment-analysis = { workspace = true }
+text-generation = { workspace = true }
+text-gen = { workspace = true }
+image-generation = { workspace = true }
+video-generation = { workspace = true }
+speech-recognition = { workspace = true }
+music-generation = { workspace = true }
+stock-market-prediction = { workspace = true }
+weather-forecasting = { workspace = true }
+image-captioning = { workspace = true }
+medical-imaging = { workspace = true }
+facial-recognition = { workspace = true }
+video-surveillance = { workspace = true }
+image-super-resolution = { workspace = true }
+semantic-segmentation = { workspace = true }
+generative-art = { workspace = true }
+autonomous-driving = { workspace = true }
+medical-scan-analysis = { workspace = true }
+text-char-recognition = { workspace = true }
+gnn-social-networks = { workspace = true }
+pinn-heat-equation = { workspace = true }
+snn-image-classification = { workspace = true }
+    transformers-language-modeling = { workspace = true }
+    attention-mechanism = { workspace = true }
+    large-language-model = { workspace = true }
+    "pre-training-fine-tuning" = { workspace = true }
 
 [tool.uv]
 package = false
@@ -70,7 +167,7 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "SIM"]
-ignore = ["E501", "N803", "N806", "E402"]
+ignore = ["E501", "N802", "N803", "N806", "E402"]
 
 [tool.mypy]
 python_version = "3.11"

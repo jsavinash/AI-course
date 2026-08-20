@@ -22,7 +22,7 @@ format:
 
 .PHONY: typecheck
 typecheck:
-	uv run mypy shared machine-learning --ignore-missing-imports
+	uv run mypy shared apps/machine-learning apps/neural-networks --ignore-missing-imports
 
 .PHONY: test
 test:
@@ -64,8 +64,56 @@ train-semi-supervised-email:
 train-self-supervised-monitoring:
 	uv run python -m self_supervised_monitoring.train --model-dir ./artifacts/models --model-version 1.0.0
 
+.PHONY: train-email-spam-detection-nn
+train-email-spam-detection-nn:
+	uv run python -m email_spam_detection.train --model-dir ./artifacts/models --model-version 1.0.0
+
+.PHONY: train-house-price-prediction-nn
+train-house-price-prediction-nn:
+	uv run python -m house_price_prediction.train --model-dir ./artifacts/models --model-version 1.0.0
+
+.PHONY: train-credit-card-fraud-detection-nn
+train-credit-card-fraud-detection-nn:
+	uv run python -m credit_card_fraud_detection.train --model-dir ./artifacts/models --model-version 1.0.0
+
+.PHONY: train-handwritten-digit-recognition-nn
+train-handwritten-digit-recognition-nn:
+	uv run python -m handwritten_digit_recognition.train --model-dir ./artifacts/models --model-version 1.0.0
+
+.PHONY: train-language-translation-rnn
+train-language-translation-rnn:
+	uv run python -m language_translation.train --model-dir ./artifacts/models --model-version 1.0.0
+
+.PHONY: train-sentiment-analysis-rnn
+train-sentiment-analysis-rnn:
+	uv run python -m sentiment_analysis.train --model-dir ./artifacts/models --model-version 1.0.0
+
+.PHONY: train-text-generation-rnn
+train-text-generation-rnn:
+	uv run python -m text_generation.train --model-dir ./artifacts/models --model-version 1.0.0
+
+.PHONY: train-speech-recognition-rnn
+train-speech-recognition-rnn:
+	uv run python -m speech_recognition.train --model-dir ./artifacts/models --model-version 1.0.0
+
+.PHONY: train-music-generation-rnn
+train-music-generation-rnn:
+	uv run python -m music_generation.train --model-dir ./artifacts/models --model-version 1.0.0
+
+.PHONY: train-stock-market-prediction-rnn
+train-stock-market-prediction-rnn:
+	uv run python -m stock_market_prediction.train --model-dir ./artifacts/models --model-version 1.0.0
+
+.PHONY: train-weather-forecasting-rnn
+train-weather-forecasting-rnn:
+	uv run python -m weather_forecasting.train --model-dir ./artifacts/models --model-version 1.0.0
+
+.PHONY: train-image-captioning-rnn
+train-image-captioning-rnn:
+	uv run python -m image_captioning.train --model-dir ./artifacts/models --model-version 1.0.0
+
 .PHONY: train-all
-train-all: train-pizza train-spam train-market-segmentation train-recommendation-engine train-anomaly-detection train-robot-maze train-semi-supervised-email train-self-supervised-monitoring
+train-all: train-pizza train-spam train-market-segmentation train-recommendation-engine train-anomaly-detection train-robot-maze train-semi-supervised-email train-self-supervised-monitoring train-email-spam-detection-nn train-house-price-prediction-nn train-credit-card-fraud-detection-nn train-handwritten-digit-recognition-nn train-language-translation-rnn train-sentiment-analysis-rnn train-text-generation-rnn train-speech-recognition-rnn train-music-generation-rnn train-stock-market-prediction-rnn train-weather-forecasting-rnn train-image-captioning-rnn
 
 .PHONY: serve-pizza
 serve-pizza:
@@ -98,6 +146,54 @@ serve-semi-supervised-email:
 .PHONY: serve-self-supervised-monitoring
 serve-self-supervised-monitoring:
 	MODEL_DIR=./artifacts/models uv run uvicorn self_supervised_monitoring.api:app --host 0.0.0.0 --port 8007
+
+.PHONY: serve-email-spam-detection-nn
+serve-email-spam-detection-nn:
+	MODEL_DIR=./artifacts/models uv run uvicorn email_spam_detection.api:app --host 0.0.0.0 --port 8008
+
+.PHONY: serve-house-price-prediction-nn
+serve-house-price-prediction-nn:
+	MODEL_DIR=./artifacts/models uv run uvicorn house_price_prediction.api:app --host 0.0.0.0 --port 8009
+
+.PHONY: serve-credit-card-fraud-detection-nn
+serve-credit-card-fraud-detection-nn:
+	MODEL_DIR=./artifacts/models uv run uvicorn credit_card_fraud_detection.api:app --host 0.0.0.0 --port 8010
+
+.PHONY: serve-handwritten-digit-recognition-nn
+serve-handwritten-digit-recognition-nn:
+	MODEL_DIR=./artifacts/models uv run uvicorn handwritten_digit_recognition.api:app --host 0.0.0.0 --port 8011
+
+.PHONY: serve-language-translation-rnn
+serve-language-translation-rnn:
+	MODEL_DIR=./artifacts/models uv run uvicorn language_translation.api:app --host 0.0.0.0 --port 8012
+
+.PHONY: serve-sentiment-analysis-rnn
+serve-sentiment-analysis-rnn:
+	MODEL_DIR=./artifacts/models uv run uvicorn sentiment_analysis.api:app --host 0.0.0.0 --port 8013
+
+.PHONY: serve-text-generation-rnn
+serve-text-generation-rnn:
+	MODEL_DIR=./artifacts/models uv run uvicorn text_generation.api:app --host 0.0.0.0 --port 8014
+
+.PHONY: serve-speech-recognition-rnn
+serve-speech-recognition-rnn:
+	MODEL_DIR=./artifacts/models uv run uvicorn speech_recognition.api:app --host 0.0.0.0 --port 8015
+
+.PHONY: serve-music-generation-rnn
+serve-music-generation-rnn:
+	MODEL_DIR=./artifacts/models uv run uvicorn music_generation.api:app --host 0.0.0.0 --port 8016
+
+.PHONY: serve-stock-market-prediction-rnn
+serve-stock-market-prediction-rnn:
+	MODEL_DIR=./artifacts/models uv run uvicorn stock_market_prediction.api:app --host 0.0.0.0 --port 8017
+
+.PHONY: serve-weather-forecasting-rnn
+serve-weather-forecasting-rnn:
+	MODEL_DIR=./artifacts/models uv run uvicorn weather_forecasting.api:app --host 0.0.0.0 --port 8018
+
+.PHONY: serve-image-captioning-rnn
+serve-image-captioning-rnn:
+	MODEL_DIR=./artifacts/models uv run uvicorn image_captioning.api:app --host 0.0.0.0 --port 8019
 
 .PHONY: serve-all
 serve-all:
@@ -212,6 +308,18 @@ help:
 	@echo "  make train-robot-maze - Train robot-maze-navigation model locally"
 	@echo "  make train-semi-supervised-email - Train semi-supervised-email model locally"
 	@echo "  make train-self-supervised-monitoring - Train self-supervised-monitoring model locally"
+	@echo "  make train-email-spam-detection-nn - Train email-spam-detection NN model locally"
+	@echo "  make train-house-price-prediction-nn - Train house-price-prediction NN model locally"
+	@echo "  make train-credit-card-fraud-detection-nn - Train fraud-detection NN model locally"
+	@echo "  make train-handwritten-digit-recognition-nn - Train digit-recognition NN model locally"
+	@echo "  make train-language-translation-rnn - Train language-translation RNN model locally"
+	@echo "  make train-sentiment-analysis-rnn  - Train sentiment-analysis RNN model locally"
+	@echo "  make train-text-generation-rnn     - Train text-generation RNN model locally"
+	@echo "  make train-speech-recognition-rnn  - Train speech-recognition RNN model locally"
+	@echo "  make train-music-generation-rnn    - Train music-generation RNN model locally"
+	@echo "  make train-stock-market-prediction-rnn - Train stock-market-prediction RNN model locally"
+	@echo "  make train-weather-forecasting-rnn      - Train weather-forecasting RNN model locally"
+	@echo "  make train-image-captioning-rnn          - Train image-captioning RNN model locally"
 	@echo "  make train-all            - Train all models"
 	@echo "  make serve-pizza          - Run pizza-price API locally (port 8000)"
 	@echo "  make serve-spam           - Run spam-classification API locally (port 8001)"
@@ -221,6 +329,18 @@ help:
 	@echo "  make serve-robot-maze - Run robot-maze-navigation API locally (port 8005)"
 	@echo "  make serve-semi-supervised-email - Run semi-supervised-email API locally (port 8006)"
 	@echo "  make serve-self-supervised-monitoring - Run self-supervised-monitoring API locally (port 8007)"
+	@echo "  make serve-email-spam-detection-nn    - Run email-spam-detection NN API locally (port 8008)"
+	@echo "  make serve-house-price-prediction-nn  - Run house-price-prediction NN API locally (port 8009)"
+	@echo "  make serve-credit-card-fraud-detection-nn - Run fraud-detection NN API locally (port 8010)"
+	@echo "  make serve-handwritten-digit-recognition-nn - Run digit-recognition NN API locally (port 8011)"
+	@echo "  make serve-language-translation-rnn   - Run language-translation RNN API locally (port 8012)"
+	@echo "  make serve-sentiment-analysis-rnn     - Run sentiment-analysis RNN API locally (port 8013)"
+	@echo "  make serve-text-generation-rnn        - Run text-generation RNN API locally (port 8014)"
+	@echo "  make serve-speech-recognition-rnn     - Run speech-recognition RNN API locally (port 8015)"
+	@echo "  make serve-music-generation-rnn       - Run music-generation RNN API locally (port 8016)"
+	@echo "  make serve-stock-market-prediction-rnn - Run stock-market-prediction RNN API locally (port 8017)"
+	@echo "  make serve-weather-forecasting-rnn    - Run weather-forecasting RNN API locally (port 8018)"
+	@echo "  make serve-image-captioning-rnn       - Run image-captioning RNN API locally (port 8019)"
 	@echo "  make serve-all            - Run all APIs locally"
 	@echo ""
 	@echo "Docker:"

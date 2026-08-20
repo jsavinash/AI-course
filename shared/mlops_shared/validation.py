@@ -85,9 +85,7 @@ class DataValidator:
                 lo, hi = self.schema.value_ranges[name]
                 col = X[:, i]
                 if col.min() < lo or col.max() > hi:
-                    result.errors.append(
-                        f"Feature '{name}' out of range [{lo}, {hi}]"
-                    )
+                    result.errors.append(f"Feature '{name}' out of range [{lo}, {hi}]")
 
             # Check categorical values
             if name in self.schema.categorical_values:
@@ -117,8 +115,12 @@ class DataValidator:
         result.stats = {
             "n_samples": n_samples,
             "n_features": n_features,
-            "feature_means": {name: float(np.mean(X[:, i])) for i, name in enumerate(self.schema.feature_names)},
-            "feature_stds": {name: float(np.std(X[:, i])) for i, name in enumerate(self.schema.feature_names)},
+            "feature_means": {
+                name: float(np.mean(X[:, i])) for i, name in enumerate(self.schema.feature_names)
+            },
+            "feature_stds": {
+                name: float(np.std(X[:, i])) for i, name in enumerate(self.schema.feature_names)
+            },
         }
 
         result.valid = len(result.errors) == 0
@@ -169,7 +171,15 @@ def create_spam_schema() -> DataSchema:
 def create_semi_supervised_email_schema() -> DataSchema:
     """Create the schema for semi-supervised email classification."""
     return DataSchema(
-        feature_names=["has_free", "has_win", "has_link", "has_exclamation", "has_meeting", "length_score", "has_caps"],
+        feature_names=[
+            "has_free",
+            "has_win",
+            "has_link",
+            "has_exclamation",
+            "has_meeting",
+            "length_score",
+            "has_caps",
+        ],
         feature_types={
             "has_free": "binary",
             "has_win": "binary",
@@ -179,7 +189,15 @@ def create_semi_supervised_email_schema() -> DataSchema:
             "length_score": "int",
             "has_caps": "binary",
         },
-        required_columns=["has_free", "has_win", "has_link", "has_exclamation", "has_meeting", "length_score", "has_caps"],
+        required_columns=[
+            "has_free",
+            "has_win",
+            "has_link",
+            "has_exclamation",
+            "has_meeting",
+            "length_score",
+            "has_caps",
+        ],
         min_rows=1,
         max_rows=100000,
         value_ranges={
@@ -281,6 +299,125 @@ def create_anomaly_detection_schema() -> DataSchema:
     )
 
 
+def create_email_spam_schema() -> DataSchema:
+    """Create the schema for email spam detection (feedforward NN)."""
+    feature_names = [
+        "has_free",
+        "has_win",
+        "has_link",
+        "has_exclamation",
+        "has_meeting",
+        "email_length",
+        "has_caps",
+        "has_money",
+        "num_links",
+        "num_exclamations",
+        "has_urgent",
+        "sender_reputation",
+    ]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=100000,
+        value_ranges={
+            "email_length": (0.0, 100.0),
+            "num_links": (0.0, 50.0),
+            "num_exclamations": (0.0, 50.0),
+            "sender_reputation": (0.0, 1.0),
+        },
+    )
+
+
+def create_house_price_schema() -> DataSchema:
+    """Create the schema for house price prediction (feedforward NN)."""
+    feature_names = [
+        "sqft",
+        "bedrooms",
+        "bathrooms",
+        "location_score",
+        "age",
+        "garage",
+        "lot_size",
+        "year_built",
+        "property_type",
+        "school_rating",
+    ]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=100000,
+        value_ranges={
+            "sqft": (0.0, 20000.0),
+            "bedrooms": (0.0, 20.0),
+            "bathrooms": (0.0, 20.0),
+            "location_score": (0.0, 100.0),
+            "age": (0.0, 200.0),
+            "garage": (0.0, 10.0),
+            "lot_size": (0.0, 100000.0),
+            "year_built": (1800.0, 2025.0),
+            "property_type": (0.0, 3.0),
+            "school_rating": (0.0, 10.0),
+        },
+    )
+
+
+def create_fraud_detection_schema() -> DataSchema:
+    """Create the schema for credit card fraud detection (feedforward NN)."""
+    feature_names = [
+        "time_since_last_transaction",
+        "transaction_amount",
+        "merchant_category",
+        "merchant_risk_score",
+        "cardholder_risk_score",
+        "distance_from_home",
+        "is_online",
+        "is_foreign",
+        "hour_of_day",
+        "day_of_week",
+        "account_age_days",
+        "recent_transaction_count",
+        "avg_transaction_amount_24h",
+        "device_risk_score",
+        "ip_risk_score",
+    ]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=100000,
+        value_ranges={
+            "time_since_last_transaction": (0.0, 1440.0),
+            "merchant_category": (0.0, 11.0),
+            "merchant_risk_score": (0.0, 1.0),
+            "cardholder_risk_score": (0.0, 1.0),
+            "is_online": (0.0, 1.0),
+            "is_foreign": (0.0, 1.0),
+            "hour_of_day": (0.0, 23.0),
+            "day_of_week": (0.0, 6.0),
+            "device_risk_score": (0.0, 1.0),
+            "ip_risk_score": (0.0, 1.0),
+        },
+    )
+
+
+def create_digit_recognition_schema() -> DataSchema:
+    """Create the schema for handwritten digit recognition (feedforward NN)."""
+    feature_names = [f"pixel_{i}" for i in range(64)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=100000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
 def create_self_supervised_monitoring_schema() -> DataSchema:
     """Create the schema for self-supervised server monitoring anomaly detection."""
     feature_names = [
@@ -314,3 +451,423 @@ def create_self_supervised_monitoring_schema() -> DataSchema:
             "response_time": (0.0, 5000.0),
         },
     )
+
+
+# ---------------------------------------------------------------------------
+# RNN (Recurrent Neural Network) schemas
+# ---------------------------------------------------------------------------
+
+
+def create_language_translation_schema() -> DataSchema:
+    """Create the schema for RNN-based language translation."""
+    return DataSchema(
+        feature_names=["token_id"],
+        feature_types={"token_id": "int"},
+        required_columns=["token_id"],
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={"token_id": (0.0, 256.0)},
+    )
+
+
+def create_sentiment_analysis_schema() -> DataSchema:
+    """Create the schema for RNN-based sentiment analysis."""
+    return DataSchema(
+        feature_names=["token_id"],
+        feature_types={"token_id": "int"},
+        required_columns=["token_id"],
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={"token_id": (0.0, 8000.0)},
+    )
+
+
+def create_text_generation_schema() -> DataSchema:
+    """Create the schema for RNN-based text generation."""
+    return DataSchema(
+        feature_names=["token_id"],
+        feature_types={"token_id": "int"},
+        required_columns=["token_id"],
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={"token_id": (0.0, 8000.0)},
+    )
+
+
+def create_speech_recognition_schema() -> DataSchema:
+    """Create the schema for RNN-based speech recognition."""
+    feature_names = [f"frame_{i}" for i in range(16)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (-10.0, 10.0) for f in feature_names},
+    )
+
+
+def create_music_generation_schema() -> DataSchema:
+    """Create the schema for RNN-based music generation."""
+    return DataSchema(
+        feature_names=["note"],
+        feature_types={"note": "int"},
+        required_columns=["note"],
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={"note": (0.0, 127.0)},
+    )
+
+
+def create_stock_prediction_schema() -> DataSchema:
+    """Create the schema for RNN-based stock market prediction."""
+    feature_names = [f"step_{i}" for i in range(5)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (-100.0, 100.0) for f in feature_names},
+    )
+
+
+def create_weather_forecasting_schema() -> DataSchema:
+    """Create the schema for RNN-based weather forecasting."""
+    feature_names = [f"step_{i}" for i in range(5)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (-100.0, 1100.0) for f in feature_names},
+    )
+
+
+def create_image_captioning_schema() -> DataSchema:
+    """Create the schema for RNN-based image captioning."""
+    feature_names = [f"pixel_{i}" for i in range(64)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=64000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_medical_imaging_schema() -> DataSchema:
+    """Create the schema for CNN-based medical imaging diagnosis."""
+    feature_names = [f"pixel_{i}" for i in range(64)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_facial_recognition_schema() -> DataSchema:
+    """Create the schema for CNN-based facial recognition."""
+    feature_names = [f"pixel_{i}" for i in range(64)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_video_surveillance_schema() -> DataSchema:
+    """Create the schema for CNN-based video surveillance."""
+    feature_names = [f"pixel_{i}" for i in range(64)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_image_super_resolution_schema() -> DataSchema:
+    """Create the schema for DN-based image super-resolution."""
+    feature_names = [f"pixel_{i}" for i in range(64)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_semantic_segmentation_schema() -> DataSchema:
+    """Create the schema for DN-based semantic segmentation."""
+    feature_names = [f"pixel_{i}" for i in range(64)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_generative_art_schema() -> DataSchema:
+    """Create the schema for DN-based generative art."""
+    feature_names = [f"pixel_{i}" for i in range(64)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_autonomous_driving_schema() -> DataSchema:
+    """Create the schema for CapsNet-based autonomous driving."""
+    feature_names = [f"pixel_{i}" for i in range(64)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_medical_scan_analysis_schema() -> DataSchema:
+    """Create the schema for CapsNet-based medical scan analysis."""
+    feature_names = [f"pixel_{i}" for i in range(64)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_text_char_recognition_schema() -> DataSchema:
+    """Create the schema for CapsNet-based text/character recognition."""
+    feature_names = [f"pixel_{i}" for i in range(64)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_transformer_language_modeling_schema() -> DataSchema:
+    """Create the schema for Transformer-based language modeling."""
+    feature_names = [f"token_{i}" for i in range(16)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "int" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 50000.0) for f in feature_names},
+    )
+
+
+def create_gan_image_generation_schema() -> DataSchema:
+    """Create the schema for GAN-based image generation."""
+    feature_names = [f"pixel_{i}" for i in range(64)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_vae_data_generation_schema() -> DataSchema:
+    """Create the schema for VAE-based data generation."""
+    feature_names = [f"feature_{i}" for i in range(32)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_diffusion_image_generation_schema() -> DataSchema:
+    """Create the schema for Diffusion-based image generation."""
+    feature_names = [f"pixel_{i}" for i in range(64)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_autoencoders_dimensionality_reduction_schema() -> DataSchema:
+    """Create the schema for autoencoder-based dimensionality reduction."""
+    feature_names = [f"feature_{i}" for i in range(32)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_deep_belief_networks_schema() -> DataSchema:
+    """Create the schema for Deep Belief Networks."""
+    feature_names = [f"feature_{i}" for i in range(32)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_rbm_feature_learning_schema() -> DataSchema:
+    """Create the schema for Restricted Boltzmann Machine feature learning."""
+    feature_names = [f"feature_{i}" for i in range(32)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_self_organizing_maps_schema() -> DataSchema:
+    """Create the schema for Self-Organizing Maps."""
+    feature_names = [f"feature_{i}" for i in range(32)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_gnn_social_networks_schema() -> DataSchema:
+    """Create the schema for Graph Neural Network social network analysis."""
+    feature_names = [f"node_{i}" for i in range(32)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_pinn_heat_equation_schema() -> DataSchema:
+    """Create the schema for Physics-Informed Neural Network heat equation solver."""
+    feature_names = [f"x_{i}" for i in range(2)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_snn_image_classification_schema() -> DataSchema:
+    """Create the schema for Spiking Neural Network image classification."""
+    feature_names = [f"pixel_{i}" for i in range(64)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_attention_mechanism_schema() -> DataSchema:
+    """Create the schema for Attention Mechanism."""
+    feature_names = [f"feature_{i}" for i in range(512)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (-1.0, 1.0) for f in feature_names},
+    )
+
+
+def create_large_language_model_schema() -> DataSchema:
+    """Create the schema for Large Language Model."""
+    feature_names = [f"token_{i}" for i in range(100)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_multimodal_llm_schema() -> DataSchema:
+    """Create the schema for Multimodal Large Language Model."""
+    feature_names = [f"token_{i}" for i in range(1000)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+def create_transfer_learning_schema() -> DataSchema:
+    """Create the schema for Transfer Learning."""
+    feature_names = [f"token_{i}" for i in range(1000)]
+    return DataSchema(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        required_columns=feature_names,
+        min_rows=1,
+        max_rows=10000,
+        value_ranges={f: (0.0, 1.0) for f in feature_names},
+    )
+
+
+
