@@ -1,0 +1,23 @@
+[project]
+name = "semi-supervised-email"
+version = "0.1.0"
+description = "Semi-supervised email classification - Self-training with logistic regression MLOps example"
+requires-python = ">=3.11"
+dependencies = [
+    "mlops-shared",
+    "numpy>=1.26.0",
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "pydantic>=2.6.0",
+    "prometheus-client>=0.20.0",
+    "matplotlib>=3.7.0",
+]
+
+[project.scripts]
+semi-supervised-email-train = "semi_supervised_email.train:main"
+
+[tool.uv.sources]
+mlops-shared = { workspace = true }
+
+[tool.uv]
+package = true

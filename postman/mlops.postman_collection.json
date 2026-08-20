@@ -1,0 +1,1375 @@
+{
+    "info": {
+        "name": "MLOps Monorepo APIs",
+        "description": "Postman collection for the MLOps monorepo serving APIs:\n\n- **Pizza Price Prediction API** (Linear Regression) - predicts pizza price from diameter\n- **Spam Email Classification API** (Logistic Regression) - classifies emails as SPAM or NOT spam\n- **Market Segmentation API** (K-Means Clustering) - segments customers into behavioral groups\n- **Recommendation Engine API** (Apriori) - generates product recommendations from transaction patterns\n- **Anomaly Detection API** (PCA) - detects anomalous server metrics using dimensionality reduction\n- **Robot Maze Navigation API** (Q-Learning) - navigates a robot through a maze using reinforcement learning\n\n## Setup\n\n1. Run the APIs locally:\n   ```bash\n   make serve-all   # Starts all APIs on ports 8000-8005\n   ```\n   Or individually:\n   ```bash\n   make serve-pizza                  # http://localhost:8000\n   make serve-spam                   # http://localhost:8001\n   make serve-market-segmentation    # http://localhost:8002\n   make serve-recommendation-engine  # http://localhost:8003\n   make serve-anomaly-detection      # http://localhost:8004\n   make serve-robot-maze             # http://localhost:8005\n   ```\n2. Or port-forward from Kubernetes:\n   ```bash\n   make k8s-port-forward-pizza       # http://localhost:8080\n   make k8s-port-forward-spam        # http://localhost:8081\n   ```\n3. Update the collection variables to match your environment.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "pizza_base_url",
+            "value": "http://localhost:8000",
+            "type": "string"
+        },
+        {
+            "key": "spam_base_url",
+            "value": "http://localhost:8001",
+            "type": "string"
+        },
+        {
+            "key": "market_base_url",
+            "value": "http://localhost:8002",
+            "type": "string"
+        },
+        {
+            "key": "recommendation_base_url",
+            "value": "http://localhost:8003",
+            "type": "string"
+        },
+        {
+            "key": "anomaly_base_url",
+            "value": "http://localhost:8004",
+            "type": "string"
+        },
+        {
+            "key": "robot_maze_base_url",
+            "value": "http://localhost:8005",
+            "type": "string"
+        },
+        {
+            "key": "semi_supervised_email_base_url",
+            "value": "http://localhost:8006",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Pizza Price Prediction API (Supervised - Regression)",
+            "item": [
+                {
+                    "name": "Root - Service Info",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{pizza_base_url}}/",
+                            "host": [
+                                "{{pizza_base_url}}"
+                            ],
+                            "path": [
+                                ""
+                            ]
+                        },
+                        "description": "Returns service information, model version, and available endpoints."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{pizza_base_url}}/health",
+                            "host": [
+                                "{{pizza_base_url}}"
+                            ],
+                            "path": [
+                                "health"
+                            ]
+                        },
+                        "description": "Kubernetes liveness/readiness probe. Returns 503 if the model is not loaded."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Predict Price",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"diameter\": 12\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{pizza_base_url}}/predict",
+                            "host": [
+                                "{{pizza_base_url}}"
+                            ],
+                            "path": [
+                                "predict"
+                            ]
+                        },
+                        "description": "Predict pizza price for a single diameter (inches).\n\nValidation: diameter must be > 0 and <= 50."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Predict Bulk Prices",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"diameters\": [10, 12, 14, 16, 18]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{pizza_base_url}}/predict/bulk",
+                            "host": [
+                                "{{pizza_base_url}}"
+                            ],
+                            "path": [
+                                "predict",
+                                "bulk"
+                            ]
+                        },
+                        "description": "Predict pizza prices for multiple diameters (1 to 100 items)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Drift Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{pizza_base_url}}/drift",
+                            "host": [
+                                "{{pizza_base_url}}"
+                            ],
+                            "path": [
+                                "drift"
+                            ]
+                        },
+                        "description": "Check for data drift between reference training data and recent predictions (PSI, KS test). Requires at least 10 predictions to be meaningful."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Metrics",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{pizza_base_url}}/metrics",
+                            "host": [
+                                "{{pizza_base_url}}"
+                            ],
+                            "path": [
+                                "metrics"
+                            ]
+                        },
+                        "description": "Prometheus metrics endpoint (predictions total, latency, errors, drift ratio, model version)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reload Model",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{pizza_base_url}}/reload",
+                            "host": [
+                                "{{pizza_base_url}}"
+                            ],
+                            "path": [
+                                "reload"
+                            ]
+                        },
+                        "description": "Dynamically reload the model from disk/registry without restarting the server."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Spam Classification API (Supervised - Binary Classification)",
+            "item": [
+                {
+                    "name": "Root - Service Info",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{spam_base_url}}/",
+                            "host": [
+                                "{{spam_base_url}}"
+                            ],
+                            "path": [
+                                ""
+                            ]
+                        },
+                        "description": "Returns service information, model version, threshold, features, and available endpoints."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{spam_base_url}}/health",
+                            "host": [
+                                "{{spam_base_url}}"
+                            ],
+                            "path": [
+                                "health"
+                            ]
+                        },
+                        "description": "Kubernetes liveness/readiness probe. Returns 503 if the model is not loaded."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Predict with Features",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"features\": [1, 1, 1, 1, 0],\n  \"threshold\": 0.5\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{spam_base_url}}/predict",
+                            "host": [
+                                "{{spam_base_url}}"
+                            ],
+                            "path": [
+                                "predict"
+                            ]
+                        },
+                        "description": "Classify an email given explicit feature values.\n\nFeatures (5 binary): [free, win, link, !!!, meeting]\n\nExample: [1, 1, 1, 1, 0] = contains 'free', 'win', a link, and 3+ exclamation marks."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Predict Email (Raw Text) - Spam",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"text\": \"WIN a FREE iPhone!!! Click http://bit.ly now!!\",\n  \"threshold\": 0.5\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{spam_base_url}}/predict/email",
+                            "host": [
+                                "{{spam_base_url}}"
+                            ],
+                            "path": [
+                                "predict",
+                                "email"
+                            ]
+                        },
+                        "description": "Classify an email given raw text. Features are auto-extracted (free, win, link, !!!, meeting)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Predict Email - Legitimate",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"text\": \"Hi team, let's schedule a meeting for tomorrow at 10am to review the project status.\",\n  \"threshold\": 0.5\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{spam_base_url}}/predict/email",
+                            "host": [
+                                "{{spam_base_url}}"
+                            ],
+                            "path": [
+                                "predict",
+                                "email"
+                            ]
+                        },
+                        "description": "Example of a legitimate email that should be classified as NOT spam."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Drift Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{spam_base_url}}/drift",
+                            "host": [
+                                "{{spam_base_url}}"
+                            ],
+                            "path": [
+                                "drift"
+                            ]
+                        },
+                        "description": "Check for data drift between reference training data and recent predictions (PSI, KS test, chi-squared). Requires at least 10 predictions to be meaningful."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Metrics",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{spam_base_url}}/metrics",
+                            "host": [
+                                "{{spam_base_url}}"
+                            ],
+                            "path": [
+                                "metrics"
+                            ]
+                        },
+                        "description": "Prometheus metrics endpoint (predictions total, latency, errors, drift ratio, model version)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reload Model",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{spam_base_url}}/reload",
+                            "host": [
+                                "{{spam_base_url}}"
+                            ],
+                            "path": [
+                                "reload"
+                            ]
+                        },
+                        "description": "Dynamically reload the model from disk/registry without restarting the server."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Market Segmentation API (Unsupervised - Clustering)",
+            "item": [
+                {
+                    "name": "Root - Service Info",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{market_base_url}}/",
+                            "host": [
+                                "{{market_base_url}}"
+                            ],
+                            "path": [
+                                ""
+                            ]
+                        },
+                        "description": "Returns service information, model version, features, and available endpoints."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{market_base_url}}/health",
+                            "host": [
+                                "{{market_base_url}}"
+                            ],
+                            "path": [
+                                "health"
+                            ]
+                        },
+                        "description": "Kubernetes liveness/readiness probe. Returns 503 if the model is not loaded."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Segment Customer",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"annual_income\": 60,\n  \"spending_score\": 80\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{market_base_url}}/segment",
+                            "host": [
+                                "{{market_base_url}}"
+                            ],
+                            "path": [
+                                "segment"
+                            ]
+                        },
+                        "description": "Segment a single customer into a cluster.\n\nFeatures: annual_income (k$), spending_score (0-100)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Segment Bulk Customers",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"customers\": [\n    {\"annual_income\": 60, \"spending_score\": 80},\n    {\"annual_income\": 20, \"spending_score\": 25}\n  ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{market_base_url}}/segment/bulk",
+                            "host": [
+                                "{{market_base_url}}"
+                            ],
+                            "path": [
+                                "segment",
+                                "bulk"
+                            ]
+                        },
+                        "description": "Segment multiple customers (1 to 100)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Cluster Profiles",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{market_base_url}}/profiles",
+                            "host": [
+                                "{{market_base_url}}"
+                            ],
+                            "path": [
+                                "profiles"
+                            ]
+                        },
+                        "description": "Get cluster profiles for business interpretation (income/spending statistics per cluster)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Drift Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{market_base_url}}/drift",
+                            "host": [
+                                "{{market_base_url}}"
+                            ],
+                            "path": [
+                                "drift"
+                            ]
+                        },
+                        "description": "Check for data drift between reference training data and recent predictions."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Metrics",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{market_base_url}}/metrics",
+                            "host": [
+                                "{{market_base_url}}"
+                            ],
+                            "path": [
+                                "metrics"
+                            ]
+                        },
+                        "description": "Prometheus metrics endpoint."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reload Model",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{market_base_url}}/reload",
+                            "host": [
+                                "{{market_base_url}}"
+                            ],
+                            "path": [
+                                "reload"
+                            ]
+                        },
+                        "description": "Dynamically reload the model from disk/registry without restarting the server."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Recommendation Engine API (Unsupervised - Association Rules)",
+            "item": [
+                {
+                    "name": "Root - Service Info",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{recommendation_base_url}}/",
+                            "host": [
+                                "{{recommendation_base_url}}"
+                            ],
+                            "path": [
+                                ""
+                            ]
+                        },
+                        "description": "Returns service information, model version, and available endpoints."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{recommendation_base_url}}/health",
+                            "host": [
+                                "{{recommendation_base_url}}"
+                            ],
+                            "path": [
+                                "health"
+                            ]
+                        },
+                        "description": "Kubernetes liveness/readiness probe. Returns 503 if the model is not loaded."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Recommendations",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"items\": [\"Bread\", \"Milk\"],\n  \"top_k\": 5,\n  \"exclude_purchased\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{recommendation_base_url}}/recommend",
+                            "host": [
+                                "{{recommendation_base_url}}"
+                            ],
+                            "path": [
+                                "recommend"
+                            ]
+                        },
+                        "description": "Generate product recommendations based on items in the basket.\n\nProduct names are case-sensitive and must match the catalog exactly (e.g., \"Bread\", \"Milk\", \"Beer\").\n\nExample: [\"Bread\", \"Milk\"] might recommend Butter."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Top Rules",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{recommendation_base_url}}/rules?limit=10",
+                            "host": [
+                                "{{recommendation_base_url}}"
+                            ],
+                            "path": [
+                                "rules"
+                            ]
+                        },
+                        "description": "Get the top association rules sorted by lift and confidence."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Rules for Item",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{recommendation_base_url}}/rules/Bread",
+                            "host": [
+                                "{{recommendation_base_url}}"
+                            ],
+                            "path": [
+                                "rules",
+                                "Bread"
+                            ]
+                        },
+                        "description": "Get association rules where 'Bread' appears in the consequent (recommended item).\n\nNote: item names are case-sensitive and must match the product catalog exactly."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{recommendation_base_url}}/stats",
+                            "host": [
+                                "{{recommendation_base_url}}"
+                            ],
+                            "path": [
+                                "stats"
+                            ]
+                        },
+                        "description": "Get model statistics (n_transactions, n_products, n_rules, support/confidence/lift thresholds)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Drift Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{recommendation_base_url}}/drift",
+                            "host": [
+                                "{{recommendation_base_url}}"
+                            ],
+                            "path": [
+                                "drift"
+                            ]
+                        },
+                        "description": "Check for data drift between reference training data and recent predictions."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Metrics",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{recommendation_base_url}}/metrics",
+                            "host": [
+                                "{{recommendation_base_url}}"
+                            ],
+                            "path": [
+                                "metrics"
+                            ]
+                        },
+                        "description": "Prometheus metrics endpoint."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reload Model",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{recommendation_base_url}}/reload",
+                            "host": [
+                                "{{recommendation_base_url}}"
+                            ],
+                            "path": [
+                                "reload"
+                            ]
+                        },
+                        "description": "Dynamically reload the model from disk/registry without restarting the server."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Anomaly Detection API (Unsupervised - Dimensionality Reduction)",
+            "item": [
+                {
+                    "name": "Root - Service Info",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{anomaly_base_url}}/",
+                            "host": [
+                                "{{anomaly_base_url}}"
+                            ],
+                            "path": [
+                                ""
+                            ]
+                        },
+                        "description": "Returns service information, model version, features, and available endpoints."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{anomaly_base_url}}/health",
+                            "host": [
+                                "{{anomaly_base_url}}"
+                            ],
+                            "path": [
+                                "health"
+                            ]
+                        },
+                        "description": "Kubernetes liveness/readiness probe. Returns 503 if the model is not loaded."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Predict Anomaly (Single)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"request_count\": 480,\n  \"bytes_per_request\": 1500,\n  \"cpu_usage\": 68,\n  \"memory_usage\": 75,\n  \"disk_io\": 1800,\n  \"network_in\": 1500,\n  \"network_out\": 900,\n  \"error_rate\": 12.0,\n  \"connection_count\": 2400,\n  \"response_time\": 250\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{anomaly_base_url}}/predict",
+                            "host": [
+                                "{{anomaly_base_url}}"
+                            ],
+                            "path": [
+                                "predict"
+                            ]
+                        },
+                        "description": "Detect anomaly for a single server metrics observation.\n\nFeatures: request_count, bytes_per_request, cpu_usage, memory_usage, disk_io, network_in, network_out, error_rate, connection_count, response_time"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Predict Anomaly (Bulk)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"samples\": [\n    {\n      \"request_count\": 480,\n      \"bytes_per_request\": 1500,\n      \"cpu_usage\": 68,\n      \"memory_usage\": 75,\n      \"disk_io\": 1800,\n      \"network_in\": 1500,\n      \"network_out\": 900,\n      \"error_rate\": 12.0,\n      \"connection_count\": 2400,\n      \"response_time\": 250\n    },\n    {\n      \"request_count\": 200,\n      \"bytes_per_request\": 500,\n      \"cpu_usage\": 30,\n      \"memory_usage\": 40,\n      \"disk_io\": 500,\n      \"network_in\": 300,\n      \"network_out\": 200,\n      \"error_rate\": 1.0,\n      \"connection_count\": 500,\n      \"response_time\": 80\n    }\n  ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{anomaly_base_url}}/predict/bulk",
+                            "host": [
+                                "{{anomaly_base_url}}"
+                            ],
+                            "path": [
+                                "predict",
+                                "bulk"
+                            ]
+                        },
+                        "description": "Detect anomalies for multiple server metrics observations (1 to 100)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Model Info",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{anomaly_base_url}}/model/info",
+                            "host": [
+                                "{{anomaly_base_url}}"
+                            ],
+                            "path": [
+                                "model",
+                                "info"
+                            ]
+                        },
+                        "description": "Get PCA model details (components, variance ratio, reconstruction threshold)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{anomaly_base_url}}/stats",
+                            "host": [
+                                "{{anomaly_base_url}}"
+                            ],
+                            "path": [
+                                "stats"
+                            ]
+                        },
+                        "description": "Get model statistics (n_features, n_components, explained variance, threshold, reconstruction errors)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Drift Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{anomaly_base_url}}/drift",
+                            "host": [
+                                "{{anomaly_base_url}}"
+                            ],
+                            "path": [
+                                "drift"
+                            ]
+                        },
+                        "description": "Check for data drift between reference training data and recent predictions."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Metrics",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{anomaly_base_url}}/metrics",
+                            "host": [
+                                "{{anomaly_base_url}}"
+                            ],
+                            "path": [
+                                "metrics"
+                            ]
+                        },
+                        "description": "Prometheus metrics endpoint."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reload Model",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{anomaly_base_url}}/reload",
+                            "host": [
+                                "{{anomaly_base_url}}"
+                            ],
+                            "path": [
+                                "reload"
+                            ]
+                        },
+                        "description": "Dynamically reload the model from disk/registry without restarting the server."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Robot Maze Navigation API (Reinforcement Learning - Q-Learning)",
+            "item": [
+                {
+                    "name": "Root - Service Info",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{robot_maze_base_url}}/",
+                            "host": [
+                                "{{robot_maze_base_url}}"
+                            ],
+                            "path": [
+                                ""
+                            ]
+                        },
+                        "description": "Returns service information, model version, learning mode, and available endpoints."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{robot_maze_base_url}}/health",
+                            "host": [
+                                "{{robot_maze_base_url}}"
+                            ],
+                            "path": [
+                                "health"
+                            ]
+                        },
+                        "description": "Kubernetes liveness/readiness probe. Returns 503 if the model is not loaded."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Solve Maze",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"maze_size\": 6,\n  \"max_steps\": 200\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{robot_maze_base_url}}/solve",
+                            "host": [
+                                "{{robot_maze_base_url}}"
+                            ],
+                            "path": [
+                                "solve"
+                            ]
+                        },
+                        "description": "Solve the maze using the learned Q-table and return the path.\n\nMaze size: 4 to 20"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Next Action",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"row\": 1,\n  \"col\": 1,\n  \"maze_size\": 8\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{robot_maze_base_url}}/step",
+                            "host": [
+                                "{{robot_maze_base_url}}"
+                            ],
+                            "path": [
+                                "step"
+                            ]
+                        },
+                        "description": "Get the next action for a given state (row, col) using the learned Q-table."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Trigger Training",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"n_episodes\": 100,\n  \"mode\": \"online\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{robot_maze_base_url}}/train",
+                            "host": [
+                                "{{robot_maze_base_url}}"
+                            ],
+                            "path": [
+                                "train"
+                            ]
+                        },
+                        "description": "Trigger online or offline training.\n\nMode: 'online' (interactive) or 'offline' (from dataset)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{robot_maze_base_url}}/stats",
+                            "host": [
+                                "{{robot_maze_base_url}}"
+                            ],
+                            "path": [
+                                "stats"
+                            ]
+                        },
+                        "description": "Get Q-table statistics and training metrics (epsilon, episodes trained, mean reward, etc.)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Drift Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{robot_maze_base_url}}/drift",
+                            "host": [
+                                "{{robot_maze_base_url}}"
+                            ],
+                            "path": [
+                                "drift"
+                            ]
+                        },
+                        "description": "Check for data drift between reference training data and recent predictions."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Metrics",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{robot_maze_base_url}}/metrics",
+                            "host": [
+                                "{{robot_maze_base_url}}"
+                            ],
+                            "path": [
+                                "metrics"
+                            ]
+                        },
+                        "description": "Prometheus metrics endpoint."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reload Model",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{robot_maze_base_url}}/reload",
+                            "host": [
+                                "{{robot_maze_base_url}}"
+                            ],
+                            "path": [
+                                "reload"
+                            ]
+                        },
+                        "description": "Dynamically reload the model from disk/registry without restarting the server."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Semi-Supervised Email Classification API (Semi-Supervised - Self-Training)",
+            "item": [
+                {
+                    "name": "Root - Service Info",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{semi_supervised_email_base_url}}/",
+                            "host": [
+                                "{{semi_supervised_email_base_url}}"
+                            ],
+                            "path": [
+                                ""
+                            ]
+                        },
+                        "description": "Returns service information, model version, training mode, and available endpoints."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{semi_supervised_email_base_url}}/health",
+                            "host": [
+                                "{{semi_supervised_email_base_url}}"
+                            ],
+                            "path": [
+                                "health"
+                            ]
+                        },
+                        "description": "Kubernetes liveness/readiness probe. Returns 503 if the model is not loaded."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Classify Email (Spam)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"has_free\": 1,\n  \"has_win\": 1,\n  \"has_link\": 1,\n  \"has_exclamation\": 1,\n  \"has_meeting\": 0,\n  \"length_score\": 8,\n  \"has_caps\": 1\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{semi_supervised_email_base_url}}/predict",
+                            "host": [
+                                "{{semi_supervised_email_base_url}}"
+                            ],
+                            "path": [
+                                "predict"
+                            ]
+                        },
+                        "description": "Classify a single email as SPAM or NOT spam.\n\nFeatures: has_free, has_win, has_link, has_exclamation, has_meeting, length_score (1-10), has_caps"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Classify Email (Ham)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"has_free\": 0,\n  \"has_win\": 0,\n  \"has_link\": 0,\n  \"has_exclamation\": 0,\n  \"has_meeting\": 1,\n  \"length_score\": 3,\n  \"has_caps\": 0\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{semi_supervised_email_base_url}}/predict",
+                            "host": [
+                                "{{semi_supervised_email_base_url}}"
+                            ],
+                            "path": [
+                                "predict"
+                            ]
+                        },
+                        "description": "Example of a legitimate email that should be classified as NOT spam."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Classify Bulk Emails",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"emails\": [\n    {\n      \"has_free\": 1,\n      \"has_win\": 1,\n      \"has_link\": 1,\n      \"has_exclamation\": 1,\n      \"has_meeting\": 0,\n      \"length_score\": 8,\n      \"has_caps\": 1\n    },\n    {\n      \"has_free\": 0,\n      \"has_win\": 0,\n      \"has_link\": 0,\n      \"has_exclamation\": 0,\n      \"has_meeting\": 1,\n      \"length_score\": 3,\n      \"has_caps\": 0\n    }\n  ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{semi_supervised_email_base_url}}/predict/bulk",
+                            "host": [
+                                "{{semi_supervised_email_base_url}}"
+                            ],
+                            "path": [
+                                "predict",
+                                "bulk"
+                            ]
+                        },
+                        "description": "Classify multiple emails (1 to 100)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{semi_supervised_email_base_url}}/stats",
+                            "host": [
+                                "{{semi_supervised_email_base_url}}"
+                            ],
+                            "path": [
+                                "stats"
+                            ]
+                        },
+                        "description": "Get model statistics (n_features, confidence_threshold, training_mode, n_labeled_initial, n_labeled_final, accuracy_history)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Drift Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{semi_supervised_email_base_url}}/drift",
+                            "host": [
+                                "{{semi_supervised_email_base_url}}"
+                            ],
+                            "path": [
+                                "drift"
+                            ]
+                        },
+                        "description": "Check for data drift between reference training data and recent predictions."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Metrics",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{semi_supervised_email_base_url}}/metrics",
+                            "host": [
+                                "{{semi_supervised_email_base_url}}"
+                            ],
+                            "path": [
+                                "metrics"
+                            ]
+                        },
+                        "description": "Prometheus metrics endpoint."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reload Model",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{semi_supervised_email_base_url}}/reload",
+                            "host": [
+                                "{{semi_supervised_email_base_url}}"
+                            ],
+                            "path": [
+                                "reload"
+                            ]
+                        },
+                        "description": "Dynamically reload the model from disk/registry without restarting the server."
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ]
+}
