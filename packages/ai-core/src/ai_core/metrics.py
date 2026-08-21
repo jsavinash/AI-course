@@ -117,11 +117,19 @@ class MetricsCollector:
         self.request_duration.labels(method=method, endpoint=endpoint).observe(duration)
 
     def set_model_version(self, version: str) -> None:
-        """Set the current model version."""
-        version_num = "".join(c for c in version if c.isdigit() or c == ".")
+        """Set the current model version.
+
+        Parses a semantic version string (e.g. ``"1.2.3"``) into a numeric
+        gauge value using the major and minor components (``1.2``).
+        """
+        parts = [p for p in version.split(".") if p.isdigit()]
+        if not parts:
+            self.model_version_gauge.set(0.0)
+            return
+        numeric = ".".join(parts[:2]) if len(parts) >= 2 else parts[0]
         try:
-            self.model_version_gauge.set(float(version_num))
-        except (ValueError, ZeroDivisionError):
+            self.model_version_gauge.set(float(numeric))
+        except ValueError:
             self.model_version_gauge.set(0.0)
 
     def set_model_info(self, **kwargs) -> None:

@@ -215,16 +215,20 @@ class ModelRegistry:
             )
         model_info["status"] = new_status
         model_info["updated_at"] = datetime.now(UTC).isoformat()
-        self.base_dir / model_name / model_version / "model_info.json"
         with open(self.base_dir / model_name / model_version / "model_info.json", "w") as f:
             json.dump(model_info, f, indent=2)
 
     def promote_to_production(self, model_name: str, model_version: str) -> None:
-        """Convenience method: promote model to production."""
-        # Archive any existing production model for this name
+        """Convenience method: promote model to production.
+
+        Archives any existing production or staging version for this model
+        (other than the version being promoted) so only one active model
+        remains in the serving stages.
+        """
         for m in self.list_models():
-            if m["model_name"] == model_name and m["status"] == "production":
-                self.transition(model_name, m["model_version"], "archived")
+            if m["model_name"] == model_name and m["model_version"] != model_version:
+                if m["status"] in ("production", "staging"):
+                    self.transition(model_name, m["model_version"], "archived")
         self.transition(model_name, model_version, "production")
 
     # ---------- MLflow integration ----------

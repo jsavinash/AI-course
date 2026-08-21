@@ -1,31 +1,35 @@
-"""Unit tests for spam-classification model."""
+"""Unit tests for spam-classification LogisticRegression model."""
 
 import numpy as np
-from spam_classification.model import SpamDetectionNN
+from spam_classification.model import LogisticRegression
 
 
-class TestSpamDetectionNN:
-    """Tests for the email spam detection feedforward neural network."""
+class TestLogisticRegression:
+    """Tests for the email spam detection logistic regression model."""
 
     def _make_data(self, n_samples: int = 200, seed: int = 42) -> tuple[np.ndarray, np.ndarray]:
-        from classification_email_spam.data import generate_synthetic_data
+        from spam_classification.data import load_training_data
 
-        return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
+        X, y = load_training_data(None)
+        rng = np.random.default_rng(seed)
+        # Expand the small built-in dataset into a randomized synthetic set.
+        idx = rng.integers(0, len(X), size=n_samples)
+        return X[idx], y[idx]
 
     def test_training_converges(self):
-        """Test that training loss decreases."""
-        X, y = self._make_data(n_samples=200)
-        model = SpamDetectionNN(hidden_dim=8, learning_rate=0.01, n_iterations=500, random_seed=42)
+        """Test that training loss decreases and predictions are produced."""
+        X, y = self._make_data()
+        model = LogisticRegression(learning_rate=0.1, n_iterations=2000)
         model.fit(X, y)
 
         assert len(model.loss_history) > 0
         assert model.loss_history[-1] < model.loss_history[0]
-        assert model.training_mode == "supervised"
+        assert model.weights is not None
 
     def test_predict_proba_range(self):
         """Test that probabilities are in [0, 1]."""
-        X, y = self._make_data(n_samples=200)
-        model = SpamDetectionNN(hidden_dim=8, learning_rate=0.01, n_iterations=200, random_seed=42)
+        X, y = self._make_data()
+        model = LogisticRegression(learning_rate=0.1, n_iterations=2000)
         model.fit(X, y)
 
         probas = model.predict_proba(X)
@@ -35,8 +39,8 @@ class TestSpamDetectionNN:
 
     def test_predict_returns_valid_labels(self):
         """Test that predictions are binary (0 or 1)."""
-        X, y = self._make_data(n_samples=200)
-        model = SpamDetectionNN(hidden_dim=8, learning_rate=0.01, n_iterations=200, random_seed=42)
+        X, y = self._make_data()
+        model = LogisticRegression(learning_rate=0.1, n_iterations=2000)
         model.fit(X, y)
 
         preds = model.predict(X)
@@ -44,9 +48,9 @@ class TestSpamDetectionNN:
         assert set(np.unique(preds)).issubset({0, 1})
 
     def test_evaluate_returns_metrics(self):
-        """Test that evaluate returns classification metrics."""
-        X, y = self._make_data(n_samples=200)
-        model = SpamDetectionNN(hidden_dim=8, learning_rate=0.01, n_iterations=200, random_seed=42)
+        """Test that evaluate returns classification metrics in valid ranges."""
+        X, y = self._make_data()
+        model = LogisticRegression(learning_rate=0.1, n_iterations=2000)
         model.fit(X, y)
 
         metrics = model.evaluate(X, y)
@@ -56,32 +60,24 @@ class TestSpamDetectionNN:
         assert "f1" in metrics
         assert "roc_auc" in metrics
         assert 0.0 <= metrics["accuracy"] <= 1.0
+        assert 0.0 <= metrics["roc_auc"] <= 1.0
 
     def test_save_load_roundtrip(self, tmp_path):
         """Test that model save/load preserves parameters."""
-        X, y = self._make_data(n_samples=200)
-        model = SpamDetectionNN(hidden_dim=8, learning_rate=0.01, n_iterations=200, random_seed=42)
+        X, y = self._make_data()
+        model = LogisticRegression(learning_rate=0.1, n_iterations=2000)
         model.fit(X, y)
 
         path = str(tmp_path / "model.npz")
         model.save(path)
-        loaded = SpamDetectionNN.load(path)
+        loaded = LogisticRegression.load(path)
 
-        np.testing.assert_allclose(loaded.W1, model.W1)
-        np.testing.assert_allclose(loaded.W2, model.W2)
-        assert loaded.input_dim == model.input_dim
-        assert loaded.hidden_dim == model.hidden_dim
+        np.testing.assert_allclose(loaded.weights, model.weights)
+        assert loaded.bias == model.bias
+        np.testing.assert_allclose(loaded.loss_history, model.loss_history)
 
-    def test_to_dict_returns_metadata(self):
-        """Test that to_dict returns model metadata."""
-        X, y = self._make_data(n_samples=100)
-        model = SpamDetectionNN(hidden_dim=8, learning_rate=0.01, n_iterations=100, random_seed=42)
-        model.fit(X, y)
-
-        metadata = model.to_dict()
-        assert "input_dim" in metadata
-        assert "hidden_dim" in metadata
-        assert "training_mode" in metadata
-        assert "n_epochs_run" in metadata
-        assert metadata["training_mode"] == "supervised"
-
+    def test_untrained_raises(self):
+        """Test that predicting before training raises."""
+        model = LogisticRegression()
+        with np.testing.assert_raises(ValueError):
+            model.predict_proba(np.zeros((2, 5)))

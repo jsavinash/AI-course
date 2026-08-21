@@ -677,14 +677,13 @@ def create_text_char_recognition_schema() -> DataSchema:
 
 def create_transformer_language_modeling_schema() -> DataSchema:
     """Create the schema for Transformer-based language modeling."""
-    feature_names = [f"token_{i}" for i in range(16)]
     return DataSchema(
-        feature_names=feature_names,
-        feature_types={f: "int" for f in feature_names},
-        required_columns=feature_names,
+        feature_names=["token"],
+        feature_types={"token": "int"},
+        required_columns=["token"],
         min_rows=1,
-        max_rows=10000,
-        value_ranges={f: (0.0, 50000.0) for f in feature_names},
+        max_rows=100000,
+        value_ranges={"token": (0.0, 100.0)},
     )
 
 
@@ -833,14 +832,13 @@ def create_attention_mechanism_schema() -> DataSchema:
 
 def create_large_language_model_schema() -> DataSchema:
     """Create the schema for Large Language Model."""
-    feature_names = [f"token_{i}" for i in range(100)]
     return DataSchema(
-        feature_names=feature_names,
-        feature_types={f: "float" for f in feature_names},
-        required_columns=feature_names,
+        feature_names=["token"],
+        feature_types={"token": "int"},
+        required_columns=["token"],
         min_rows=1,
-        max_rows=10000,
-        value_ranges={f: (0.0, 1.0) for f in feature_names},
+        max_rows=100000,
+        value_ranges={"token": (0.0, 100.0)},
     )
 
 

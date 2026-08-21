@@ -1,0 +1,11 @@
+# prod overlay — 3 replicas, higher resources, pinned by SHA via CI
+replicas: 3
+image:
+  tag: sha-latest
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi

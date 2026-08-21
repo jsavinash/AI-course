@@ -23,11 +23,11 @@ def train(
     model_dir: Path,
     data_path: Path | None = None,
     n_samples: int = 500,
-    d_model: int = 128,
+    d_model: int = 32,
     n_heads: int = 4,
-    n_encoder_layers: int = 2,
-    n_decoder_layers: int = 2,
-    d_ff: int = 512,
+    n_encoder_layers: int = 1,
+    n_decoder_layers: int = 1,
+    d_ff: int = 128,
     max_seq_len: int = 32,
     learning_rate: float = 0.001,
     n_iterations: int = 100,
@@ -131,11 +131,11 @@ def main():
     parser.add_argument("--model-dir", type=Path, default=Path(os.getenv("MODEL_DIR", "/models")))
     parser.add_argument("--data-path", type=Path, default=None)
     parser.add_argument("--n-samples", type=int, default=int(os.getenv("N_SAMPLES", "500")))
-    parser.add_argument("--d-model", type=int, default=int(os.getenv("D_MODEL", "128")))
+    parser.add_argument("--d-model", type=int, default=int(os.getenv("D_MODEL", "32")))
     parser.add_argument("--n-heads", type=int, default=int(os.getenv("N_HEADS", "4")))
-    parser.add_argument("--n-encoder-layers", type=int, default=int(os.getenv("N_ENCODER_LAYERS", "2")))
-    parser.add_argument("--n-decoder-layers", type=int, default=int(os.getenv("N_DECODER_LAYERS", "2")))
-    parser.add_argument("--d-ff", type=int, default=int(os.getenv("D_FF", "512")))
+    parser.add_argument("--n-encoder-layers", type=int, default=int(os.getenv("N_ENCODER_LAYERS", "1")))
+    parser.add_argument("--n-decoder-layers", type=int, default=int(os.getenv("N_DECODER_LAYERS", "1")))
+    parser.add_argument("--d-ff", type=int, default=int(os.getenv("D_FF", "128")))
     parser.add_argument("--max-seq-len", type=int, default=int(os.getenv("MAX_SEQ_LEN", "32")))
     parser.add_argument("--learning-rate", type=float, default=float(os.getenv("LEARNING_RATE", "0.001")))
     parser.add_argument("--n-iterations", type=int, default=int(os.getenv("N_ITERATIONS", "100")))

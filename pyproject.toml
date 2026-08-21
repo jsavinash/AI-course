@@ -91,8 +91,8 @@ ai-core = { workspace = true }
 package = false
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "-v --cov=. --cov-report=term-missing"
+testpaths = ["packages", "apps"]
+addopts = "-v --import-mode=importlib --cov=ai_core --cov-report=term-missing"
 
 [tool.ruff]
 line-length = 100

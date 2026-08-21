@@ -1,0 +1,11 @@
+# staging overlay — 2 replicas, moderate resources
+replicas: 2
+image:
+  tag: latest
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi

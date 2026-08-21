@@ -14,7 +14,7 @@ import json
 import os
 from dataclasses import MISSING, asdict, dataclass, field, fields
 from pathlib import Path
-from typing import Any, TypeVar, get_type_hints
+from typing import Any, TypeVar, get_origin, get_type_hints
 
 import yaml
 
@@ -40,14 +40,19 @@ class BaseConfig:
     """Base configuration with env var support."""
 
     @classmethod
-    def from_env(cls: type[T], prefix: str = "") -> T:
+    def from_env(cls: type[T], prefix: str = "", base: T | None = None) -> T:
         """Create config from environment variables.
 
         Maps env vars like PREFIX_FIELD_NAME to dataclass fields.
-        Supports nested dataclasses via PREFIX_SECTION_FIELD.
+        Supports nested dataclasses via PREFIX_SECTION_FIELD. When ``base`` is
+        provided, its values are used as defaults and only overridden by env
+        vars that are actually set (so file-provided values are preserved).
         """
         type_hints = get_type_hints(cls)
         kwargs: dict[str, Any] = {}
+        if base is not None:
+            for f in fields(cls):
+                kwargs[f.name] = getattr(base, f.name)
 
         for f in fields(cls):
             env_key = f"{prefix}_{f.name.upper()}" if prefix else f.name.upper()
@@ -62,12 +67,22 @@ class BaseConfig:
         """Load config from a YAML file."""
         with open(path) as f:
             data = yaml.safe_load(f) or {}
-        return cls(**data)
+        return cls.from_dict(data)
 
     @classmethod
     def from_dict(cls: type[T], data: dict[str, Any]) -> T:
-        """Create config from a dictionary."""
-        return cls(**data)
+        """Create config from a dictionary, reconstructing nested configs."""
+        type_hints = get_type_hints(cls)
+        kwargs: dict[str, Any] = {}
+        for f in fields(cls):
+            if f.name not in data:
+                continue
+            val = data[f.name]
+            hint = type_hints.get(f.name, f.type)
+            if isinstance(val, dict) and isinstance(hint, type) and issubclass(hint, BaseConfig):
+                val = hint.from_dict(val)
+            kwargs[f.name] = val
+        return cls(**kwargs)
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary (with secrets redacted)."""
@@ -103,9 +118,9 @@ def _coerce_value(value: str, target_type: Any) -> Any:
         return float(value)
     if target_type is Path or target_type == "Path":
         return Path(value)
-    if target_type is list[str] or target_type == "List[str]":
+    if get_origin(target_type) is list or target_type in ("List[str]", "list[str]"):
         return [v.strip() for v in value.split(",") if v.strip()]
-    if target_type is dict[str, Any] or target_type == "Dict[str, Any]":
+    if get_origin(target_type) is dict or target_type in ("Dict[str, Any]", "dict[str, Any]"):
         return json.loads(value)
     return value
 
@@ -189,11 +204,11 @@ class Config(BaseConfig):
             if env_val is not None and env_val != getattr(cls(), f.name):
                 setattr(config, f.name, env_val)
 
-        # Load nested configs from env
-        config.mlflow = MLflowConfig.from_env(f"{prefix}_MLFLOW")
-        config.registry = ModelRegistryConfig.from_env(f"{prefix}_REGISTRY")
-        config.monitoring = MonitoringConfig.from_env(f"{prefix}_MONITORING")
-        config.data = DataConfig.from_env(f"{prefix}_DATA")
+        # Load nested configs from env, preserving any file-provided values
+        config.mlflow = MLflowConfig.from_env(f"{prefix}_MLFLOW", base=config.mlflow)
+        config.registry = ModelRegistryConfig.from_env(f"{prefix}_REGISTRY", base=config.registry)
+        config.monitoring = MonitoringConfig.from_env(f"{prefix}_MONITORING", base=config.monitoring)
+        config.data = DataConfig.from_env(f"{prefix}_DATA", base=config.data)
 
         return config
 

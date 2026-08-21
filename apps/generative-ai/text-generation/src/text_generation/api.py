@@ -13,8 +13,8 @@ from ai_core.metrics import MetricsCollector
 from ai_core.model_registry import ModelRegistry
 from fastapi import FastAPI, HTTPException, Response
 from pydantic import BaseModel, Field
-from text_gen.data import DEFAULT_VOCAB_SIZE
-from text_gen.model import TextGenerationModel
+from text_generation.data import DEFAULT_VOCAB_SIZE
+from text_generation.model import TextGenerationModel
 
 logger = get_logger(__name__)
 
@@ -140,7 +140,7 @@ def _load_model() -> tuple[TextGenerationModel, str]:
 
 
 def _load_reference_data() -> np.ndarray | None:
-    from nlp_text_generation.data import generate_synthetic_text
+    from text_generation.data import generate_synthetic_text
     X_base, _ = generate_synthetic_text(n_samples=100, random_seed=42)
     return X_base.astype(float)
 

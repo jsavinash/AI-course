@@ -41,7 +41,7 @@ def train(
     logger.info("Generated sequence data", n_samples=n_samples, seq_len=SEQ_LEN)
 
     validator = DataValidator(create_attention_mechanism_schema())
-    validation = validator.validate(X.reshape(-1, 1))
+    validation = validator.validate(X.reshape(X.shape[0], -1))
     if not validation.valid:
         logger.error("Training data validation failed", errors=validation.errors)
         raise ValueError(f"Training data validation failed: {validation.errors}")

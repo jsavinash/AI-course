@@ -28,6 +28,15 @@ typecheck:
 test:
 	uv run pytest
 
+.PHONY: test-cov
+test-cov:
+	uv run pytest --cov=ai_core --cov-report=term-missing
+
+.PHONY: test-app
+test-app:
+	uv run pytest apps/$(APP)/tests --cov=$(APP) --cov-report=term-missing
+
+
 .PHONY: uv-sync
 uv-sync:
 	uv sync --all-packages --reinstall

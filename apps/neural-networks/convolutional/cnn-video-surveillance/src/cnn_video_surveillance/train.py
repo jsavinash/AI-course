@@ -39,7 +39,7 @@ def train(
 
     if "classification" in ("classification", "binary_classification"):
         validator = DataValidator(create_video_surveillance_schema())
-        validation = validator.validate(X.reshape(-1, 1))
+        validation = validator.validate(X)
         if not validation.valid:
             logger.error("Training data validation failed", errors=validation.errors)
             raise ValueError(f"Training data validation failed: {validation.errors}")

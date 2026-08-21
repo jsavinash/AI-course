@@ -39,7 +39,7 @@ def train(
 
     if "segmentation" in ("classification", "binary_classification"):
         validator = DataValidator(create_semantic_segmentation_schema())
-        validation = validator.validate(X.reshape(-1, 1))
+        validation = validator.validate(X)
         if not validation.valid:
             logger.error("Training data validation failed", errors=validation.errors)
             raise ValueError(f"Training data validation failed: {validation.errors}")
@@ -58,7 +58,6 @@ def train(
         N_CHANNELS=1,
         n_filters=n_filters,
         kernel_size=kernel_size,
-        hidden_dim=hidden_dim,
         learning_rate=learning_rate,
         n_iterations=n_iterations,
         weight_decay=weight_decay,

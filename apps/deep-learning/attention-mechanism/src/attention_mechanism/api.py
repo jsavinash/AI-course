@@ -4,6 +4,7 @@ import os
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Annotated
 
 import numpy as np
 from ai_core.drift import DriftDetector
@@ -27,7 +28,7 @@ DRIFT_THRESHOLD = float(os.getenv("DRIFT_THRESHOLD", "0.2"))
 
 
 class PredictRequest(BaseModel):
-    input_sequence: list[list[float]] = Field(..., min_length=1, max_length=1)
+    input_sequence: list[Annotated[list[float], Field(min_length=SEQ_LEN * INPUT_DIM, max_length=SEQ_LEN * INPUT_DIM)]] = Field(..., min_length=1, max_length=1)
     attention_type: str | None = None
 
 
@@ -265,7 +266,7 @@ def predict(body: PredictRequest):
     try:
         X_reshaped = X.reshape(1, SEQ_LEN, INPUT_DIM) if X.size >= SEQ_LEN * INPUT_DIM else X.reshape(1, X.shape[1] // INPUT_DIM, INPUT_DIM)
 
-        if body.attention_type and body.attention_type != _model.attention_type:
+        if body.attention_type and body.attention_type in ("soft_additive", "self", "multi_head", "hard") and body.attention_type != _model.attention_type:
             _model.attention_type = body.attention_type
 
         output, attn_weights = _model.predict(X_reshaped)

@@ -19,7 +19,6 @@ related links).
 """
 
 import html
-import os
 import re
 import sys
 from html.parser import HTMLParser

@@ -40,7 +40,7 @@ def train(
     logger.info("Generated image data", n_samples=n_samples)
 
     validator = DataValidator(create_snn_image_classification_schema())
-    validation = validator.validate(X.reshape(-1, 1))
+    validation = validator.validate(X)
     if not validation.valid:
         logger.error("Training data validation failed", errors=validation.errors)
         raise ValueError(f"Training data validation failed: {validation.errors}")

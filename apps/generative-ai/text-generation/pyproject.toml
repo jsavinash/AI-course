@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.scripts]
-text_gen-train = "text_gen.train:main"
+text-generation-train = "text_generation.train:main"
 
 [tool.uv.sources]
 ai-core = { workspace = true }

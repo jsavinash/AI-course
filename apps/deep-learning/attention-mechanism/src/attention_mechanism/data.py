@@ -28,8 +28,8 @@ def generate_synthetic_data(
         y: (n_samples, seq_len, output_dim) target sequence
     """
     rng = np.random.default_rng(random_seed)
-    X = rng.normal(0, 1, (n_samples, seq_len, input_dim)).astype(np.float32)
-    y = rng.normal(0, 1, (n_samples, seq_len, output_dim)).astype(np.float32)
+    X = rng.uniform(-1, 1, (n_samples, seq_len, input_dim)).astype(np.float32)
+    y = rng.uniform(-1, 1, (n_samples, seq_len, output_dim)).astype(np.float32)
 
     return X, y
 

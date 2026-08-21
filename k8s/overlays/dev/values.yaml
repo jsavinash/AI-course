@@ -1,0 +1,11 @@
+# dev overlay — single replica, minimal resources, latest tag
+replicas: 1
+image:
+  tag: latest
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi

@@ -37,7 +37,7 @@ def train(
     logger.info("Generated PDE training data", n_samples=n_samples, alpha=alpha)
 
     validator = DataValidator(create_pinn_heat_equation_schema())
-    validation = validator.validate(X.reshape(-1, 1))
+    validation = validator.validate(X)
     if not validation.valid:
         logger.error("Training data validation failed", errors=validation.errors)
         raise ValueError(f"Training data validation failed: {validation.errors}")

@@ -1,5 +1,6 @@
 """Shared MLOps utilities for the monorepo."""
 
+from ai_core.api_base import add_observability_middleware
 from ai_core.config import (
     Config,
     DataConfig,
@@ -9,6 +10,12 @@ from ai_core.config import (
     load_config,
 )
 from ai_core.drift import DriftDetector, DriftResult
+from ai_core.layers import (
+    Activation,
+    Deconv2D,
+    SimpleCNN,
+    SimpleRNN,
+)
 from ai_core.logging import (
     clear_request_context,
     generate_request_id,
@@ -16,8 +23,15 @@ from ai_core.logging import (
     set_request_context,
     setup_logging,
 )
+from ai_core.losses import (
+    bce_loss,
+    cross_entropy_loss,
+    mse_loss,
+)
 from ai_core.metrics import MetricsCollector, PredictionMetrics
 from ai_core.model_registry import MODEL_STAGES, TRANSITIONS, ModelInfo, ModelRegistry
+from ai_core.optim import adam_step, sgd_step
+from ai_core.train_loop import Callback, TrainLoop
 from ai_core.validation import (
     DataSchema,
     DataValidator,
@@ -133,4 +147,16 @@ __all__ = [
     "create_transfer_learning_schema",
     "DriftDetector",
     "DriftResult",
+    "add_observability_middleware",
+    "SimpleCNN",
+    "Activation",
+    "Deconv2D",
+    "SimpleRNN",
+    "mse_loss",
+    "bce_loss",
+    "cross_entropy_loss",
+    "sgd_step",
+    "adam_step",
+    "Callback",
+    "TrainLoop",
 ]

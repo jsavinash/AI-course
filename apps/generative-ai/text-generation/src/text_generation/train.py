@@ -6,8 +6,8 @@ from pathlib import Path
 
 from ai_core.logging import get_logger, setup_logging
 from ai_core.model_registry import ModelRegistry
-from text_gen.data import load_text_dataset, save_dataset, train_test_split
-from text_gen.model import TextGenerationModel
+from text_generation.data import load_text_dataset, save_dataset, train_test_split
+from text_generation.model import TextGenerationModel
 
 logger = get_logger(__name__)
 

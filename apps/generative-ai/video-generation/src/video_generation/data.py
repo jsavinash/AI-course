@@ -7,6 +7,7 @@ import numpy as np
 DEFAULT_N_SAMPLES = 200
 DEFAULT_IMG_SIZE = 32
 DEFAULT_N_FRAMES = 8
+DEFAULT_LATENT_DIM = 64
 
 
 def generate_synthetic_videos(n_samples: int = DEFAULT_N_SAMPLES, img_size: int = DEFAULT_IMG_SIZE, n_frames: int = DEFAULT_N_FRAMES, random_seed: int = 42) -> tuple[np.ndarray, list[str]]:

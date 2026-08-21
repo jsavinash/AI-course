@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Generate standalone HTML documentation for all neural-network apps."""
 
-import os
 from pathlib import Path
 
 BASE_DIR = Path("/Users/avi/Documents/ai/apps/neural-networks")
