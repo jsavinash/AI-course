@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>regression-house-price — Neural Network App Documentation</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --surface: #181b21;
+    --surface-2: #1f232b;
+    --text: #e6e6e6;
+    --muted: #a0a4b0;
+    --accent: #5eead4;
+    --accent-2: #67e8f9;
+    --border: #2a2f3a;
+    --code-bg: #121418;
+    --tag-bg: #1a2634;
+    --tag-text: #7dd3fc;
+    --warn: #fbbf24;
+    --ok: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-monospace, "SF Mono", "Fira Code", "Cascadia Code", monospace;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 28px 40px;
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  header h1 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--accent);
+  }
+  header p { margin: 0; color: var(--muted); font-size: 13px; }
+  main { max-width: 980px; margin: 0 auto; padding: 36px 40px 80px; }
+  section { margin-bottom: 56px; }
+  h2 {
+    font-size: 16px;
+    margin: 0 0 18px;
+    color: var(--accent-2);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+  }
+  h3 { font-size: 14px; margin: 20px 0 8px; color: var(--text); }
+  p { margin: 0 0 12px; color: var(--muted); }
+  .tag {
+    display: inline-block;
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 12px;
+    margin: 2px 4px 2px 0;
+  }
+  code {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 12px;
+    color: var(--warn);
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+  pre code { background: none; border: none; padding: 0; color: inherit; }
+  .kw { color: #c084fc; }
+  .fn { color: #67e8f9; }
+  .str { color: #4ade80; }
+  .num { color: #fbbf24; }
+  .cm { color: #6b7280; font-style: italic; }
+  .op { color: #f472b6; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+  }
+  th { background: var(--surface-2); color: var(--accent-2); }
+  td { background: var(--surface); }
+  .math-block {
+    background: var(--surface-2);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    margin: 10px 0;
+    border-radius: 4px;
+    font-style: italic;
+    color: var(--text);
+    white-space: pre-wrap;
+    font-size: 13px;
+  }
+  .callout {
+    background: var(--surface-2);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin: 12px 0;
+    color: var(--muted);
+  }
+  .callout strong { color: var(--accent-2); }
+  ul { padding-left: 20px; margin: 8px 0; }
+  li { margin: 4px 0; color: var(--muted); }
+  .file-path { color: var(--tag-text); font-size: 12px; }
+  .section-icon { margin-right: 6px; }
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="section-icon">🏠</span>regression-house-price</h1>
+  <p>Supervised MLP Regressor &nbsp;·&nbsp; House Price Prediction &nbsp;·&nbsp; MLOps Example</p>
+</header>
+<main>
+
+<section id="overview">
+  <h2><span class="section-icon">◈</span>Overview &amp; Monorepo Context</h2>
+  <p><strong>regression-house-price</strong> is a Python package that predicts house prices from property features using a <strong>feedforward neural network (MLP)</strong> implemented from scratch with NumPy. It lives in the <code>feedforward</code> monorepo and represents the <strong>supervised regression</strong> task type.</p>
+  <p>The app predicts a continuous target (price in USD) from 10 features including square footage, bedrooms, bathrooms, location score, property age, garage size, lot size, year built, property type, and school rating.</p>
+
+  <h3>Package Identity</h3>
+  <div class="callout">
+    <strong>pyproject.toml</strong><br>
+    Name: <code>house-price-prediction</code><br>
+    Version: <code>0.2.0</code><br>
+    Package module: <code>regression_house_price</code><br>
+    CLI entry-point: <code>house-price-prediction-train = house_price_prediction.train:main</code>
+  </div>
+
+  <h3>Dependencies &amp; Monorepo Coupling</h3>
+  <ul>
+    <li><code>ai-core</code> — workspace-local shared library for logging, model registry, drift detection, metrics, and FastAPI middleware.</li>
+    <li><code>numpy &gt;=1.26.0</code> — sole ML framework (no PyTorch / TensorFlow).</li>
+    <li><code>fastapi + uvicorn + pydantic</code> — production REST API.</li>
+    <li><code>prometheus-client</code> — Prometheus metrics.</li>
+    <li><code>matplotlib</code> — training-loss charting.</li>
+    <li><code>pytest + pytest-cov</code> — testing.</li>
+  </ul>
+  <p>The app also depends on <code>ai_core.validation.DataValidator</code> with a house-price schema that guards feature ranges at both training and serving time.</p>
+</section>
+
+<section id="math">
+  <h2><span class="section-icon">∫</span>The Mathematical Foundation</h2>
+  <p class="callout"><strong>Task type:</strong> Supervised regression (continuous target).<br>
+  <strong>Architecture:</strong> Input (n_features) → Hidden (ReLU) → Output (Linear, 1 neuron).</p>
+
+  <h3>1. Forward Pass</h3>
+  <div class="math-block">z₁ = W₁ · x + b₁</div>
+  <div class="math-block">a₁ = ReLU(z₁)</div>
+  <div class="math-block">ŷ = W₂ · a₁ + b₂          &nbsp;(linear output — no activation)</div>
+  <p>The output layer is intentionally linear because the target (price) is unbounded above. A sigmoid or tanh output would clip predictions, which is inappropriate for regression. The model learns to predict the normalised target; at inference time the prediction is denormalised back to USD.</p>
+
+  <h3>2. Loss — Mean Squared Error</h3>
+  <div class="math-block">L_MSE = (1/n) · Σᵢ (yᵢ − ŷᵢ)²</div>
+  <p>MSE penalises large errors quadratically, which is appropriate when we want the model to avoid outlier predictions. The gradient is simply <code>2·(ŷ−y)/n</code>, making backpropagation efficient.</p>
+
+  <h3>3. Total Loss with L2 Regularisation</h3>
+  <div class="math-block">L_total = MSE(y, ŷ) + λ · (‖W₁‖² + ‖W₂‖²)</div>
+
+  <h3>4. Gradient Descent Updates</h3>
+  <div class="math-block">∂L/∂ŷ = 2·(ŷ − y) / n</div>
+  <div class="math-block">∂L/∂W₂ = a₁ᵀ · ∂L/∂ŷ + 2λW₂</div>
+  <div class="math-block">∂L/∂W₁ = xᵀ · (∂L/∂ŷ · W₂ᵀ ⊙ ReLU′(z₁)) + 2λW₁</div>
+  <div class="math-block">W ← W − α · ∂L/∂W</div>
+  <p>α (learning rate = 0.001) controls step size. Too large → divergence; too small → slow convergence. The default is chosen conservatively for stability on small datasets.</p>
+
+  <h3>5. Target Normalisation</h3>
+  <div class="math-block">y_norm = (y − μ_y) / σ_y</div>
+  <div class="math-block">ŷ = ŷ_norm · σ_y + μ_y</div>
+  <p>Features and targets are normalised to zero mean and unit variance before training. This ensures the loss landscape is well-conditioned and both weights and biases converge at similar rates. At prediction time, the output is denormalised to return a USD price.</p>
+
+  <h3>6. Why a Neural Network over Linear Regression?</h3>
+  <p>A single linear layer (y = wx + b) can only learn linear relationships. House prices have non-linear interactions: the value of a bedroom depends on total square footage, location premium interacts with property type, and age has a non-linear depreciation curve. A hidden ReLU layer with 32 neurons captures these interactions.</p>
+</section>
+
+<section id="architecture">
+  <h2><span class="section-icon">⚙</span>Core Logic &amp; Architecture</h2>
+
+  <h3>File Map</h3>
+  <ul>
+    <li><span class="file-path">model.py</span> — <code>HousePriceNN</code> dataclass: forward, fit, predict, evaluate, save/load.</li>
+    <li><span class="file-path">data.py</span> — synthetic house data generator (10 features + price formula), train/test split, CSV persistence.</li>
+    <li><span class="file-path">train.py</span> — CLI pipeline with schema validation, model training, registry, MLflow logging.</li>
+    <li><span class="file-path">api.py</span> — FastAPI server: validation, prediction, drift detection, metrics, live reload.</li>
+  </ul>
+
+  <h3>Data Flow</h3>
+  <pre class="mermaid">graph TD
+    A[Synthetic / CSV House Features] --> B[Validate Schema]
+    B --> C[Normalize X and y]
+    C --> D[Train MLP Regressor with MSE + L2]
+    D --> E[Track Val Loss Every 50 Epochs]
+    E --> F[Early Stop if Converged]
+    F --> G[Save Model &amp; Register]
+    G --> H{Serving}
+    H --> I[Validate Input]
+    I --> J[Predict Normalised]
+    J --> K[Denormalise to USD]
+    K --> L[Return Price]</pre>
+
+  <h3>Design Constraints &amp; Patterns</h3>
+  <ul>
+    <li><strong>Target normalisation:</strong> Both X and y are standardised. The model stores <code>y_mean_</code> and <code>y_std_</code> for denormalisation at prediction time.</li>
+    <li><strong>Dual normalisation guard:</strong> <code>std_</code> for features and <code>y_std_</code> for targets are clamped to a minimum of 1e-8 to avoid division by zero on constant columns.</li>
+    <li><strong>Validation loss tracking:</strong> Unlike classification (which tracks accuracy), regression tracks MSE on the validation set every 50 epochs.</li>
+    <li><strong>Early stopping:</strong> Same 1e-7 convergence criterion.</li>
+    <li><strong>Model registry fallback chain:</strong> Identical to the other apps — registry, direct NPZ, bundled, baseline.</li>
+  </ul>
+</section>
+
+<section id="code-walkthrough">
+  <h2><span class="section-icon">🔬</span>Detailed Code Walkthrough</h2>
+
+  <h3><span class="file-path">model.py</span> — <code>HousePriceNN</code></h3>
+
+  <h4>Target Normalisation in <code>fit()</code></h4>
+  <pre><code>self.y_mean_ = float(y.mean())
+self.y_std_ = float(y.std()) <span class="kw">if</span> y.std() > <span class="num">1e-8</span> <span class="kw">else</span> <span class="num">1.0</span>
+y_norm = (y - self.y_mean_) / self.y_std_</code></pre>
+  <p>Target normalisation is critical for regression. Prices span tens or hundreds of thousands; without normalisation, the initial random weights produce outputs in the wrong order of magnitude, causing gradient explosion or vanishing. Standardising y to unit variance puts it on the same scale as the hidden activations.</p>
+
+  <h4>Prediction Denormalisation</h4>
+  <pre><code><span class="kw">def</span> <span class="fn">predict</span>(self, X):
+    X_norm = (X - self.mean_) / self.std_
+    output, _, _ = self._forward(X_norm)
+    <span class="kw">return</span> output * self.y_std_ + self.y_mean_</code></pre>
+  <p>The model's raw output is <code>output</code> (shape: n_samples,), which is the normalised prediction. Multiplying by <code>y_std_</code> and adding <code>y_mean_</code> rescales it back to USD. This two-step normalisation/denormalisation is invisible to API consumers, who always receive real dollar amounts.</p>
+
+  <h4>Backpropagation</h4>
+  <pre><code>dz2 = <span class="num">2</span> * (output - y_norm) / m     <span class="cm"># dL/dz2 for MSE</span>
+dW2 = np.dot(a1.T, dz2.reshape(-<span class="num">1</span>, <span class="num">1</span>)) + self.weight_decay * self.W2
+db2 = np.sum(dz2)
+
+da1 = np.dot(dz2.reshape(-<span class="num">1</span>, <span class="num">1</span>), self.W2.T)
+dz1 = da1 * _relu_derivative(z1)
+
+dW1 = np.dot(X_norm.T, dz1) + self.weight_decay * self.W1
+db1 = np.sum(dz1, axis=<span class="num">0</span>)</code></pre>
+  <p>The MSE gradient <code>dz2 = 2·(output − y)/m</code> is the only difference from the classification backprop (where <code>dz2 = (probs − y_onehot)/m</code>). This highlights how changing the output activation and loss function changes only the first step of the gradient chain.</p>
+
+  <h4>Evaluation Metrics</h4>
+  <pre><code><span class="kw">def</span> <span class="fn">evaluate</span>(self, X, y):
+    <span class="kw">return</span> {
+        <span class="str">"mse"</span>: self.mse(X, y),
+        <span class="str">"rmse"</span>: self.rmse(X, y),
+        <span class="str">"mae"</span>: self.mae(X, y),
+        <span class="str">"r2"</span>: self.r2_score(X, y),
+    }</code></pre>
+  <p>R² (coefficient of determination) measures the fraction of variance explained. R² = 1.0 means perfect predictions; R² = 0.0 means the model is no better than predicting the mean. It is computed as <code>1 − SS_res / SS_tot</code>.</p>
+
+  <h3><span class="file-path">data.py</span> — Synthetic Price Formula</h3>
+  <pre><code>price = (
+    <span class="num">50000</span>
+    + sqft * rng.uniform(<span class="num">80</span>, <span class="num">150</span>, n_samples)
+    + bedrooms * <span class="num">15000</span>
+    + bathrooms * <span class="num">20000</span>
+    + location_score * <span class="num">1500</span>
+    - age * <span class="num">1500</span>
+    + garage * <span class="num">8000</span>
+    + lot_size * <span class="num">2</span>
+    + school_rating * <span class="num">25000</span>
+    + property_type * <span class="num">30000</span>
+    + rng.normal(<span class="num">0</span>, <span class="num">20000</span>, n_samples)   <span class="cm"># noise</span>
+)</code></pre>
+  <p>The price is a linear combination of features plus Gaussian noise (σ = $20,000). The noise ensures the model cannot achieve R² = 1.0, mimicking real-world irreducible error. Location score is derived from a discrete mapping (downtown=85, beach=90, rural=55), introducing a non-linear step function the MLP must approximate.</p>
+
+  <h3><span class="file-path">api.py</span> — Schema Validation</h3>
+  <pre><code>_validator = DataValidator(create_house_price_schema())
+...
+validation = _validator.validate(X)
+<span class="kw">if not</span> validation.valid:
+    <span class="kw">raise</span> HTTPException(status_code=<span class="num">422</span>, detail=validation.errors)</code></pre>
+  <p>Input validation rejects out-of-range feature values (e.g., negative square footage, bedrooms &gt; 20) before they reach the model. This prevents nonsensical predictions and provides clear error messages to API consumers.</p>
+</section>
+
+<section id="usage">
+  <h2><span class="section-icon">▶</span>Examples &amp; Usage</h2>
+
+  <h3>CLI Training</h3>
+  <pre><code class="language-bash">uv run python -m regression_house_price.train \
+  --model-dir ./artifacts/models \
+  --n-samples 1000 \
+  --hidden-dim 32 \
+  --n-iterations 2000 \
+  --weight-decay 0.0001 \
+  --register-mlflow</code></pre>
+
+  <h3>Python — Train &amp; Predict</h3>
+  <pre><code><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">from</span> regression_house_price.data <span class="kw">import</span> generate_synthetic_data
+<span class="kw">from</span> regression_house_price.model <span class="kw">import</span> HousePriceNN
+
+X, y = generate_synthetic_data(n_samples=<span class="num">1000</span>, random_seed=<span class="num">42</span>)
+model = HousePriceNN(hidden_dim=<span class="num">32</span>, learning_rate=<span class="num">0.001</span>, n_iterations=<span class="num">2000</span>)
+model.fit(X, y)
+
+house = np.array([[
+    <span class="num">2500.0</span>,  <span class="cm"># sqft</span>
+    <span class="num">4.0</span>,     <span class="cm"># bedrooms</span>
+    <span class="num">3.0</span>,     <span class="cm"># bathrooms</span>
+    <span class="num">85.0</span>,    <span class="cm"># location_score (downtown)</span>
+    <span class="num">10.0</span>,    <span class="cm"># age</span>
+    <span class="num">2.0</span>,     <span class="cm"># garage</span>
+    <span class="num">8000.0</span>,  <span class="cm"># lot_size</span>
+    <span class="num">2014.0</span>,  <span class="cm"># year_built</span>
+    <span class="num">0.0</span>,     <span class="cm"># property_type (single-family)</span>
+    <span class="num">8.5</span>,     <span class="cm"># school_rating</span>
+]])
+price = model.predict(house)[<span class="num">0</span>]
+print(<span class="str">f"Predicted price: ${price:,.2f}"</span>)</code></pre>
+
+  <h3>REST API — Single Prediction</h3>
+  <pre><code class="language-bash">curl -X POST http://localhost:8009/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "features": [2500, 4, 3, 85, 10, 2, 8000, 2014, 0, 8.5]
+  }'</code></pre>
+  <p><strong>Response:</strong></p>
+  <pre><code class="language-json">{
+    "predicted_price": 487320.50,
+    "model_version": "1.0.0",
+    "training_mode": "supervised"
+  }</code></pre>
+
+  <h3>REST API — Bulk Prediction</h3>
+  <pre><code class="language-bash">curl -X POST http://localhost:8009/predict/bulk \
+  -H "Content-Type: application/json" \
+  -d '{"requests": [[2500,4,3,85,10,2,8000,2014,0,8.5], [1200,2,1,55,30,0,4000,1990,1,5.0]]}'</code></pre>
+  <p>Returns a <code>BulkPredictResponse</code> with per-property predicted prices.</p>
+</section>
+
+<section id="benchmarks">
+  <h2><span class="section-icon">📊</span>Benchmarks</h2>
+  <p class="callout">Run <code>pytest tests/</code> from the app root.</p>
+  <ul>
+    <li><code>mse</code> — mean squared error (USD²).</li>
+    <li><code>rmse</code> — root mean squared error (USD). Interpretable as typical prediction error magnitude.</li>
+    <li><code>mae</code> — mean absolute error (USD). Less sensitive to outliers than RMSE.</li>
+    <li><code>r2</code> — coefficient of determination. 1.0 = perfect, 0.0 = mean-only baseline.</li>
+  </ul>
+  <p>Expected R² on synthetic data with noise σ=$20k: ~0.85–0.95, indicating the model captures most of the true signal.</p>
+</section>
+
+<div class="related-links">
+  <h3>Related Apps</h3>
+  <ul>
+    <li><a href="../pizza-price/README.md">pizza-price</a></li>
+  </ul>
+</div>
+
+</main>
+<footer style="border-top:1px solid var(--border);padding:20px 40px;color:var(--muted);font-size:12px;">
+  Generated documentation for <strong>regression-house-price</strong> · feedforward monorepo
+</footer>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>market-segmentation — AI App Documentation</title>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMath()"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --text: #212529;
+    --muted: #6c757d;
+    --accent: #0d6efd;
+    --accent-2: #6610f2;
+    --border: #dee2e6;
+    --code-bg: #f1f3f5;
+    --pre-bg: #212529;
+    --pre-text: #f8f9fa;
+    --shadow: 0 2px 8px rgba(0,0,0,.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1115;
+      --surface: #1a1d23;
+      --text: #e9ecef;
+      --muted: #adb5bd;
+      --accent: #4dabf7;
+      --accent-2: #9775fa;
+      --border: #2c3038;
+      --code-bg: #1a1d23;
+      --pre-bg: #0d0f12;
+      --pre-text: #e9ecef;
+      --shadow: 0 2px 8px rgba(0,0,0,.3);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6;
+  }
+  header {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white; padding: 3rem 1rem; text-align: center;
+  }
+  header h1 { margin: 0; font-size: 2rem; }
+  header p { margin: .5rem 0 0; opacity: .9; }
+  main { max-width: 960px; margin: 0 auto; padding: 1.5rem; }
+  .section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;
+    box-shadow: var(--shadow);
+  }
+  .section h2 { margin-top: 0; font-size: 1.25rem; }
+  .section-subtitle { color: var(--muted); margin-top: -0.5rem; margin-bottom: 1rem; }
+  .math-block {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: .75rem 1rem; margin: .5rem 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    overflow-x: auto;
+  }
+  pre.code-block {
+    background: var(--pre-bg); color: var(--pre-text);
+    border-radius: 8px; padding: 1rem; overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: .9rem; line-height: 1.5;
+  }
+  code { font-family: inherit; }
+  .code-block-wrapper { position: relative; }
+  .copy-btn {
+    position: absolute; top: .5rem; right: .5rem;
+    background: rgba(255,255,255,.15); color: white; border: 1px solid rgba(255,255,255,.25);
+    border-radius: 6px; padding: .25rem .5rem; cursor: pointer; font-size: .8rem;
+  }
+  .copy-btn:hover { background: rgba(255,255,255,.25); }
+  table { width: 100%; border-collapse: collapse; margin-top: .5rem; }
+  th, td { text-align: left; padding: .5rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: .85rem; text-transform: uppercase; letter-spacing: .03em; }
+  .mermaid-wrapper { margin-top: 1rem; }
+  .related-links { margin-top: 1rem; }
+  .related-links ul { padding-left: 1.25rem; margin: .5rem 0 0; }
+  .related-links a { color: var(--accent); }
+  footer { text-align: center; padding: 2rem 1rem; color: var(--muted); font-size: .9rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>market-segmentation</h1>
+  <p>Market Segmentation — K-Means Clustering MLOps Example</p>
+</header>
+<main>
+
+<section id="overview" class="section">
+<h2>1. Overview &amp; Monorepo Context</h2>
+<p class="section-subtitle">Name, purpose, and role within the broader monorepo.</p>
+<p><strong>Package name:</strong> <code>market-segmentation</code><br>
+<strong>Version:</strong> 0.1.0<br>
+<strong>Purpose:</strong> Segment customers into behavioral clusters using K-Means clustering. The app clusters customers by annual income and spending score, then assigns human-readable segment names (e.g., "Premium Shoppers", "Budget-Conscious").</p>
+<p><strong>Monorepo role:</strong> Lives under <code>unsupervised/</code>. It depends on <code>ai-core</code> for shared infrastructure. The <code>/profiles</code> endpoint returns cluster statistics for business interpretation, a feature specific to this clustering app.</p>
+</section>
+
+<section id="math" class="section">
+<h2>2. The Mathematical Foundation</h2>
+<p class="section-subtitle">K-Means objective, Lloyd's algorithm, and silhouette score.</p>
+<div class="math-content">
+<div class="math-block">$$\min_S \sum_{i=1}^{k} \sum_{x \in S_i} \|x - \mu_i\|^2$$</div>
+<div class="math-block">$$\mu_i = \frac{1}{|S_i|} \sum_{x \in S_i} x$$</div>
+<div class="math-block">$$J = \sum_{i=1}^{n} \|x^{(i)} - \mu_{c^{(i)}}\|^2$$</div>
+<div class="math-block">$$s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}$$</div>
+</div>
+<p><strong>Why this math?</strong> K-Means minimizes within-cluster sum of squares (inertia). Lloyd's algorithm alternates between assignment (E-step) and centroid update (M-step), guaranteeing convergence to a local optimum. Multiple initializations (<code>n_init=10</code>) are used to escape poor local minima. The silhouette score measures cluster separation: <code>a(i)</code> is mean intra-cluster distance, <code>b(i)</code> is mean nearest-cluster distance. Feature standardization ensures Euclidean distance is not dominated by scale.</p>
+</section>
+
+<section id="architecture" class="section">
+<h2>3. Core Logic &amp; Architecture</h2>
+<p class="section-subtitle">Data flow, design patterns, and lifecycle.</p>
+<pre class="mermaid">graph TD
+  A[Synthetic / CSV Customer Data] --> B[Standardize features]
+  B --> C[KMeans.fit: n_init random initializations]
+  C --> D[Pick best run by lowest inertia]
+  D --> E[Compute cluster profiles]
+  E --> F[ModelRegistry.save]
+  F --> G[FastAPI lifespan load]
+  G --> H[/segment /segment/bulk /profiles]</pre>
+<p><strong>Design patterns:</strong></p>
+<ul>
+  <li><strong>Multiple initializations:</strong> <code>_fit_once()</code> runs a single K-Means iteration; <code>fit()</code> repeats it <code>n_init</code> times and keeps the best result by inertia.</li>
+  <li><strong>Confidence scoring:</strong> <code>predict_confidence()</code> computes <code>1 - (nearest / second_nearest)</code>, giving a <code>[0,1]</code> confidence based on relative distance to competing centroids.</li>
+  <li><strong>Cluster profiles:</strong> <code>cluster_profiles()</code> returns per-cluster statistics (mean income, mean spending, member count, percentage) for business dashboards.</li>
+  <li><strong>Human-readable names:</strong> <code>SEGMENT_NAMES</code> maps cluster indices to business-friendly labels.</li>
+</ul>
+<p><strong>Primary execution path:</strong> <code>train.py:main()</code> → loads customer data → validates → fits KMeans → evaluates inertia and silhouette → saves chart with centroids → registers model.</p>
+</section>
+
+<section id="code-walkthrough" class="section">
+<h2>4. Detailed Code Walkthrough</h2>
+<p class="section-subtitle">Key files, classes, and functions.</p>
+
+<h3>model.py — KMeans</h3>
+<div class="code-block-wrapper">
+<button class="copy-btn" onclick="copyCode('code-km-model')" title="Copy">Copy</button>
+<pre class="code-block" id="code-km-model"><code class="language-python">def _fit_once(self, X: np.ndarray, rng: np.random.Generator) -> tuple[np.ndarray, np.ndarray, float, int]:
+    """Run K-Means once with a single random initialization."""
+    n_samples, n_features = X.shape
+    indices = rng.choice(n_samples, size=self.n_clusters, replace=False)
+    centroids = X[indices].copy()
+    labels = np.zeros(n_samples, dtype=int)
+
+    for _ in range(self.max_iterations):
+        # Assignment step
+        distances = self._compute_distances(X, centroids)
+        new_labels = np.argmin(distances, axis=1)
+        if np.array_equal(new_labels, labels):
+            break
+        labels = new_labels
+
+        # Update step
+        new_centroids = centroids.copy()
+        for k in range(self.n_clusters):
+            mask = labels == k
+            if np.any(mask):
+                new_centroids[k] = np.mean(X[mask], axis=0)
+        if np.allclose(new_centroids, centroids, atol=1e-6):
+            centroids = new_centroids
+            break
+        centroids = new_centroids
+
+    distances = self._compute_distances(X, centroids)
+    inertia = float(np.sum(np.min(distances, axis=1)))
+    return centroids, labels, inertia, n_iter</code></pre>
+</div>
+
+<p><strong>Why this design:</strong></p>
+<ul>
+  <li><code>_compute_distances</code> uses broadcasting: <code>X[:, np.newaxis, :] - centroids[np.newaxis, :, :]</code>, producing an <code>(n_samples, n_clusters)</code> distance matrix in one vectorized operation.</li>
+  <li>Convergence is checked both by label stability and centroid movement (<code>np.allclose</code> with <code>atol=1e-6</code>).</li>
+  <li>The best of <code>n_init</code> runs is selected by lowest inertia, mitigating the sensitivity to initialization.</li>
+  <li>Standardization (<code>_standardize</code>) ensures Euclidean distance is meaningful across features with different scales.</li>
+</ul>
+
+<h3>api.py — Segment Names &amp; Profiles</h3>
+<div class="code-block-wrapper">
+<button class="copy-btn" onclick="copyCode('code-km-api')" title="Copy">Copy</button>
+<pre class="code-block" id="code-km-api"><code class="language-python">SEGMENT_NAMES = [
+    "Premium Shoppers",
+    "Cautious High-Earners",
+    "Impulsive Shoppers",
+    "Budget-Conscious",
+    "Average Shoppers",
+]
+
+def _segment_name(segment: int) -> str:
+    if 0 <= segment < len(SEGMENT_NAMES):
+        return SEGMENT_NAMES[segment]
+    return f"Segment {segment}"
+
+@app.get("/profiles", response_model=ProfilesResponse)
+def get_profiles():
+    """Return cluster profiles for business interpretation."""
+    profiles = _model.cluster_profiles(_reference_data) if _reference_data is not None else []
+    return ProfilesResponse(
+        n_clusters=_model.n_clusters,
+        profiles=profiles,
+        model_version=_model_version,
+    )</code></pre>
+</div>
+</section>
+
+<section id="usage" class="section">
+<h2>5. Examples &amp; Usage</h2>
+<p class="section-subtitle">Training, serving, and consuming the API.</p>
+
+<h3>CLI Training</h3>
+<div class="code-block-wrapper">
+<button class="copy-btn" onclick="copyCode('code-km-cli')" title="Copy">Copy</button>
+<pre class="code-block" id="code-km-cli"><code class="language-bash">uv run python -m market_segmentation.train --model-dir ./artifacts/models --n-clusters 5 --max-iterations 300 --n-init 10</code></pre>
+</div>
+
+<h3>Python Usage</h3>
+<div class="code-block-wrapper">
+<button class="copy-btn" onclick="copyCode('code-km-py')" title="Copy">Copy</button>
+<pre class="code-block" id="code-km-py"><code class="language-python">from market_segmentation.model import KMeans
+import numpy as np
+
+X = np.array([[70,85],[80,25],[35,80],[30,30],[55,55]], dtype=float)
+model = KMeans(n_clusters=2, max_iterations=300, n_init=10)
+model.fit(X)
+
+segment = model.predict(np.array([[60, 60]]))[0]
+confidence = model.predict_confidence(np.array([[60, 60]]))[0]
+print(f"Segment: {segment}, Confidence: {confidence:.4f}")</code></pre>
+</div>
+
+<h3>REST API Requests</h3>
+<div class="code-block-wrapper">
+<button class="copy-btn" onclick="copyCode('code-km-rest')" title="Copy">Copy</button>
+<pre class="code-block" id="code-km-rest"><code class="language-bash"># Single segmentation
+curl -X POST http://localhost:8003/segment \
+  -H "Content-Type: application/json" \
+  -d '{"annual_income": 78.0, "spending_score": 82.0}'
+
+# Bulk segmentation
+curl -X POST http://localhost:8003/segment/bulk \
+  -H "Content-Type: application/json" \
+  -d '{"customers": [{"annual_income": 78.0, "spending_score": 82.0}]}'</code></pre>
+</div>
+
+<h3>Expected Output</h3>
+<div class="code-block-wrapper">
+<pre class="code-block" id="code-km-out"><code class="language-json">{
+  "annual_income": 78.0,
+  "spending_score": 82.0,
+  "segment": 0,
+  "segment_name": "Premium Shoppers",
+  "confidence": 0.91,
+  "model_version": "1.0.0"
+}</code></pre>
+</div>
+</section>
+
+</main>
+<footer>
+  <p>Generated documentation for <strong>market-segmentation</strong></p>
+</footer>
+<script>
+function copyCode(id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.innerText);
+}
+function renderMath() {
+  renderMathInElement(document.body, { delimiters: [{left: "$$", right: "$$", display: true}] });
+}
+</script>
+</body>
+</html>

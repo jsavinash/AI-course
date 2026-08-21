@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cnn-video-surveillance — Technical Documentation</title>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMath()"></script>
+<style>
+:root {
+  --bg: #0f1117; --surface: #1a1d27; --surface2: #222633;
+  --border: #2e3347; --text: #e1e5f1; --text-muted: #8b91a8;
+  --accent: #6c8cff; --accent2: #4ecdc4;
+  --code-bg: #13151d; --tag-bg: #2a2f42;
+  --warning: #f0a050; --success: #5ddb8b;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7; font-size: 15px;
+}
+header.doc-header {
+  background: linear-gradient(135deg, #1a1d27 0%, #222642 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 2.5rem 2rem 2rem; position: sticky; top: 0; z-index: 100;
+}
+.header-inner { max-width: 960px; margin: 0 auto; display: flex; align-items: flex-start; gap: 1.5rem; }
+.app-icon {
+  width: 56px; height: 56px; border-radius: 12px;
+  background: linear-gradient(135deg, #f0a050, #ff6b6b);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem; flex-shrink: 0;
+}
+.header-meta h1 { font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 0.25rem; }
+.header-meta .subtitle { color: var(--text-muted); font-size: 0.9rem; }
+.badge-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
+.badge {
+  background: var(--tag-bg); color: var(--accent2);
+  border: 1px solid var(--border); border-radius: 20px;
+  padding: 0.15rem 0.65rem; font-size: 0.75rem; font-weight: 600;
+}
+main { max-width: 960px; margin: 0 auto; padding: 2rem; }
+section.section { margin-bottom: 3rem; }
+section.section > h2 {
+  font-size: 1.15rem; font-weight: 700; color: #fff;
+  border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;
+  margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;
+}
+.section-icon { font-size: 1.3rem; }
+.section-subtitle { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; margin-top: -0.5rem; }
+.overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.info-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 1rem 1.25rem;
+}
+.info-card h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.4rem; }
+.info-card p, .info-card li { font-size: 0.9rem; color: var(--text); }
+.info-card ul { list-style: disc; padding-left: 1.1rem; }
+.info-card li { margin-bottom: 0.2rem; }
+.math-block {
+  background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 0.9rem 1.1rem; margin: 0.6rem 0; overflow-x: auto; font-size: 0.95rem;
+}
+.equation-label {
+  display: inline-block; background: var(--accent); color: #fff;
+  border-radius: 4px; padding: 0.05rem 0.45rem; font-size: 0.7rem;
+  font-weight: 700; margin-right: 0.5rem; vertical-align: middle;
+}
+.derivation-box {
+  background: var(--surface); border-left: 3px solid var(--accent2);
+  border-radius: 0 6px 6px 0; padding: 1rem 1.25rem; margin: 1rem 0;
+}
+.derivation-box h3 { font-size: 0.9rem; color: var(--accent2); margin-bottom: 0.5rem; }
+.derivation-box p, .derivation-box li { font-size: 0.88rem; color: var(--text); }
+.derivation-box ul { padding-left: 1.2rem; }
+.tradeoff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.75rem; }
+.tradeoff-card {
+  background: var(--surface2); border-radius: 6px; padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+}
+.tradeoff-card h4 { font-size: 0.8rem; color: var(--accent); margin-bottom: 0.3rem; }
+.tradeoff-card p { font-size: 0.85rem; color: var(--text-muted); }
+.arch-box {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 1.25rem; margin-bottom: 1rem;
+}
+.arch-box h3 { font-size: 0.85rem; color: var(--accent2); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.layer-list { display: flex; flex-direction: column; gap: 0.4rem; }
+.layer-item {
+  display: flex; align-items: center; gap: 0.75rem;
+  background: var(--surface2); border-radius: 5px; padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+}
+.layer-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.layer-name { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+.layer-detail { font-size: 0.78rem; color: var(--text-muted); margin-left: auto; white-space: nowrap; }
+.data-flow {
+  background: var(--code-bg); border-radius: 6px; padding: 1rem 1.25rem;
+  font-family: 'Courier New', monospace; font-size: 0.82rem;
+  color: var(--accent2); overflow-x: auto; white-space: pre;
+  border: 1px solid var(--border);
+}
+.code-block-wrapper { position: relative; margin: 0.75rem 0; }
+.code-block-wrapper button.copy-btn {
+  position: absolute; top: 0.5rem; right: 0.5rem;
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text-muted); cursor: pointer; padding: 0.2rem 0.5rem; font-size: 0.75rem;
+}
+.code-block-wrapper button.copy-btn:hover { background: var(--border); color: var(--text); }
+pre.code-block {
+  background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 1rem 1.25rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.6;
+  font-family: 'Courier New', 'Fira Code', monospace; color: #c9d1d9;
+}
+.hl-keyword { color: #ff7b72; } .hl-string { color: #a5d6ff; }
+.hl-comment { color: #8b949e; font-style: italic; } .hl-func { color: #d2a8ff; }
+.hl-number { color: #79c0ff; } .hl-class { color: #ffa657; }
+.hl-builtin { color: #ff7b72; } .hl-param { color: #ffa657; }
+table.api-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+table.api-table th { background: var(--surface2); color: var(--accent); text-align: left; padding: 0.6rem 0.85rem; border: 1px solid var(--border); }
+table.api-table td { padding: 0.5rem 0.85rem; border: 1px solid var(--border); color: var(--text); }
+table.api-table code { background: var(--code-bg); padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.8rem; color: var(--accent2); }
+.walk-block {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 1rem 1.25rem; margin-bottom: 0.75rem;
+}
+.walk-block h4 { font-size: 0.85rem; color: var(--accent); margin-bottom: 0.4rem; }
+.walk-block p, .walk-block li { font-size: 0.87rem; color: var(--text); }
+.walk-block ul { padding-left: 1.2rem; }
+.usage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.usage-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 1rem 1.25rem;
+}
+.usage-card h3 { font-size: 0.85rem; color: var(--accent2); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.usage-card pre { background: var(--code-bg); border-radius: 5px; padding: 0.75rem; font-size: 0.8rem; overflow-x: auto; font-family: 'Courier New', monospace; color: #c9d1d9; }
+footer.doc-footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; text-align: center; color: var(--text-muted); font-size: 0.8rem; background: var(--surface); }
+.toc { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 2rem; }
+.toc h3 { font-size: 0.85rem; color: var(--accent); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.toc ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
+.toc a { color: var(--accent2); text-decoration: none; font-size: 0.85rem; }
+.toc a:hover { text-decoration: underline; }
+@media (max-width: 700px) { .overview-grid, .tradeoff-grid, .usage-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header class="doc-header">
+  <div class="header-inner">
+    <div class="app-icon">&#x1F4F9;</div>
+    <div class="header-meta">
+      <h1>cnn-video-surveillance</h1>
+      <p class="subtitle">Video Surveillance Activity Classification — CNN &middot; MLOps Reference Implementation</p>
+      <div class="badge-row">
+        <span class="badge">CNN</span>
+        <span class="badge">3 Classes</span>
+        <span class="badge">Softmax</span>
+        <span class="badge">numpy</span>
+        <span class="badge">FastAPI</span>
+        <span class="badge">Drift Detection</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+<nav class="toc">
+  <h3>Table of Contents</h3>
+  <ul>
+    <li><a href="#overview">1 &middot; Overview &amp; Monorepo Context</a></li>
+    <li><a href="#math">2 &middot; Mathematical Foundation</a></li>
+    <li><a href="#architecture">3 &middot; Core Logic &amp; Architecture</a></li>
+    <li><a href="#walkthrough">4 &middot; Detailed Code Walkthrough</a></li>
+    <li><a href="#usage">5 &middot; Examples &amp; Usage</a></li>
+  </ul>
+</nav>
+
+<!-- SECTION 1 -->
+<section class="section" id="overview">
+  <h2><span class="section-icon">&#x1F4CB;</span> Overview &amp; Monorepo Context</h2>
+  <p class="section-subtitle">Name, purpose, role, and dependencies within the broader monorepo.</p>
+  <div class="overview-grid">
+    <div class="info-card">
+      <h3>Package Identity</h3>
+      <ul>
+        <li><strong>Package name:</strong> <code>video-surveillance</code></li>
+        <li><strong>Module:</strong> <code>cnn_video_surveillance</code></li>
+        <li><strong>Version:</strong> 0.1.0</li>
+        <li><strong>Description:</strong> Tracks crowd movement and spots security threats in real-time frame images — CNN MLOps example.</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>Monorepo Role</h3>
+      <p>The third CNN-family app under <code>apps/neural-networks/convolutional/</code>, alongside <code>cnn-medical-imaging</code> and <code>cnn-facial-recognition</code>. It shares the identical training pipeline and serving architecture, differing only in the 3-class label schema (<em>normal</em>, <em>activity</em>, <em>threat</em>) and the FastAPI metrics port (8018).</p>
+    </div>
+    <div class="info-card">
+      <h3>Key Dependencies</h3>
+      <ul>
+        <li><code>ai-core</code> — shared workspace (logging, registry, drift, validation, metrics)</li>
+        <li><code>numpy &gt;= 1.26.0</code> — all numerical computation</li>
+        <li><code>fastapi + uvicorn</code> — HTTP serving</li>
+        <li><code>pydantic &gt;= 2.6.0</code> — request/response validation</li>
+        <li><code>prometheus-client</code> — metrics exposition</li>
+        <li><code>matplotlib</code> — training-loss charting</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>Output Contract</h3>
+      <ul>
+        <li><strong>Task type:</strong> Multi-class classification (3 classes: <em>normal</em>, <em>activity</em>, <em>threat</em>)</li>
+        <li><strong>Input shape:</strong> <code>(N, 1, 8, 8)</code> — 8&times;8 grayscale pixel arrays, 64 features</li>
+        <li><strong>Output:</strong> Argmax of softmax probability vector</li>
+        <li><strong>Loss:</strong> Categorical cross-entropy</li>
+        <li><strong>Framework:</strong> Pure NumPy</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 2 -->
+<section class="section" id="math">
+  <h2><span class="section-icon">&#x222B;</span> The Mathematical Foundation</h2>
+  <p class="section-subtitle">CNN equations identical to cnn-medical-imaging — full derivations are covered there. This section highlights the class-implication differences.</p>
+
+  <div class="math-block">
+    <span class="equation-label">E1</span>
+    $$Z^{(l)} = W^{(l)} * X^{(l)} + b^{(l)}$$
+  </div>
+  <div class="math-block">
+    <span class="equation-label">E2</span>
+    $$A^{(l)} = \text{ReLU}\!\left(Z^{(l)}\right) = \max(0, Z^{(l)})$$
+  </div>
+  <div class="math-block">
+    <span class="equation-label">E3</span>
+    $$\text{Softmax}(z)_j = \frac{e^{z_j}}{\sum_{k=1}^{3} e^{z_k}}$$
+    <br><small style="color:var(--text-muted)">K=3 activity classes. The argmax prediction maps 0→normal, 1→activity, 2→threat.</small>
+  </div>
+  <div class="math-block">
+    <span class="equation-label">E4</span>
+    $$\mathcal{L}_{CE} = -\sum_{i=1}^{3} y_i \log(\hat{y}_i)$$
+  </div>
+
+  <div class="tradeoff-grid">
+    <div class="tradeoff-card">
+      <h4>Shared Architecture Rationale</h4>
+      <p>All three CNN apps use the identical SimpleCNN hyperparameters (8 filters, 3&times;3 kernel, 32 hidden units, 300 epochs). This pedagogical uniform-architecture choice lets students compare task outcomes while holding model capacity constant.</p>
+    </div>
+    <div class="tradeoff-card">
+      <h4>3-Class Softmax vs. Sigmoid</h4>
+      <p>Surveillance requires mutually-exclusive multi-class output (a frame can be normal <em>or</em> an activity <em>or</em> a threat, never more than one). Softmax enforces the probability simplex constraint &Sigma;&#x2113;p&subi;&nbsp;=&nbsp;1.</p>
+    </div>
+    <div class="tradeoff-card">
+      <h4>Drift Detection Relevance</h4>
+      <p>Real-world surveillance footage distribution shifts over time (lighting changes, camera angles, scene layout). The PSI-based <code>DriftDetector</code> (threshold 0.2) alerts operators when input pixel distributions diverge from the training reference — a critical MLOps feature for production video pipelines.</p>
+    </div>
+    <div class="tradeoff-card">
+      <h4>Metrics Port Isolation</h4>
+      <p>Port 8018 is reserved for this service's Prometheus exposition, avoiding collisions with the other CNN apps (8016, 8017) in the same deployment environment.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 3 -->
+<section class="section" id="architecture">
+  <h2><span class="section-icon">&#x2699;&#xFE0F;</span> Core Logic &amp; Architecture</h2>
+  <p class="section-subtitle">Data flow, design patterns, lifecycle, and state management.</p>
+
+  <div class="arch-box">
+    <h3>Class Hierarchy</h3>
+    <pre style="font-family:'Courier New',monospace;font-size:0.85rem;color:var(--accent2);">VideoSurveillanceCNN   (src/cnn_video_surveillance/model.py)
+  └── wraps SimpleCNN   (ai_core.nn_utils.cnn)</pre>
+  </div>
+
+  <div class="arch-box">
+    <h3>Data Flow — Lifecycle</h3>
+    <div class="data-flow">data.py
+  LABEL_NAMES = ['normal', 'activity', 'threat']
+  N_CLASSES = 3
+  └─ _create_template(): 10 spatial pattern lambdas (centre-square,
+     upper-half, diagonal, border, circle, lower-right, checkerboard,
+     diagonal \, diagonal /, fill) — only first 3 used for 3 classes
+
+train.py: train()
+  X, y ← generate_synthetic_data(n_samples, seed)
+  train/test split → MedicalImagingCNN.fit() → evaluate → save → register
+
+api.py: FastAPI app (port 8018)
+  lifespan() → _load_model() → singleton _model
+  POST /predict    → _compute_prediction(activity)
+  GET  /stats      → model metadata
+  GET  /drift      → PSI drift detection (64 pixel features, threshold 0.2)
+  POST /reload     → hot-swap
+  GET  /metrics    → Prometheus</div>
+  </div>
+
+  <div class="arch-box">
+    <h3>Design Patterns</h3>
+    <div class="layer-list">
+      <div class="layer-item">
+        <div class="layer-dot" style="background:var(--accent);"></div>
+        <div><span class="layer-name">Shared Pipeline Pattern</span></div>
+        <div class="layer-detail">Identical train.py / api.py structure across all CNN apps — only class names, ports, and labels differ</div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-dot" style="background:var(--accent2);"></div>
+        <div><span class="layer-name">Environment-Driven Configuration</span></div>
+        <div class="layer-detail">All hyperparameters overridable via env vars (MODEL_DIR, LEARNING_RATE, etc.)</div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-dot" style="background:var(--warning);"></div>
+        <div><span class="layer-name">Registry-First Model Loading</span></div>
+        <div class="layer-detail">_load_model() queries ModelRegistry before falling back to filesystem paths</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 4 -->
+<section class="section" id="walkthrough">
+  <h2><span class="section-icon">&#x1F4DD;</span> Detailed Code Walkthrough</h2>
+  <p class="section-subtitle">Deep dive into the key files, classes, and functions.</p>
+
+  <div class="walk-block">
+    <h4>model.py — VideoSurveillanceCNN (lines 19–152)</h4>
+    <p>Structurally identical to <code>MedicalImagingCNN</code>: same <code>@dataclass</code> fields, same <code>SimpleCNN</code> wrapper, same <code>fit/predict/evaluate/save/load</code> interface. The only semantic difference is <code>output_dim=3</code>, which triggers the one-hot encoding branch in <code>fit()</code>.</p>
+    <pre class="code-block" style="margin-top:0.5rem;"><code><span class="hl-keyword">@dataclass</span>
+<span class="hl-keyword">class</span> <span class="hl-class">VideoSurveillanceCNN</span>:
+    IMG_SIZE: <span class="hl-builtin">int</span> = <span class="hl-number">8</span>; N_CHANNELS: <span class="hl-builtin">int</span> = <span class="hl-number">1</span>
+    n_filters: <span class="hl-builtin">int</span> = <span class="hl-number">8</span>; kernel_size: <span class="hl-builtin">int</span> = <span class="hl-number">3</span>; hidden_dim: <span class="hl-builtin">int</span> = <span class="hl-number">32</span>
+    output_dim: <span class="hl-builtin">int</span> = <span class="hl-number">3</span>        <span class="hl-comment"># 3 activity classes</span>
+    learning_rate: <span class="hl-builtin">float</span> = <span class="hl-number">0.05</span>; n_iterations: <span class="hl-builtin">int</span> = <span class="hl-number">300</span>
+    weight_decay: <span class="hl-builtin">float</span> = <span class="hl-number">0.001</span>; clip_value: <span class="hl-builtin">float</span> = <span class="hl-number">5.0</span>
+    random_seed: <span class="hl-builtin">int</span> = <span class="hl-number">42</span>
+    model: SimpleCNN | <span class="hl-builtin">None</span> = <span class="hl-builtin">None</span>
+    training_mode: <span class="hl-builtin">str</span> = <span class="hl-string">"supervised"</span>
+    loss_history: <span class="hl-builtin">list</span>[<span class="hl-builtin">float</span>] = <span class="hl-builtin">field</span>(<span class="hl-builtin">default_factory</span>=<span class="hl-builtin">list</span>)</code></pre>
+  </div>
+
+  <div class="walk-block">
+    <h4>train.py — Pipeline (lines 21–208)</h4>
+    <p>Identical to the medical-imaging train.py with these class-specific substitutions:</p>
+    <ul>
+      <li><code>create_video_surveillance_schema()</code> — validator function</li>
+      <li><code>VideoSurveillanceCNN</code> — model class</li>
+      <li><code>model_name="video-surveillance"</code> — registry key</li>
+      <li><code>video_surveillance_model_v{version}.npz</code> — artifact filename</li>
+    </ul>
+  </div>
+
+  <div class="walk-block">
+    <h4>api.py — Prediction Endpoint (lines 545–603)</h4>
+    <p>The <code>_compute_prediction()</code> function uses <code>np.argmax(probas)</code> to select the activity class. The <code>activity</code> field in the response is cast to <code>str(pred_idx)</code> for JSON serialisation consistency. The drift detector accumulates raw input vectors in <code>_recent_predictions</code> up to 1000 entries for downstream PSI analysis.</p>
+  </div>
+</section>
+
+<!-- SECTION 5 -->
+<section class="section" id="usage">
+  <h2><span class="section-icon">&#x25B6;&#xFE0F;</span> Examples &amp; Usage</h2>
+
+  <div class="usage-grid">
+    <div class="usage-card">
+      <h3>Train via CLI</h3>
+      <pre>uv run python -m cnn_video_surveillance.train \
+  --model-dir ./artifacts/models \
+  --n-samples 1000 \
+  --n-filters 16 \
+  --n-iterations 500 \
+  --learning-rate 0.03 \
+  --register-mlflow</pre>
+    </div>
+    <div class="usage-card">
+      <h3>Train Programmatically</h3>
+      <pre>from cnn_video_surveillance.model import VideoSurveillanceCNN
+from cnn_video_surveillance.data import generate_synthetic_data, train_test_split
+
+X, y = generate_synthetic_data(n_samples=500, random_seed=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_seed=42)
+
+model = VideoSurveillanceCNN(
+    n_filters=16, hidden_dim=64,
+    learning_rate=0.03, n_iterations=500,
+)
+model.fit(X_train, y_train, X_val=X_test, y_val=y_test)
+print(model.evaluate(X_test, y_test))
+model.save("./artifacts/video_surveillance_v2.npz")</pre>
+    </div>
+    <div class="usage-card">
+      <h3>Predict — Single Frame</h3>
+      <pre>import numpy as np
+from cnn_video_surveillance.model import VideoSurveillanceCNN
+
+model = VideoSurveillanceCNN.load("./artifacts/video_surveillance_v2.npz")
+sample = np.random.rand(64).astype(np.float32)
+pred_idx = model.predict(sample.reshape(1, -1))[0]
+labels = ['normal', 'activity', 'threat']
+print(f"Detected: {labels[pred_idx]}")</pre>
+    </div>
+    <div class="usage-card">
+      <h3>REST API — curl Examples</h3>
+      <pre># Port 8018 — health
+curl http://localhost:8018/health
+
+# Predict (field name: "activity")
+curl -X POST http://localhost:8018/predict \
+  -H "Content-Type: application/json" \
+  -d '{"activity": [0.1, 0.2, ... 64 values ...]}'
+
+# Batch, stats, drift, reload
+curl -X POST http://localhost:8018/predict/bulk \
+  -d '{"requests": [[...64f], [...64f]]}'
+curl http://localhost:8018/stats
+curl http://localhost:8018/drift
+curl -X POST http://localhost:8018/reload</pre>
+    </div>
+  </div>
+</section>
+
+</main>
+<footer class="doc-footer">
+  <p>Generated technical documentation for <strong>cnn-video-surveillance</strong> &middot; monorepo: <code>apps/neural-networks/convolutional</code></p>
+</footer>
+<script>
+function copyCode(id) { const el = document.getElementById(id); navigator.clipboard.writeText(el.innerText); }
+function renderMath() { renderMathInElement(document.body, { delimiters: [{left: "$$", right: "$$", display: true}] }); }
+</script>
+</body>
+</html>

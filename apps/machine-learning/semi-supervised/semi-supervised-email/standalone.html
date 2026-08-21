@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>semi-supervised-email — AI App Documentation</title>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMath()"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --text: #212529;
+    --muted: #6c757d;
+    --accent: #0d6efd;
+    --accent-2: #6610f2;
+    --border: #dee2e6;
+    --code-bg: #f1f3f5;
+    --pre-bg: #212529;
+    --pre-text: #f8f9fa;
+    --shadow: 0 2px 8px rgba(0,0,0,.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1115;
+      --surface: #1a1d23;
+      --text: #e9ecef;
+      --muted: #adb5bd;
+      --accent: #4dabf7;
+      --accent-2: #9775fa;
+      --border: #2c3038;
+      --code-bg: #1a1d23;
+      --pre-bg: #0d0f12;
+      --pre-text: #e9ecef;
+      --shadow: 0 2px 8px rgba(0,0,0,.3);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6;
+  }
+  header {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white; padding: 3rem 1rem; text-align: center;
+  }
+  header h1 { margin: 0; font-size: 2rem; }
+  header p { margin: .5rem 0 0; opacity: .9; }
+  main { max-width: 960px; margin: 0 auto; padding: 1.5rem; }
+  .section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;
+    box-shadow: var(--shadow);
+  }
+  .section h2 { margin-top: 0; font-size: 1.25rem; }
+  .section-subtitle { color: var(--muted); margin-top: -0.5rem; margin-bottom: 1rem; }
+  .math-block {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: .75rem 1rem; margin: .5rem 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    overflow-x: auto;
+  }
+  pre.code-block {
+    background: var(--pre-bg); color: var(--pre-text);
+    border-radius: 8px; padding: 1rem; overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: .9rem; line-height: 1.5;
+  }
+  code { font-family: inherit; }
+  .code-block-wrapper { position: relative; }
+  .copy-btn {
+    position: absolute; top: .5rem; right: .5rem;
+    background: rgba(255,255,255,.15); color: white; border: 1px solid rgba(255,255,255,.25);
+    border-radius: 6px; padding: .25rem .5rem; cursor: pointer; font-size: .8rem;
+  }
+  .copy-btn:hover { background: rgba(255,255,255,.25); }
+  table { width: 100%; border-collapse: collapse; margin-top: .5rem; }
+  th, td { text-align: left; padding: .5rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: .85rem; text-transform: uppercase; letter-spacing: .03em; }
+  .mermaid-wrapper { margin-top: 1rem; }
+  .related-links { margin-top: 1rem; }
+  .related-links ul { padding-left: 1.25rem; margin: .5rem 0 0; }
+  .related-links a { color: var(--accent); }
+  footer { text-align: center; padding: 2rem 1rem; color: var(--muted); font-size: .9rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>semi-supervised-email</h1>
+  <p>Semi-Supervised Email Classification — Self-Training with Logistic Regression MLOps Example</p>
+</header>
+<main>
+
+<section id="overview" class="section">
+<h2>1. Overview &amp; Monorepo Context</h2>
+<p class="section-subtitle">Name, purpose, and role within the broader monorepo.</p>
+<p><strong>Package name:</strong> <code>semi-supervised-email</code><br>
+<strong>Version:</strong> 0.1.0<br>
+<strong>Purpose:</strong> Classify emails as SPAM or NOT spam using semi-supervised self-training. Only a small fraction of data is labeled initially; the model iteratively labels high-confidence unlabeled samples and retrains, expanding the labeled set without human annotation.</p>
+<p><strong>Monorepo role:</strong> Lives under <code>semi-supervised/</code>. It depends on <code>ai-core</code> for shared infrastructure. Unlike <code>spam-classification</code> (fully supervised), this app demonstrates how to leverage unlabeled data. The <code>/stats</code> endpoint reports pseudo-labeling progress (<code>n_labeled_history</code>, <code>accuracy_history</code>).</p>
+</section>
+
+<section id="math" class="section">
+<h2>2. The Mathematical Foundation</h2>
+<p class="section-subtitle">Self-training, pseudo-labeling, and confidence thresholding.</p>
+<div class="math-content">
+<div class="math-block">$$\mathcal{L} = \mathcal{L}_{sup} + \lambda_t \mathcal{L}_{unsup}$$</div>
+<div class="math-block">$$\hat{y}_i = \arg\max_{k} P(y=k \mid x_i; \theta) \quad \text{if } \max_k P(y=k \mid x_i; \theta) \geq \tau$$</div>
+<div class="math-block">$$p_t = \min\left(1, \frac{t}{T_0}\right)$$</div>
+</div>
+<p><strong>Why this math?</strong> Self-training iteratively expands the labeled set with high-confidence pseudo-labels. At each iteration, the model trained on labeled data predicts labels for unlabeled data. Samples with probability above the confidence threshold <code>τ</code> are added to the labeled set. The unsupervised loss weight <code>λ_t</code> typically ramps up over time. This approach is particularly effective when labeled data is scarce but unlabeled data is abundant.</p>
+</section>
+
+<section id="architecture" class="section">
+<h2>3. Core Logic &amp; Architecture</h2>
+<p class="section-subtitle">Data flow, design patterns, and lifecycle.</p>
+<pre class="mermaid">graph TD
+  A[Semi-supervised CSV / Synthetic] --> B[Split into labeled + unlabeled]
+  B --> C[Train LogisticRegression on labeled]
+  C --> D[Predict on unlabeled]
+  D --> E{Max confidence >= threshold?}
+  E -->|yes| F[Add pseudo-labels to labeled set]
+  E -->|no| G[Stop early]
+  F --> H{Max iterations or labeled ratio reached?}
+  H -->|no| C
+  H -->|yes| I[Final retrain on all labeled]
+  I --> J[ModelRegistry.save]
+  J --> K[FastAPI lifespan load]
+  K --> L[/predict /predict/bulk /stats]</pre>
+<p><strong>Design patterns:</strong></p>
+<ul>
+  <li><strong>Wrapper classifier:</strong> <code>SelfTrainingClassifier</code> wraps a base <code>LogisticRegression</code> and manages the iterative pseudo-labeling loop.</li>
+  <li><strong>Confidence thresholding:</strong> Only samples where <code>max(proba, 1-proba) >= confidence_threshold</code> are promoted, preventing noisy pseudo-labels.</li>
+  <li><strong>History tracking:</strong> <code>n_labeled_history</code> and <code>accuracy_history</code> are recorded per iteration for monitoring convergence.</li>
+  <li><strong>Early stopping:</strong> The loop breaks if no confident predictions are found or if <code>min_labeled_ratio</code> is reached.</li>
+</ul>
+<p><strong>Primary execution path:</strong> <code>train.py:main()</code> → loads semi-supervised data (<code>y=-1</code> for unlabeled) → fits <code>SelfTrainingClassifier</code> → evaluates on labeled subset → saves model → registers.</p>
+</section>
+
+<section id="code-walkthrough" class="section">
+<h2>4. Detailed Code Walkthrough</h2>
+<p class="section-subtitle">Key files, classes, and functions.</p>
+
+<h3>model.py — SelfTrainingClassifier</h3>
+<div class="code-block-wrapper">
+<button class="copy-btn" onclick="copyCode('code-ss-model')" title="Copy">Copy</button>
+<pre class="code-block" id="code-ss-model"><code class="language-python">def fit(self, X: np.ndarray, y: np.ndarray, X_test=None, y_test=None) -> "SelfTrainingClassifier":
+    X_labeled, y_labeled = self._get_labeled(X, y)
+    X_unlabeled = self._get_unlabeled(X, y)
+    self.n_labeled_history = [len(X_labeled)]
+
+    for _iteration in range(self.max_iterations):
+        self.model = LogisticRegression(learning_rate=0.1, n_iterations=2000)
+        self.model.fit(X_labeled, y_labeled)
+
+        if len(X_unlabeled) == 0:
+            break
+
+        probas = self.model.predict_proba(X_unlabeled)
+        max_probas = np.maximum(probas, 1 - probas)
+        confident_mask = max_probas >= self.confidence_threshold
+        confident_indices = np.where(confident_mask)[0]
+
+        if len(confident_indices) == 0:
+            break
+
+        pseudo_labels = (probas[confident_indices] >= 0.5).astype(int)
+        X_labeled = np.vstack([X_labeled, X_unlabeled[confident_indices]])
+        y_labeled = np.concatenate([y_labeled, pseudo_labels])
+
+        mask = np.ones(len(X_unlabeled), dtype=bool)
+        mask[confident_indices] = False
+        X_unlabeled = X_unlabeled[mask]
+        self.n_labeled_history.append(len(X_labeled))
+
+    # Final training on all accumulated labeled data
+    self.model = LogisticRegression(learning_rate=0.1, n_iterations=2000)
+    self.model.fit(X_labeled, y_labeled)
+    return self</code></pre>
+</div>
+
+<p><strong>Why this design:</strong></p>
+<ul>
+  <li>The loop retrains the base classifier from scratch each iteration rather than warm-starting, preventing error accumulation from noisy pseudo-labels.</li>
+  <li><code>max_probas = np.maximum(probas, 1 - probas)</code> computes confidence for binary classification as the distance from 0.5.</li>
+  <li>Unlabeled samples are identified by <code>y == -1</code>, a convention that allows them to coexist in the same array without a separate mask.</li>
+  <li>The final retrain on all accumulated labeled data ensures the model benefits from the full expanded dataset.</li>
+</ul>
+
+<h3>data.py — Semi-supervised Data Loading</h3>
+<div class="code-block-wrapper">
+<button class="copy-btn" onclick="copyCode('code-ss-data')" title="Copy">Copy</button>
+<pre class="code-block" id="code-ss-data"><code class="language-python">def load_training_data(data_path=None, labeled_ratio=0.1, n_samples=1000, random_seed=42):
+    X, y_full = _generate_synthetic_emails(n_samples=n_samples, random_seed=random_seed)
+    rng = np.random.default_rng(random_seed)
+    n_labeled = max(1, int(n_samples * labeled_ratio))
+    labeled_indices = rng.choice(n_samples, size=n_labeled, replace=False)
+    is_labeled = np.zeros(n_samples, dtype=bool)
+    is_labeled[labeled_indices] = True
+    y = np.where(is_labeled, y_full, -1)
+    return X, y, is_labeled</code></pre>
+</div>
+</section>
+
+<section id="usage" class="section">
+<h2>5. Examples &amp; Usage</h2>
+<p class="section-subtitle">Training, serving, and consuming the API.</p>
+
+<h3>CLI Training</h3>
+<div class="code-block-wrapper">
+<button class="copy-btn" onclick="copyCode('code-ss-cli')" title="Copy">Copy</button>
+<pre class="code-block" id="code-ss-cli"><code class="language-bash">uv run python -m semi_supervised_email.train --model-dir ./artifacts/models --labeled-ratio 0.1 --confidence-threshold 0.95 --max-iterations 10</code></pre>
+</div>
+
+<h3>Python Usage</h3>
+<div class="code-block-wrapper">
+<button class="copy-btn" onclick="copyCode('code-ss-py')" title="Copy">Copy</button>
+<pre class="code-block" id="code-ss-py"><code class="language-python">from semi_supervised_email.model import SelfTrainingClassifier
+import numpy as np
+
+X = np.array([[1,1,1,1,0,8,1],[0,0,0,0,1,2,0]], dtype=float)
+y = np.array([1, 0], dtype=int)
+
+model = SelfTrainingClassifier(confidence_threshold=0.95, max_iterations=10)
+model.fit(X, y)
+print(f"Training mode: {model.training_mode}")
+print(f"Final n_labeled: {model.n_labeled_history[-1]}")</code></pre>
+</div>
+
+<h3>REST API Requests</h3>
+<div class="code-block-wrapper">
+<button class="copy-btn" onclick="copyCode('code-ss-rest')" title="Copy">Copy</button>
+<pre class="code-block" id="code-ss-rest"><code class="language-bash">curl -X POST http://localhost:8006/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "has_free": 1,
+    "has_win": 0,
+    "has_link": 1,
+    "has_exclamation": 1,
+    "has_meeting": 0,
+    "length_score": 8,
+    "has_caps": 1
+  }'</code></pre>
+</div>
+
+<h3>Expected Output</h3>
+<div class="code-block-wrapper">
+<pre class="code-block" id="code-ss-out"><code class="language-json">{
+  "is_spam": true,
+  "spam_probability": 0.8734,
+  "label": "SPAM",
+  "model_version": "1.0.0",
+  "training_mode": "semi-supervised"
+}</code></pre>
+</div>
+</section>
+
+</main>
+<footer>
+  <p>Generated documentation for <strong>semi-supervised-email</strong></p>
+</footer>
+<script>
+function copyCode(id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.innerText);
+}
+function renderMath() {
+  renderMathInElement(document.body, { delimiters: [{left: "$$", right: "$$", display: true}] });
+}
+</script>
+</body>
+</html>

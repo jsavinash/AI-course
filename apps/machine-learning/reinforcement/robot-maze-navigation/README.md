@@ -1,71 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>robot-maze-navigation - AI App Documentation</title>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMath()"></script>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-<style>
-/* CSS styles here */
-</style>
-</head>
-<body>
-<section id="math" class="section math-section">
-<h2><span class="section-icon">∫</span> Mathematics &amp; Theory</h2>
-<p class="section-subtitle">Reinforcement Learning (Q-Learning) — Underlying equations and derivations</p>
-<div class="math-content">
-<div class="equations"><div class="math-block">$$G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}$$</div>
-<div class="math-block">$$Q^\pi(s, a) = \mathbb{E}_\pi \left[ \sum_{k=0}^{\infty} \gamma^k R_{t+k+1} \bigg| S_t=s, A_t=a \right]$$</div>
-<div class="math-block">$$Q(s, a) \leftarrow Q(s, a) + \alpha \left[ r + \gamma \max_{a'} Q(s', a') - Q(s, a) \right]$$</div>
-<div class="math-block">$$\pi^*(a|s) = \arg\max_{a} Q^*(s, a)$$</div></div>
-<div class="derivation">
-<h3>Step-by-Step Derivation</h3>
-<p>RL agents learn by interacting with an environment. The return $G_t$ is the discounted sum of future rewards. The Bellman equation decomposes $Q^\pi$ into immediate reward plus discounted future value. Q-learning updates action-values toward the Bellman optimality target.</p>
-</div>
-<div class="viz-desc">
-<h3>Interactive Visualization</h3>
-<p>Interactive grid world with agent path; Q-value heatmap; episode reward curves; epsilon-greedy action distribution.</p>
-</div>
-</div>
-</section>
-<section id="architecture" class="section arch-section">
-<h2><span class="section-icon">⚙</span> Architecture</h2>
-<p class="section-subtitle">Model structure, data flow, and layer breakdown</p>
-<div class="arch-diagram">
-<h3>Class Hierarchy</h3>
-<pre class="ascii-diagram">  QLearningAgent</pre>
-</div>
-<div class="mermaid-wrapper">
-<h3>Data Flow</h3>
-<pre class="mermaid">graph TD
+# robot-maze-navigation
+
+## ∫ Mathematics & Theory
+
+Reinforcement Learning (Q-Learning) — Underlying equations and derivations
+
+$$G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}$$
+
+$$Q^\pi(s, a) = \mathbb{E}_\pi \left[ \sum_{k=0}^{\infty} \gamma^k R_{t+k+1} \bigg| S_t=s, A_t=a \right]$$
+
+$$Q(s, a) \leftarrow Q(s, a) + \alpha \left[ r + \gamma \max_{a'} Q(s', a') - Q(s, a) \right]$$
+
+$$\pi^*(a|s) = \arg\max_{a} Q^*(s, a)$$
+
+### Step-by-Step Derivation
+
+RL agents learn by interacting with an environment. The return $G_t$ is the discounted sum of future rewards. The Bellman equation decomposes $Q^\pi$ into immediate reward plus discounted future value. Q-learning updates action-values toward the Bellman optimality target.
+
+### Interactive Visualization
+
+Interactive grid world with agent path; Q-value heatmap; episode reward curves; epsilon-greedy action distribution.
+
+## ⚙ Architecture
+
+Model structure, data flow, and layer breakdown
+
+### Class Hierarchy
+
+```
+  QLearningAgent
+```
+
+### Data Flow
+
+```mermaid
+graph TD
   A[Input Data] --> B[Preprocessing]
   B --> C[Model Training]
   C --> D[Evaluation]
   D --> E[Model Registry]
-  E --> F[Serving API]</pre>
-</div>
-</section>
-<section id="api" class="section api-section">
-<h2><span class="section-icon">⚡</span> API Reference</h2>
-<p class="section-subtitle">FastAPI endpoints and model interfaces</p>
-<table class="api-table">
-<thead><tr><th>Method</th><th>Endpoint</th></tr></thead>
-<tbody><tr><td><code>GET</code></td><td><code>/</code></td></tr>
-<tr><td><code>GET</code></td><td><code>/health</code></td></tr>
-<tr><td><code>GET</code></td><td><code>/metrics</code></td></tr>
-<tr><td><code>POST</code></td><td><code>/reload</code></td></tr></tbody>
-</table>
-</section>
-<section id="usage" class="section usage-section">
-<h2><span class="section-icon">▶</span> Usage</h2>
-<p class="section-subtitle">Code examples and CLI commands</p>
-<h3>Training Script</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2373243630')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2373243630"><code class="language-python">&quot;&quot;&quot;Production training pipeline for robot maze navigation (Q-Learning).&quot;&quot;&quot;
+  E --> F[Serving API]
+```
+
+## ⚡ API Reference
+
+FastAPI endpoints and model interfaces
+
+| Method | Endpoint |
+| --- | --- |
+| `GET` | `/` |
+| `GET` | `/health` |
+| `GET` | `/metrics` |
+| `POST` | `/reload` |
+
+## ▶ Usage
+
+Code examples and CLI commands
+
+### Training Script
+
+```python
+"""Production training pipeline for robot maze navigation (Q-Learning)."""
 
 import argparse
 import os
@@ -86,7 +80,6 @@ from robot_maze_navigation.model import QLearningAgent
 
 logger = get_logger(__name__)
 
-
 def train(
     model_dir: Path,
     data_path: Path,
@@ -100,8 +93,8 @@ def train(
     model_version: str,
     register_to_mlflow: bool = False,
     random_seed: int = 42,
-) -&gt; dict:
-    &quot;&quot;&quot;Train the robot maze navigation Q-learning model.
+) -> dict:
+    """Train the robot maze navigation Q-learning model.
 
     Args:
         model_dir: Directory to save model artifacts
@@ -112,14 +105,14 @@ def train(
         learning_rate: Q-learning learning rate (alpha)
         discount_factor: Future reward discount (gamma)
         epsilon_decay: Exploration rate decay per episode
-        mode: &quot;online&quot; or &quot;offline&quot;
+        mode: "online" or "offline"
         model_version: Model version string
         register_to_mlflow: Whether to register to MLflow
         random_seed: Random seed
 
     Returns:
         Dictionary with training metrics
-    &quot;&quot;&quot;
+    """
     # Generate maze
     maze = generate_maze(maze_size, maze_size, random_seed)
     n_states = maze.shape[0] * maze.shape[1]
@@ -127,7 +120,7 @@ def train(
     start = get_start_position(maze)
 
     logger.info(
-        &quot;Generated maze&quot;,
+        "Generated maze",
         maze_size=maze_size,
         n_states=n_states,
         start=start,
@@ -146,9 +139,9 @@ def train(
         seed=random_seed,
     )
 
-    if mode == &quot;online&quot;:
+    if mode == "online":
         # Online RL: agent learns by interacting with environment
-        logger.info(&quot;Starting online RL training&quot;, n_episodes=n_episodes)
+        logger.info("Starting online RL training", n_episodes=n_episodes)
 
         def env_func():
             return start, goal_positions, maze
@@ -156,15 +149,15 @@ def train(
         train_metrics = agent.train_online(env_func, n_episodes=n_episodes, max_steps=max_steps)
     else:
         # Offline RL: agent learns from fixed dataset
-        logger.info(&quot;Starting offline RL training&quot;, n_episodes=n_episodes)
+        logger.info("Starting offline RL training", n_episodes=n_episodes)
 
         states, actions, rewards, next_states, dones = load_training_data(
             data_path, maze_size=maze_size, n_transitions=n_episodes * max_steps, seed=random_seed
         )
-        logger.info(&quot;Loaded offline dataset&quot;, n_transitions=len(states))
+        logger.info("Loaded offline dataset", n_transitions=len(states))
 
         save_training_data(
-            states, actions, rewards, next_states, dones, model_dir / &quot;training_data.npz&quot;
+            states, actions, rewards, next_states, dones, model_dir / "training_data.npz"
         )
         train_metrics = agent.train_offline(
             states,
@@ -176,22 +169,22 @@ def train(
             cols=maze_size,
         )
 
-    logger.info(&quot;Training complete&quot;, **train_metrics)
+    logger.info("Training complete", **train_metrics)
 
     # Evaluate learned policy
     eval_metrics = agent.evaluate(maze, n_episodes=100, max_steps=max_steps)
-    logger.info(&quot;Evaluation metrics&quot;, **eval_metrics)
+    logger.info("Evaluation metrics", **eval_metrics)
 
     # Model validation
-    if eval_metrics[&quot;success_rate&quot;] &lt; 0.5:
+    if eval_metrics["success_rate"] < 0.5:
         logger.warning(
-            &quot;Policy success rate below threshold&quot;,
-            success_rate=eval_metrics[&quot;success_rate&quot;],
+            "Policy success rate below threshold",
+            success_rate=eval_metrics["success_rate"],
             threshold=0.5,
         )
 
     # Save model
-    model_path = model_dir / f&quot;robot_maze_model_v{model_version}.npz&quot;
+    model_path = model_dir / f"robot_maze_model_v{model_version}.npz"
     agent.save(str(model_path))
 
     # Save maze visualization
@@ -201,109 +194,108 @@ def train(
     training_metrics = {
         **train_metrics,
         **eval_metrics,
-        &quot;maze_size&quot;: float(maze_size),
-        &quot;n_states&quot;: float(n_states),
-        &quot;n_walls&quot;: float(int(np.sum(maze))),
+        "maze_size": float(maze_size),
+        "n_states": float(n_states),
+        "n_walls": float(int(np.sum(maze))),
     }
 
     # Register model
     registry = ModelRegistry(base_dir=model_dir)
     registry.save_model(
-        model_name=&quot;robot-maze-navigation&quot;,
+        model_name="robot-maze-navigation",
         model_version=model_version,
-        model_type=&quot;reinforcement_learning&quot;,
+        model_type="reinforcement_learning",
         metrics=training_metrics,
         parameters={
-            &quot;maze_size&quot;: maze_size,
-            &quot;n_episodes&quot;: n_episodes,
-            &quot;max_steps&quot;: max_steps,
-            &quot;learning_rate&quot;: learning_rate,
-            &quot;discount_factor&quot;: discount_factor,
-            &quot;epsilon_decay&quot;: epsilon_decay,
-            &quot;mode&quot;: mode,
-            &quot;random_seed&quot;: random_seed,
+            "maze_size": maze_size,
+            "n_episodes": n_episodes,
+            "max_steps": max_steps,
+            "learning_rate": learning_rate,
+            "discount_factor": discount_factor,
+            "epsilon_decay": epsilon_decay,
+            "mode": mode,
+            "random_seed": random_seed,
         },
         artifacts={
-            f&quot;robot_maze_model_v{model_version}.npz&quot;: model_path,
-            &quot;training_data.npz&quot;: model_dir / &quot;training_data.npz&quot;,
+            f"robot_maze_model_v{model_version}.npz": model_path,
+            "training_data.npz": model_dir / "training_data.npz",
         },
         tags={
-            &quot;framework&quot;: &quot;numpy&quot;,
-            &quot;task&quot;: &quot;reinforcement_learning&quot;,
-            &quot;method&quot;: &quot;q_learning&quot;,
-            &quot;mode&quot;: mode,
+            "framework": "numpy",
+            "task": "reinforcement_learning",
+            "method": "q_learning",
+            "mode": mode,
         },
     )
 
     if register_to_mlflow:
         registry.log_to_mlflow(
-            model_name=&quot;robot-maze-navigation&quot;,
+            model_name="robot-maze-navigation",
             model_version=model_version,
             metrics=training_metrics,
             params={
-                &quot;maze_size&quot;: maze_size,
-                &quot;n_episodes&quot;: n_episodes,
-                &quot;max_steps&quot;: max_steps,
-                &quot;learning_rate&quot;: learning_rate,
-                &quot;discount_factor&quot;: discount_factor,
-                &quot;epsilon_decay&quot;: epsilon_decay,
-                &quot;mode&quot;: mode,
-                &quot;random_seed&quot;: random_seed,
+                "maze_size": maze_size,
+                "n_episodes": n_episodes,
+                "max_steps": max_steps,
+                "learning_rate": learning_rate,
+                "discount_factor": discount_factor,
+                "epsilon_decay": epsilon_decay,
+                "mode": mode,
+                "random_seed": random_seed,
             },
             artifacts={
-                &quot;model&quot;: str(model_path),
-                &quot;chart&quot;: str(model_dir / f&quot;robot_maze_v{model_version}.png&quot;),
-                &quot;training_data&quot;: str(model_dir / &quot;training_data.npz&quot;),
+                "model": str(model_path),
+                "chart": str(model_dir / f"robot_maze_v{model_version}.png"),
+                "training_data": str(model_dir / "training_data.npz"),
             },
             tags={
-                &quot;model_type&quot;: &quot;reinforcement_learning&quot;,
-                &quot;framework&quot;: &quot;numpy&quot;,
-                &quot;method&quot;: &quot;q_learning&quot;,
-                &quot;mode&quot;: mode,
+                "model_type": "reinforcement_learning",
+                "framework": "numpy",
+                "method": "q_learning",
+                "mode": mode,
             },
         )
         logger.info(
-            &quot;Registered model to MLflow&quot;, model=&quot;robot-maze-navigation&quot;, version=model_version
+            "Registered model to MLflow", model="robot-maze-navigation", version=model_version
         )
 
     return training_metrics
 
-
-def _save_chart(agent: QLearningAgent, maze: np.ndarray, output_dir: Path, version: str) -&gt; None:
-    &quot;&quot;&quot;Save the maze solution visualization and learning curves.&quot;&quot;&quot;
+def _save_chart(agent: QLearningAgent, maze: np.ndarray, output_dir: Path, version: str) -> None:
+    """Save the maze solution visualization and learning curves."""
     import matplotlib
 
-    matplotlib.use(&quot;Agg&quot;)
+    matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
     fig, axes = plt.subplots(1, 3, figsize=(16, 5))
 
     # Plot 1: Maze with solution path
     ax1 = axes[0]
-    ax1.imshow(maze, cmap=&quot;binary&quot;, interpolation=&quot;none&quot;)
+    ax1.imshow(maze, cmap="binary", interpolation="none")
     path, success, steps = agent.solve_maze(maze)
-    if len(path) &gt; 1:
+    if len(path) > 1:
         path_rows = [p[0] for p in path]
         path_cols = [p[1] for p in path]
-        ax1.plot(path_cols, path_rows, &quot;b-&quot;, linewidth=2, alpha=0.7, label=&quot;Path&quot;)
+        ax1.plot(path_cols, path_rows, "b-", linewidth=2, alpha=0.7, label="Path")
     ax1.scatter(
         [get_start_position(maze)[1]],
         [get_start_position(maze)[0]],
-        c=&quot;green&quot;,
+        c="green",
         s=200,
-        marker=&quot;o&quot;,
-        label=&quot;Start&quot;,
+        marker="o",
+        label="Start",
     )
     goals = get_goal_positions(maze)
     ax1.scatter(
         [g[1] for g in goals],
         [g[0] for g in goals],
-        c=&quot;red&quot;,
+        c="red",
         s=200,
-        marker=&quot;*&quot;,
-        label=&quot;Goal&quot;,
+        marker="*",
+        label="Goal",
     )
-    ax1.set_title(f&quot;Maze Solution - v{version} (success={success}, steps={steps})&quot;)
+    ax1.set_title(f"Maze Solution - v{version} (success={success}, steps={steps})")
     ax1.legend()
     ax1.set_xticks([])
     ax1.set_yticks([])
@@ -312,18 +304,18 @@ def _save_chart(agent: QLearningAgent, maze: np.ndarray, output_dir: Path, versi
     ax2 = axes[1]
     if agent.episode_rewards:
         window = min(50, len(agent.episode_rewards) // 10)
-        if window &gt; 0:
-            moving_avg = np.convolve(agent.episode_rewards, np.ones(window) / window, mode=&quot;valid&quot;)
-            ax2.plot(agent.episode_rewards, alpha=0.3, color=&quot;steelblue&quot;, label=&quot;Episode reward&quot;)
+        if window > 0:
+            moving_avg = np.convolve(agent.episode_rewards, np.ones(window) / window, mode="valid")
+            ax2.plot(agent.episode_rewards, alpha=0.3, color="steelblue", label="Episode reward")
             ax2.plot(
                 range(window - 1, len(agent.episode_rewards)),
                 moving_avg,
-                color=&quot;red&quot;,
-                label=f&quot;MA({window})&quot;,
+                color="red",
+                label=f"MA({window})",
             )
-    ax2.set_xlabel(&quot;Episode&quot;)
-    ax2.set_ylabel(&quot;Reward&quot;)
-    ax2.set_title(&quot;Learning Curve&quot;)
+    ax2.set_xlabel("Episode")
+    ax2.set_ylabel("Reward")
+    ax2.set_title("Learning Curve")
     ax2.grid(True, alpha=0.3)
     ax2.legend()
 
@@ -332,46 +324,45 @@ def _save_chart(agent: QLearningAgent, maze: np.ndarray, output_dir: Path, versi
     if agent.q_table is not None:
         q_max = np.max(agent.q_table, axis=1).reshape(maze.shape)
         q_max_masked = np.where(maze == 1, np.nan, q_max)
-        im = ax3.imshow(q_max_masked, cmap=&quot;hot&quot;, interpolation=&quot;none&quot;)
-        plt.colorbar(im, ax=ax3, label=&quot;Max Q-value&quot;)
-        ax3.set_title(&quot;Max Q-value per State&quot;)
+        im = ax3.imshow(q_max_masked, cmap="hot", interpolation="none")
+        plt.colorbar(im, ax=ax3, label="Max Q-value")
+        ax3.set_title("Max Q-value per State")
         ax3.set_xticks([])
         ax3.set_yticks([])
 
     plt.tight_layout()
-    chart_path = output_dir / f&quot;robot_maze_v{version}.png&quot;
+    chart_path = output_dir / f"robot_maze_v{version}.png"
     plt.savefig(str(chart_path), dpi=100)
     plt.close()
-    logger.info(&quot;Chart saved&quot;, path=str(chart_path))
-
+    logger.info("Chart saved", path=str(chart_path))
 
 def main():
-    parser = argparse.ArgumentParser(description=&quot;Train robot maze navigation Q-learning model&quot;)
-    parser.add_argument(&quot;--model-dir&quot;, type=Path, default=Path(os.getenv(&quot;MODEL_DIR&quot;, &quot;/models&quot;)))
-    parser.add_argument(&quot;--data-path&quot;, type=Path, default=None)
-    parser.add_argument(&quot;--maze-size&quot;, type=int, default=int(os.getenv(&quot;MAZE_SIZE&quot;, &quot;8&quot;)))
-    parser.add_argument(&quot;--n-episodes&quot;, type=int, default=int(os.getenv(&quot;N_EPISODES&quot;, &quot;500&quot;)))
-    parser.add_argument(&quot;--max-steps&quot;, type=int, default=int(os.getenv(&quot;MAX_STEPS&quot;, &quot;200&quot;)))
+    parser = argparse.ArgumentParser(description="Train robot maze navigation Q-learning model")
+    parser.add_argument("--model-dir", type=Path, default=Path(os.getenv("MODEL_DIR", "/models")))
+    parser.add_argument("--data-path", type=Path, default=None)
+    parser.add_argument("--maze-size", type=int, default=int(os.getenv("MAZE_SIZE", "8")))
+    parser.add_argument("--n-episodes", type=int, default=int(os.getenv("N_EPISODES", "500")))
+    parser.add_argument("--max-steps", type=int, default=int(os.getenv("MAX_STEPS", "200")))
     parser.add_argument(
-        &quot;--learning-rate&quot;, type=float, default=float(os.getenv(&quot;LEARNING_RATE&quot;, &quot;0.1&quot;))
+        "--learning-rate", type=float, default=float(os.getenv("LEARNING_RATE", "0.1"))
     )
     parser.add_argument(
-        &quot;--discount-factor&quot;, type=float, default=float(os.getenv(&quot;DISCOUNT_FACTOR&quot;, &quot;0.99&quot;))
+        "--discount-factor", type=float, default=float(os.getenv("DISCOUNT_FACTOR", "0.99"))
     )
     parser.add_argument(
-        &quot;--epsilon-decay&quot;, type=float, default=float(os.getenv(&quot;EPSILON_DECAY&quot;, &quot;0.995&quot;))
+        "--epsilon-decay", type=float, default=float(os.getenv("EPSILON_DECAY", "0.995"))
     )
     parser.add_argument(
-        &quot;--mode&quot;, type=str, default=os.getenv(&quot;RL_MODE&quot;, &quot;online&quot;), choices=[&quot;online&quot;, &quot;offline&quot;]
+        "--mode", type=str, default=os.getenv("RL_MODE", "online"), choices=["online", "offline"]
     )
-    parser.add_argument(&quot;--model-version&quot;, type=str, default=os.getenv(&quot;MODEL_VERSION&quot;, &quot;1.0.0&quot;))
-    parser.add_argument(&quot;--random-seed&quot;, type=int, default=int(os.getenv(&quot;RANDOM_SEED&quot;, &quot;42&quot;)))
+    parser.add_argument("--model-version", type=str, default=os.getenv("MODEL_VERSION", "1.0.0"))
+    parser.add_argument("--random-seed", type=int, default=int(os.getenv("RANDOM_SEED", "42")))
     parser.add_argument(
-        &quot;--register-mlflow&quot;,
-        action=&quot;store_true&quot;,
-        default=os.getenv(&quot;REGISTER_MLFLOW&quot;, &quot;false&quot;).lower() == &quot;true&quot;,
+        "--register-mlflow",
+        action="store_true",
+        default=os.getenv("REGISTER_MLFLOW", "false").lower() == "true",
     )
-    parser.add_argument(&quot;--log-level&quot;, type=str, default=os.getenv(&quot;LOG_LEVEL&quot;, &quot;INFO&quot;))
+    parser.add_argument("--log-level", type=str, default=os.getenv("LOG_LEVEL", "INFO"))
     args = parser.parse_args()
 
     setup_logging(args.log_level)
@@ -392,15 +383,16 @@ def main():
         random_seed=args.random_seed,
     )
 
-    logger.info(&quot;Training finished&quot;, metrics=metrics, model_dir=str(args.model_dir))
+    logger.info("Training finished", metrics=metrics, model_dir=str(args.model_dir))
 
+if __name__ == "__main__":
+    main()
+```
 
-if __name__ == &quot;__main__&quot;:
-    main()</code></pre>
-</div><h3>API Server</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2067180425')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2067180425"><code class="language-python">&quot;&quot;&quot;Production serving API for robot maze navigation (Q-Learning).&quot;&quot;&quot;
+### API Server
+
+```python
+"""Production serving API for robot maze navigation (Q-Learning)."""
 
 import os
 import time
@@ -427,22 +419,20 @@ from robot_maze_navigation.model import QLearningAgent
 logger = get_logger(__name__)
 
 # Configuration
-MODEL_DIR = Path(os.getenv(&quot;MODEL_DIR&quot;, &quot;/models&quot;))
-MODEL_VERSION = os.getenv(&quot;MODEL_VERSION&quot;, &quot;latest&quot;)
-METRICS_PORT = int(os.getenv(&quot;METRICS_PORT&quot;, os.getenv(&quot;ROBOT_MAZE_METRICS_PORT&quot;, &quot;8006&quot;)))
-DRIFT_THRESHOLD = float(os.getenv(&quot;DRIFT_THRESHOLD&quot;, &quot;0.2&quot;))
-MAZE_SIZE = int(os.getenv(&quot;MAZE_SIZE&quot;, &quot;8&quot;))
-
+MODEL_DIR = Path(os.getenv("MODEL_DIR", "/models"))
+MODEL_VERSION = os.getenv("MODEL_VERSION", "latest")
+METRICS_PORT = int(os.getenv("METRICS_PORT", os.getenv("ROBOT_MAZE_METRICS_PORT", "8006")))
+DRIFT_THRESHOLD = float(os.getenv("DRIFT_THRESHOLD", "0.2"))
+MAZE_SIZE = int(os.getenv("MAZE_SIZE", "8"))
 
 class SolveRequest(BaseModel):
-    &quot;&quot;&quot;Request to solve a maze.&quot;&quot;&quot;
+    """Request to solve a maze."""
 
-    maze_size: int = Field(8, ge=4, le=20, description=&quot;Size of the square maze&quot;)
-    max_steps: int = Field(200, ge=10, le=1000, description=&quot;Maximum steps to solve&quot;)
-
+    maze_size: int = Field(8, ge=4, le=20, description="Size of the square maze")
+    max_steps: int = Field(200, ge=10, le=1000, description="Maximum steps to solve")
 
 class SolveResponse(BaseModel):
-    &quot;&quot;&quot;Response with maze solution.&quot;&quot;&quot;
+    """Response with maze solution."""
 
     path: list[list[int]]
     success: bool
@@ -451,17 +441,15 @@ class SolveResponse(BaseModel):
     goals: list[list[int]]
     model_version: str
 
-
 class StepRequest(BaseModel):
-    &quot;&quot;&quot;Request to compute next action for a given state.&quot;&quot;&quot;
+    """Request to compute next action for a given state."""
 
-    row: int = Field(..., ge=0, description=&quot;Current row&quot;)
-    col: int = Field(..., ge=0, description=&quot;Current column&quot;)
-    maze_size: int = Field(8, ge=4, le=20, description=&quot;Maze size for state indexing&quot;)
-
+    row: int = Field(..., ge=0, description="Current row")
+    col: int = Field(..., ge=0, description="Current column")
+    maze_size: int = Field(8, ge=4, le=20, description="Maze size for state indexing")
 
 class StepResponse(BaseModel):
-    &quot;&quot;&quot;Response with recommended action.&quot;&quot;&quot;
+    """Response with recommended action."""
 
     action: str
     action_code: int
@@ -470,23 +458,20 @@ class StepResponse(BaseModel):
     q_values: list[float]
     model_version: str
 
-
 class TrainRequest(BaseModel):
-    &quot;&quot;&quot;Request to trigger training.&quot;&quot;&quot;
+    """Request to trigger training."""
 
-    n_episodes: int = Field(100, ge=10, le=10000, description=&quot;Number of training episodes&quot;)
-    mode: str = Field(&quot;online&quot;, description=&quot;Training mode: online or offline&quot;)
-
+    n_episodes: int = Field(100, ge=10, le=10000, description="Number of training episodes")
+    mode: str = Field("online", description="Training mode: online or offline")
 
 class TrainResponse(BaseModel):
-    &quot;&quot;&quot;Response from training.&quot;&quot;&quot;
+    """Response from training."""
 
     metrics: dict
     model_version: str
 
-
 class StatsResponse(BaseModel):
-    &quot;&quot;&quot;Model statistics response.&quot;&quot;&quot;
+    """Model statistics response."""
 
     n_states: int
     n_actions: int
@@ -501,9 +486,8 @@ class StatsResponse(BaseModel):
     mean_episode_length: float
     model_version: str
 
-
 class DriftResponse(BaseModel):
-    &quot;&quot;&quot;Drift detection response.&quot;&quot;&quot;
+    """Drift detection response."""
 
     total_features: int
     drifted_features: int
@@ -511,119 +495,115 @@ class DriftResponse(BaseModel):
     drifted: list[dict]
     all_results: list[dict]
 
-
 # Global model state
 _model: QLearningAgent | None = None
-_model_version: str = &quot;unknown&quot;
+_model_version: str = "unknown"
 _metrics: MetricsCollector | None = None
 _drift_detector: DriftDetector | None = None
 _reference_data: np.ndarray | None = None
 _recent_predictions: list[list[int]] = []
 _maze_size: int = MAZE_SIZE
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    &quot;&quot;&quot;Load model at startup and clean up at shutdown.&quot;&quot;&quot;
+    """Load model at startup and clean up at shutdown."""
     global _model, _model_version, _metrics, _drift_detector, _reference_data, _maze_size
 
-    setup_logging(os.getenv(&quot;LOG_LEVEL&quot;, &quot;INFO&quot;))
-    _metrics = MetricsCollector(&quot;robot_maze&quot;, port=METRICS_PORT)
+    setup_logging(os.getenv("LOG_LEVEL", "INFO"))
+    _metrics = MetricsCollector("robot_maze", port=METRICS_PORT)
     app.state.metrics = _metrics
 
     _drift_detector = DriftDetector(
-        feature_names=[&quot;row&quot;, &quot;col&quot;],
-        feature_types={&quot;row&quot;: &quot;float&quot;, &quot;col&quot;: &quot;float&quot;},
+        feature_names=["row", "col"],
+        feature_types={"row": "float", "col": "float"},
         psi_threshold=DRIFT_THRESHOLD,
     )
 
     _model, _model_version = _load_model()
     _metrics.set_model_version(_model_version)
     _metrics.set_model_info(
-        model_name=&quot;robot-maze-navigation&quot;,
+        model_name="robot-maze-navigation",
         model_version=_model_version,
-        model_type=&quot;reinforcement_learning&quot;,
+        model_type="reinforcement_learning",
     )
 
     # Load reference data for drift detection
     _reference_data = _load_reference_data()
-    logger.info(&quot;Model loaded&quot;, model=&quot;robot-maze-navigation&quot;, version=_model_version)
+    logger.info("Model loaded", model="robot-maze-navigation", version=_model_version)
 
     yield
 
-    logger.info(&quot;Shutting down robot-maze-navigation API&quot;)
+    logger.info("Shutting down robot-maze-navigation API")
 
-
-def _load_model() -&gt; tuple[QLearningAgent, str]:
-    &quot;&quot;&quot;Load the latest model from the registry or model directory with resilient fallback.&quot;&quot;&quot;
+def _load_model() -> tuple[QLearningAgent, str]:
+    """Load the latest model from the registry or model directory with resilient fallback."""
     # 1. Try model registry
     registry = ModelRegistry(base_dir=MODEL_DIR)
     try:
-        if MODEL_VERSION == &quot;latest&quot;:
+        if MODEL_VERSION == "latest":
             models = registry.list_models()
-            rm_models = [m for m in models if m.get(&quot;model_name&quot;) == &quot;robot-maze-navigation&quot;]
+            rm_models = [m for m in models if m.get("model_name") == "robot-maze-navigation"]
             if rm_models:
-                rm_models.sort(key=lambda m: m[&quot;model_version&quot;], reverse=True)
+                rm_models.sort(key=lambda m: m["model_version"], reverse=True)
                 latest = rm_models[0]
-                model_dir = Path(latest[&quot;artifact_path&quot;])
-                npz_files = list(model_dir.glob(&quot;robot_maze_model_*.npz&quot;)) + list(
-                    model_dir.glob(&quot;*.npz&quot;)
+                model_dir = Path(latest["artifact_path"])
+                npz_files = list(model_dir.glob("robot_maze_model_*.npz")) + list(
+                    model_dir.glob("*.npz")
                 )
                 if npz_files:
-                    return QLearningAgent.load(str(npz_files[0])), latest[&quot;model_version&quot;]
+                    return QLearningAgent.load(str(npz_files[0])), latest["model_version"]
         else:
-            model_dir = MODEL_DIR / &quot;robot-maze-navigation&quot; / MODEL_VERSION
+            model_dir = MODEL_DIR / "robot-maze-navigation" / MODEL_VERSION
             if model_dir.exists():
-                npz_files = list(model_dir.glob(&quot;robot_maze_model_*.npz&quot;)) + list(
-                    model_dir.glob(&quot;*.npz&quot;)
+                npz_files = list(model_dir.glob("robot_maze_model_*.npz")) + list(
+                    model_dir.glob("*.npz")
                 )
                 if npz_files:
                     return QLearningAgent.load(str(npz_files[0])), MODEL_VERSION
     except Exception as e:
-        logger.warning(f&quot;Registry lookup failed: {e}&quot;)
+        logger.warning(f"Registry lookup failed: {e}")
 
     # 2. Try direct model in MODEL_DIR
-    npz_path = MODEL_DIR / &quot;robot_maze_model.npz&quot;
+    npz_path = MODEL_DIR / "robot_maze_model.npz"
     if npz_path.exists():
-        return QLearningAgent.load(str(npz_path)), &quot;legacy&quot;
+        return QLearningAgent.load(str(npz_path)), "legacy"
 
     # 3. Try bundled artifacts directory
     candidate_paths = [
-        Path(&quot;/app/artifacts/models/robot_maze_model_v1.0.0.npz&quot;),
+        Path("/app/artifacts/models/robot_maze_model_v1.0.0.npz"),
         Path(__file__).resolve().parents[3]
-        / &quot;artifacts&quot;
-        / &quot;models&quot;
-        / &quot;robot_maze_model_v1.0.0.npz&quot;,
+        / "artifacts"
+        / "models"
+        / "robot_maze_model_v1.0.0.npz",
     ]
     for p in candidate_paths:
         if p.exists():
-            logger.info(&quot;Loading bundled baseline model&quot;, path=str(p))
-            return QLearningAgent.load(str(p)), &quot;1.0.0-bundled&quot;
+            logger.info("Loading bundled baseline model", path=str(p))
+            return QLearningAgent.load(str(p)), "1.0.0-bundled"
 
     # 4. In-memory baseline fallback (never crash cold start)
-    logger.warning(&quot;No pre-existing model found on disk. Initializing baseline Q-learning model.&quot;)
+    logger.warning("No pre-existing model found on disk. Initializing baseline Q-learning model.")
     maze = generate_maze(_maze_size, _maze_size, 42)
     n_states = maze.shape[0] * maze.shape[1]
-    model = QLearningAgent(n_states=n_states, n_actions=4, mode=&quot;online&quot;, seed=42)
-    return model, &quot;1.0.0-baseline&quot;
+    model = QLearningAgent(n_states=n_states, n_actions=4, mode="online", seed=42)
+    return model, "1.0.0-baseline"
 
-
-def _load_reference_data() -&gt; np.ndarray | None:
-    &quot;&quot;&quot;Load reference training data for drift detection.&quot;&quot;&quot;
+def _load_reference_data() -> np.ndarray | None:
+    """Load reference training data for drift detection."""
     candidate_npzs = [
-        MODEL_DIR / &quot;robot-maze-navigation&quot; / _model_version / &quot;training_data.npz&quot;,
-        MODEL_DIR / &quot;training_data.npz&quot;,
-        Path(&quot;/app/artifacts/models/training_data.npz&quot;),
-        Path(__file__).resolve().parents[3] / &quot;artifacts&quot; / &quot;models&quot; / &quot;training_data.npz&quot;,
+        MODEL_DIR / "robot-maze-navigation" / _model_version / "training_data.npz",
+        MODEL_DIR / "training_data.npz",
+        Path("/app/artifacts/models/training_data.npz"),
+        Path(__file__).resolve().parents[3] / "artifacts" / "models" / "training_data.npz",
     ]
     for npz_path in candidate_npzs:
         if npz_path.exists():
             try:
                 data = np.load(npz_path)
-                if &quot;states&quot; in data:
-                    return data[&quot;states&quot;]
+                if "states" in data:
+                    return data["states"]
             except Exception as e:
-                logger.warning(&quot;Could not read reference npz&quot;, path=str(npz_path), error=str(e))
+                logger.warning("Could not read reference npz", path=str(npz_path), error=str(e))
 
     # Generate reference data
     maze = generate_maze(_maze_size, _maze_size, 42)
@@ -632,90 +612,84 @@ def _load_reference_data() -&gt; np.ndarray | None:
     states, _, _, _, _ = generate_transitions(maze, 1000, 42)
     return states
 
-
 # Create FastAPI app
 app = FastAPI(
-    title=&quot;Robot Maze Navigation API&quot;,
-    description=&quot;Q-Learning Reinforcement Learning for robot maze navigation&quot;,
-    version=&quot;1.0.0&quot;,
+    title="Robot Maze Navigation API",
+    description="Q-Learning Reinforcement Learning for robot maze navigation",
+    version="1.0.0",
     lifespan=lifespan,
 )
 
 # Add observability middleware
 add_observability_middleware(app)
 
-
-@app.get(&quot;/&quot;)
+@app.get("/")
 def read_root():
-    &quot;&quot;&quot;Service information.&quot;&quot;&quot;
+    """Service information."""
     return {
-        &quot;service&quot;: &quot;robot-maze-navigation-api&quot;,
-        &quot;version&quot;: &quot;1.0.0&quot;,
-        &quot;model_version&quot;: _model_version,
-        &quot;mode&quot;: _model.mode if _model else &quot;unknown&quot;,
-        &quot;endpoints&quot;: {
-            &quot;health&quot;: &quot;/health&quot;,
-            &quot;solve&quot;: &quot;POST /solve&quot;,
-            &quot;step&quot;: &quot;POST /step&quot;,
-            &quot;train&quot;: &quot;POST /train&quot;,
-            &quot;stats&quot;: &quot;GET /stats&quot;,
-            &quot;drift&quot;: &quot;GET /drift&quot;,
-            &quot;metrics&quot;: &quot;/metrics&quot;,
+        "service": "robot-maze-navigation-api",
+        "version": "1.0.0",
+        "model_version": _model_version,
+        "mode": _model.mode if _model else "unknown",
+        "endpoints": {
+            "health": "/health",
+            "solve": "POST /solve",
+            "step": "POST /step",
+            "train": "POST /train",
+            "stats": "GET /stats",
+            "drift": "GET /drift",
+            "metrics": "/metrics",
         },
     }
 
-
-@app.get(&quot;/health&quot;)
+@app.get("/health")
 def health_check():
-    &quot;&quot;&quot;Kubernetes liveness/readiness probe.&quot;&quot;&quot;
+    """Kubernetes liveness/readiness probe."""
     if _model is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
     return {
-        &quot;status&quot;: &quot;healthy&quot;,
-        &quot;model_loaded&quot;: True,
-        &quot;model_version&quot;: _model_version,
-        &quot;mode&quot;: _model.mode,
+        "status": "healthy",
+        "model_loaded": True,
+        "model_version": _model_version,
+        "mode": _model.mode,
     }
 
-
-@app.get(&quot;/metrics&quot;)
+@app.get("/metrics")
 def metrics():
-    &quot;&quot;&quot;Prometheus metrics endpoint.&quot;&quot;&quot;
+    """Prometheus metrics endpoint."""
     from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
-
-@app.post(&quot;/reload&quot;)
+@app.post("/reload")
 def reload_model():
-    &quot;&quot;&quot;Dynamically reload the model from disk/registry.&quot;&quot;&quot;
+    """Dynamically reload the model from disk/registry."""
     global _model, _model_version, _reference_data
     try:
         _model, _model_version = _load_model()
         if _metrics:
             _metrics.set_model_version(_model_version)
             _metrics.set_model_info(
-                model_name=&quot;robot-maze-navigation&quot;,
+                model_name="robot-maze-navigation",
                 model_version=_model_version,
-                model_type=&quot;reinforcement_learning&quot;,
+                model_type="reinforcement_learning",
             )
         _reference_data = _load_reference_data()
         logger.info(
-            &quot;Model reloaded dynamically&quot;, model=&quot;robot-maze-navigation&quot;, version=_model_version
+            "Model reloaded dynamically", model="robot-maze-navigation", version=_model_version
         )
-        return {&quot;status&quot;: &quot;reloaded&quot;, &quot;model_version&quot;: _model_version}
+        return {"status": "reloaded", "model_version": _model_version}
     except Exception as e:
-        logger.exception(&quot;Model reload failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=f&quot;Reload failed: {e}&quot;) from e
+        logger.exception("Model reload failed", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Reload failed: {e}") from e
 
-
-@app.get(&quot;/drift&quot;, response_model=DriftResponse)
+@app.get("/drift", response_model=DriftResponse)
 def drift_check():
-    &quot;&quot;&quot;Check for data drift between reference and recent predictions.&quot;&quot;&quot;
+    """Check for data drift between reference and recent predictions."""
     if _drift_detector is None or _reference_data is None:
-        raise HTTPException(status_code=503, detail=&quot;Drift detection not available&quot;)
+        raise HTTPException(status_code=503, detail="Drift detection not available")
 
-    if len(_recent_predictions) &lt; 10:
+    if len(_recent_predictions) < 10:
         return DriftResponse(
             total_features=2,
             drifted_features=0,
@@ -729,16 +703,15 @@ def drift_check():
     summary = _drift_detector.summarize(results)
 
     if _metrics:
-        _metrics.set_drift_ratio(summary[&quot;drift_ratio&quot;])
+        _metrics.set_drift_ratio(summary["drift_ratio"])
 
     return DriftResponse(**summary)
 
-
-@app.get(&quot;/stats&quot;, response_model=StatsResponse)
+@app.get("/stats", response_model=StatsResponse)
 def get_stats():
-    &quot;&quot;&quot;Return model statistics.&quot;&quot;&quot;
+    """Return model statistics."""
     if _model is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     return StatsResponse(
         n_states=_model.n_states,
@@ -761,12 +734,11 @@ def get_stats():
         model_version=_model_version,
     )
 
-
-@app.post(&quot;/solve&quot;, response_model=SolveResponse)
+@app.post("/solve", response_model=SolveResponse)
 def solve_maze(body: SolveRequest):
-    &quot;&quot;&quot;Solve the maze using the learned Q-table.&quot;&quot;&quot;
+    """Solve the maze using the learned Q-table."""
     if _model is None or _metrics is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     start = time.time()
     try:
@@ -784,16 +756,15 @@ def solve_maze(body: SolveRequest):
             model_version=_model_version,
         )
     except Exception as e:
-        _metrics.record_error(model_version=_model_version, error_type=&quot;prediction&quot;)
-        logger.exception(&quot;Maze solving failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=&quot;Maze solving failed&quot;) from e
+        _metrics.record_error(model_version=_model_version, error_type="prediction")
+        logger.exception("Maze solving failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Maze solving failed") from e
 
-
-@app.post(&quot;/step&quot;, response_model=StepResponse)
+@app.post("/step", response_model=StepResponse)
 def compute_step(body: StepRequest):
-    &quot;&quot;&quot;Compute the next action for a given state.&quot;&quot;&quot;
+    """Compute the next action for a given state."""
     if _model is None or _metrics is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     start = time.time()
     try:
@@ -817,16 +788,15 @@ def compute_step(body: StepRequest):
             model_version=_model_version,
         )
     except Exception as e:
-        _metrics.record_error(model_version=_model_version, error_type=&quot;prediction&quot;)
-        logger.exception(&quot;Step computation failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=&quot;Step computation failed&quot;) from e
+        _metrics.record_error(model_version=_model_version, error_type="prediction")
+        logger.exception("Step computation failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Step computation failed") from e
 
-
-@app.post(&quot;/train&quot;, response_model=TrainResponse)
+@app.post("/train", response_model=TrainResponse)
 def trigger_training(body: TrainRequest):
-    &quot;&quot;&quot;Trigger online or offline training.&quot;&quot;&quot;
+    """Trigger online or offline training."""
     if _model is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     start = time.time()
     try:
@@ -834,7 +804,7 @@ def trigger_training(body: TrainRequest):
         goal_positions = get_goal_positions(maze)
         start_pos = get_start_position(maze)
 
-        if body.mode == &quot;online&quot;:
+        if body.mode == "online":
 
             def env_func():
                 return start_pos, goal_positions, maze
@@ -861,34 +831,21 @@ def trigger_training(body: TrainRequest):
 
         return TrainResponse(metrics=metrics, model_version=_model_version)
     except Exception as e:
-        _metrics.record_error(model_version=_model_version, error_type=&quot;training&quot;)
-        logger.exception(&quot;Training failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=&quot;Training failed&quot;) from e</code></pre>
-</div>
-<h3>CLI Commands</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1500878013')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1500878013"><code class="language-bash">uv run python -m robot_maze_navigation.train --model-dir ./artifacts/models</code></pre>
-</div>
-</section>
-<section id="benchmarks" class="section bench-section">
-<h2><span class="section-icon">📊</span> Benchmarks</h2>
-<p class="section-subtitle">Test results and performance metrics</p>
-<p class="muted">Run <code>pytest tests/test_models.py</code> and <code>pytest tests/test_apis.py</code> for detailed metrics.</p>
-</section>
+        _metrics.record_error(model_version=_model_version, error_type="training")
+        logger.exception("Training failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Training failed") from e
+```
 
-</main>
-<footer class="app-footer">
-<p>Generated documentation for <strong>robot-maze-navigation</strong></p>
-</footer>
-<script>
-function copyCode(id) {
-  const el = document.getElementById(id);
-  navigator.clipboard.writeText(el.innerText);
-}
-function renderMath() {
-  renderMathInElement(document.body, { delimiters: [{left: "$$", right: "$$", display: true}] });
-}
-</script>
-</body>
-</html>
+### CLI Commands
+
+```bash
+uv run python -m robot_maze_navigation.train --model-dir ./artifacts/models
+```
+
+## 📊 Benchmarks
+
+Test results and performance metrics
+
+Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+
+Generated documentation for **robot-maze-navigation**

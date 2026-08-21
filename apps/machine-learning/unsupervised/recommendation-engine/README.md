@@ -1,71 +1,64 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>recommendation-engine - AI App Documentation</title>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMath()"></script>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-<style>
-/* CSS styles here */
-</style>
-</head>
-<body>
-<section id="math" class="section math-section">
-<h2><span class="section-icon">∫</span> Mathematics &amp; Theory</h2>
-<p class="section-subtitle">Recommendation Engine (Collaborative Filtering) — Underlying equations and derivations</p>
-<div class="math-content">
-<div class="equations"><div class="math-block">$$\hat{r}_{ui} = \mu + b_u + b_i + q_i^T p_u$$</div>
-<div class="math-block">$$\min_{b^*} \sum_{(u,i) \in \mathcal{K}} (r_{ui} - \mu - b_u - b_i)^2 + \lambda(\|b_u\|^2 + \|b_i\|^2)$$</div>
-<div class="math-block">$$\text{cosine}(u,v) = \frac{u \cdot v}{\|u\| \|v\|}$$</div></div>
-<div class="derivation">
-<h3>Step-by-Step Derivation</h3>
-<p>Matrix factorization decomposes the user-item interaction matrix into latent factors. Bias terms capture global mean and user/item-specific offsets. Regularization prevents overfitting. Similarity metrics enable neighborhood-based recommendations.</p>
-</div>
-<div class="viz-desc">
-<h3>Interactive Visualization</h3>
-<p>Interactive embedding scatter plot; recommendation coverage vs diversity trade-off; top-k recall curve.</p>
-</div>
-</div>
-</section>
-<section id="architecture" class="section arch-section">
-<h2><span class="section-icon">⚙</span> Architecture</h2>
-<p class="section-subtitle">Model structure, data flow, and layer breakdown</p>
-<div class="arch-diagram">
-<h3>Class Hierarchy</h3>
-<pre class="ascii-diagram">  AssociationRule
-  Apriori</pre>
-</div>
-<div class="mermaid-wrapper">
-<h3>Data Flow</h3>
-<pre class="mermaid">graph TD
+# recommendation-engine
+
+## ∫ Mathematics & Theory
+
+Recommendation Engine (Collaborative Filtering) — Underlying equations and derivations
+
+$$\hat{r}_{ui} = \mu + b_u + b_i + q_i^T p_u$$
+
+$$\min_{b^*} \sum_{(u,i) \in \mathcal{K}} (r_{ui} - \mu - b_u - b_i)^2 + \lambda(\|b_u\|^2 + \|b_i\|^2)$$
+
+$$\text{cosine}(u,v) = \frac{u \cdot v}{\|u\| \|v\|}$$
+
+### Step-by-Step Derivation
+
+Matrix factorization decomposes the user-item interaction matrix into latent factors. Bias terms capture global mean and user/item-specific offsets. Regularization prevents overfitting. Similarity metrics enable neighborhood-based recommendations.
+
+### Interactive Visualization
+
+Interactive embedding scatter plot; recommendation coverage vs diversity trade-off; top-k recall curve.
+
+## ⚙ Architecture
+
+Model structure, data flow, and layer breakdown
+
+### Class Hierarchy
+
+```
+  AssociationRule
+  Apriori
+```
+
+### Data Flow
+
+```mermaid
+graph TD
   A[Input Data] --> B[Preprocessing]
   B --> C[Model Training]
   C --> D[Evaluation]
   D --> E[Model Registry]
-  E --> F[Serving API]</pre>
-</div>
-</section>
-<section id="api" class="section api-section">
-<h2><span class="section-icon">⚡</span> API Reference</h2>
-<p class="section-subtitle">FastAPI endpoints and model interfaces</p>
-<table class="api-table">
-<thead><tr><th>Method</th><th>Endpoint</th></tr></thead>
-<tbody><tr><td><code>GET</code></td><td><code>/</code></td></tr>
-<tr><td><code>GET</code></td><td><code>/health</code></td></tr>
-<tr><td><code>GET</code></td><td><code>/metrics</code></td></tr>
-<tr><td><code>POST</code></td><td><code>/reload</code></td></tr></tbody>
-</table>
-</section>
-<section id="usage" class="section usage-section">
-<h2><span class="section-icon">▶</span> Usage</h2>
-<p class="section-subtitle">Code examples and CLI commands</p>
-<h3>Training Script</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3515416332')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3515416332"><code class="language-python">&quot;&quot;&quot;Production training pipeline for the recommendation engine (Apriori).&quot;&quot;&quot;
+  E --> F[Serving API]
+```
+
+## ⚡ API Reference
+
+FastAPI endpoints and model interfaces
+
+| Method | Endpoint |
+| --- | --- |
+| `GET` | `/` |
+| `GET` | `/health` |
+| `GET` | `/metrics` |
+| `POST` | `/reload` |
+
+## ▶ Usage
+
+Code examples and CLI commands
+
+### Training Script
+
+```python
+"""Production training pipeline for the recommendation engine (Apriori)."""
 
 import argparse
 import os
@@ -79,7 +72,6 @@ from recommendation_engine.model import Apriori
 
 logger = get_logger(__name__)
 
-
 def train(
     model_dir: Path,
     data_path: Path,
@@ -90,18 +82,18 @@ def train(
     model_version: str,
     register_to_mlflow: bool = False,
     random_seed: int = 42,
-) -&gt; dict:
-    &quot;&quot;&quot;Train the recommendation engine Apriori model and save artifacts.
+) -> dict:
+    """Train the recommendation engine Apriori model and save artifacts.
 
     Returns:
         Dictionary with training metrics
-    &quot;&quot;&quot;
+    """
     # Load training data
     transactions = load_training_data(data_path, random_seed=random_seed)
-    logger.info(&quot;Loaded training data&quot;, n_transactions=len(transactions))
+    logger.info("Loaded training data", n_transactions=len(transactions))
 
     # Save training data for reproducibility
-    save_training_data(transactions, model_dir / &quot;training_data.csv&quot;)
+    save_training_data(transactions, model_dir / "training_data.csv")
 
     # Train model
     model = Apriori(
@@ -115,24 +107,24 @@ def train(
     # Evaluate model quality
     metrics = model.evaluate(transactions)
     logger.info(
-        &quot;Training complete&quot;,
-        n_rules=metrics[&quot;n_rules&quot;],
-        n_frequent_itemsets=metrics[&quot;n_frequent_itemsets&quot;],
-        coverage=metrics[&quot;coverage&quot;],
-        avg_confidence=metrics[&quot;avg_confidence&quot;],
-        avg_lift=metrics[&quot;avg_lift&quot;],
+        "Training complete",
+        n_rules=metrics["n_rules"],
+        n_frequent_itemsets=metrics["n_frequent_itemsets"],
+        coverage=metrics["coverage"],
+        avg_confidence=metrics["avg_confidence"],
+        avg_lift=metrics["avg_lift"],
     )
 
     # Model validation - check rule quality
-    if metrics[&quot;n_rules&quot;] == 0:
+    if metrics["n_rules"] == 0:
         logger.warning(
-            &quot;No rules generated. Consider lowering min_support or min_confidence.&quot;,
+            "No rules generated. Consider lowering min_support or min_confidence.",
             min_support=min_support,
             min_confidence=min_confidence,
         )
 
     # Save model
-    model_path = model_dir / f&quot;recommendation_model_v{model_version}.npz&quot;
+    model_path = model_dir / f"recommendation_model_v{model_version}.npz"
     model.save(str(model_path))
 
     # Save training chart
@@ -140,73 +132,72 @@ def train(
 
     # Combined metrics for registry
     training_metrics = {
-        &quot;n_rules&quot;: metrics[&quot;n_rules&quot;],
-        &quot;n_frequent_itemsets&quot;: metrics[&quot;n_frequent_itemsets&quot;],
-        &quot;coverage&quot;: metrics[&quot;coverage&quot;],
-        &quot;avg_confidence&quot;: metrics[&quot;avg_confidence&quot;],
-        &quot;avg_lift&quot;: metrics[&quot;avg_lift&quot;],
-        &quot;avg_support&quot;: metrics[&quot;avg_support&quot;],
-        &quot;n_transactions&quot;: float(len(transactions)),
-        &quot;n_products&quot;: float(len(model.products)),
+        "n_rules": metrics["n_rules"],
+        "n_frequent_itemsets": metrics["n_frequent_itemsets"],
+        "coverage": metrics["coverage"],
+        "avg_confidence": metrics["avg_confidence"],
+        "avg_lift": metrics["avg_lift"],
+        "avg_support": metrics["avg_support"],
+        "n_transactions": float(len(transactions)),
+        "n_products": float(len(model.products)),
     }
 
     # Register model
     registry = ModelRegistry(base_dir=model_dir)
     registry.save_model(
-        model_name=&quot;recommendation-engine&quot;,
+        model_name="recommendation-engine",
         model_version=model_version,
-        model_type=&quot;association_rules&quot;,
+        model_type="association_rules",
         metrics=training_metrics,
         parameters={
-            &quot;min_support&quot;: min_support,
-            &quot;min_confidence&quot;: min_confidence,
-            &quot;min_lift&quot;: min_lift,
-            &quot;max_itemset_size&quot;: max_itemset_size,
-            &quot;random_seed&quot;: random_seed,
+            "min_support": min_support,
+            "min_confidence": min_confidence,
+            "min_lift": min_lift,
+            "max_itemset_size": max_itemset_size,
+            "random_seed": random_seed,
         },
         artifacts={
-            f&quot;recommendation_model_v{model_version}.npz&quot;: model_path,
-            &quot;training_data.csv&quot;: model_dir / &quot;training_data.csv&quot;,
+            f"recommendation_model_v{model_version}.npz": model_path,
+            "training_data.csv": model_dir / "training_data.csv",
         },
-        tags={&quot;framework&quot;: &quot;numpy&quot;, &quot;task&quot;: &quot;association_rules&quot;},
+        tags={"framework": "numpy", "task": "association_rules"},
     )
 
     if register_to_mlflow:
         registry.log_to_mlflow(
-            model_name=&quot;recommendation-engine&quot;,
+            model_name="recommendation-engine",
             model_version=model_version,
             metrics=training_metrics,
             params={
-                &quot;min_support&quot;: min_support,
-                &quot;min_confidence&quot;: min_confidence,
-                &quot;min_lift&quot;: min_lift,
-                &quot;max_itemset_size&quot;: max_itemset_size,
-                &quot;random_seed&quot;: random_seed,
+                "min_support": min_support,
+                "min_confidence": min_confidence,
+                "min_lift": min_lift,
+                "max_itemset_size": max_itemset_size,
+                "random_seed": random_seed,
             },
             artifacts={
-                &quot;model&quot;: str(model_path),
-                &quot;chart&quot;: str(model_dir / f&quot;recommendation_engine_v{model_version}.png&quot;),
-                &quot;training_data&quot;: str(model_dir / &quot;training_data.csv&quot;),
+                "model": str(model_path),
+                "chart": str(model_dir / f"recommendation_engine_v{model_version}.png"),
+                "training_data": str(model_dir / "training_data.csv"),
             },
-            tags={&quot;model_type&quot;: &quot;association_rules&quot;, &quot;framework&quot;: &quot;numpy&quot;},
+            tags={"model_type": "association_rules", "framework": "numpy"},
         )
         logger.info(
-            &quot;Registered model to MLflow&quot;, model=&quot;recommendation-engine&quot;, version=model_version
+            "Registered model to MLflow", model="recommendation-engine", version=model_version
         )
 
     return training_metrics
-
 
 def _save_chart(
     model: Apriori,
     transactions: list[list[str]],
     output_dir: Path,
     version: str,
-) -&gt; None:
-    &quot;&quot;&quot;Save the association rules chart.&quot;&quot;&quot;
+) -> None:
+    """Save the association rules chart."""
     import matplotlib
 
-    matplotlib.use(&quot;Agg&quot;)
+    matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
     if not model.rules:
@@ -217,61 +208,60 @@ def _save_chart(
     # Plot top rules by lift
     top_rules = model.rules[:15]
     labels = [
-        f&quot;{'+'.join(sorted(r.antecedent))} -&gt; {'+'.join(sorted(r.consequent))}&quot; for r in top_rules
+        f"{'+'.join(sorted(r.antecedent))} -> {'+'.join(sorted(r.consequent))}" for r in top_rules
     ]
     lifts = [r.lift for r in top_rules]
     confidences = [r.confidence for r in top_rules]
 
     x = range(len(top_rules))
-    bars = plt.bar(x, lifts, color=&quot;steelblue&quot;, alpha=0.7, label=&quot;Lift&quot;)
+    bars = plt.bar(x, lifts, color="steelblue", alpha=0.7, label="Lift")
 
     # Add confidence as text on bars
     for _i, (bar, conf) in enumerate(zip(bars, confidences, strict=False)):
         plt.text(
             bar.get_x() + bar.get_width() / 2,
             bar.get_height() + 0.05,
-            f&quot;conf={conf:.2f}&quot;,
-            ha=&quot;center&quot;,
-            va=&quot;bottom&quot;,
+            f"conf={conf:.2f}",
+            ha="center",
+            va="bottom",
             fontsize=8,
         )
 
-    plt.xlabel(&quot;Association Rule&quot;)
-    plt.ylabel(&quot;Lift&quot;)
-    plt.title(f&quot;Top Association Rules by Lift - v{version}&quot;)
-    plt.xticks(x, labels, rotation=45, ha=&quot;right&quot;, fontsize=8)
-    plt.grid(True, alpha=0.3, axis=&quot;y&quot;)
+    plt.xlabel("Association Rule")
+    plt.ylabel("Lift")
+    plt.title(f"Top Association Rules by Lift - v{version}")
+    plt.xticks(x, labels, rotation=45, ha="right", fontsize=8)
+    plt.grid(True, alpha=0.3, axis="y")
     plt.legend()
     plt.tight_layout()
 
-    chart_path = output_dir / f&quot;recommendation_engine_v{version}.png&quot;
+    chart_path = output_dir / f"recommendation_engine_v{version}.png"
     plt.savefig(str(chart_path), dpi=100)
     plt.close()
-    logger.info(&quot;Chart saved&quot;, path=str(chart_path))
-
+    logger.info("Chart saved", path=str(chart_path))
 
 def main():
-    parser = argparse.ArgumentParser(description=&quot;Train recommendation engine Apriori model&quot;)
-    parser.add_argument(&quot;--model-dir&quot;, type=Path, default=Path(os.getenv(&quot;MODEL_DIR&quot;, &quot;/models&quot;)))
-    parser.add_argument(&quot;--data-path&quot;, type=Path, default=None)
+    parser = argparse.ArgumentParser(description="Train recommendation engine Apriori model")
+    parser.add_argument("--model-dir", type=Path, default=Path(os.getenv("MODEL_DIR", "/models")))
+    parser.add_argument("--data-path", type=Path, default=None)
     parser.add_argument(
-        &quot;--min-support&quot;, type=float, default=float(os.getenv(&quot;MIN_SUPPORT&quot;, &quot;0.05&quot;))
+        "--min-support", type=float, default=float(os.getenv("MIN_SUPPORT", "0.05"))
     )
     parser.add_argument(
-        &quot;--min-confidence&quot;, type=float, default=float(os.getenv(&quot;MIN_CONFIDENCE&quot;, &quot;0.5&quot;))
+        "--min-confidence", type=float, default=float(os.getenv("MIN_CONFIDENCE", "0.5"))
     )
-    parser.add_argument(&quot;--min-lift&quot;, type=float, default=float(os.getenv(&quot;MIN_LIFT&quot;, &quot;1.0&quot;)))
+    parser.add_argument("--min-lift", type=float, default=float(os.getenv("MIN_LIFT", "1.0")))
     parser.add_argument(
-        &quot;--max-itemset-size&quot;, type=int, default=int(os.getenv(&quot;MAX_ITEMSET_SIZE&quot;, &quot;4&quot;))
+        "--max-itemset-size", type=int, default=int(os.getenv("MAX_ITEMSET_SIZE", "4"))
     )
-    parser.add_argument(&quot;--model-version&quot;, type=str, default=os.getenv(&quot;MODEL_VERSION&quot;, &quot;1.0.0&quot;))
-    parser.add_argument(&quot;--random-seed&quot;, type=int, default=int(os.getenv(&quot;RANDOM_SEED&quot;, &quot;42&quot;)))
+    parser.add_argument("--model-version", type=str, default=os.getenv("MODEL_VERSION", "1.0.0"))
+    parser.add_argument("--random-seed", type=int, default=int(os.getenv("RANDOM_SEED", "42")))
     parser.add_argument(
-        &quot;--register-mlflow&quot;,
-        action=&quot;store_true&quot;,
-        default=os.getenv(&quot;REGISTER_MLFLOW&quot;, &quot;false&quot;).lower() == &quot;true&quot;,
+        "--register-mlflow",
+        action="store_true",
+        default=os.getenv("REGISTER_MLFLOW", "false").lower() == "true",
     )
-    parser.add_argument(&quot;--log-level&quot;, type=str, default=os.getenv(&quot;LOG_LEVEL&quot;, &quot;INFO&quot;))
+    parser.add_argument("--log-level", type=str, default=os.getenv("LOG_LEVEL", "INFO"))
     args = parser.parse_args()
 
     setup_logging(args.log_level)
@@ -289,15 +279,16 @@ def main():
         random_seed=args.random_seed,
     )
 
-    logger.info(&quot;Training finished&quot;, metrics=metrics, model_dir=str(args.model_dir))
+    logger.info("Training finished", metrics=metrics, model_dir=str(args.model_dir))
 
+if __name__ == "__main__":
+    main()
+```
 
-if __name__ == &quot;__main__&quot;:
-    main()</code></pre>
-</div><h3>API Server</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3019320832')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3019320832"><code class="language-python">&quot;&quot;&quot;Production serving API for the recommendation engine (Apriori).&quot;&quot;&quot;
+### API Server
+
+```python
+"""Production serving API for the recommendation engine (Apriori)."""
 
 import os
 import time
@@ -319,48 +310,43 @@ from recommendation_engine.model import Apriori
 logger = get_logger(__name__)
 
 # Configuration
-MODEL_DIR = Path(os.getenv(&quot;MODEL_DIR&quot;, &quot;/models&quot;))
-MODEL_VERSION = os.getenv(&quot;MODEL_VERSION&quot;, &quot;latest&quot;)
-METRICS_PORT = int(os.getenv(&quot;METRICS_PORT&quot;, os.getenv(&quot;RECOMMENDATION_METRICS_PORT&quot;, &quot;8004&quot;)))
-DRIFT_THRESHOLD = float(os.getenv(&quot;DRIFT_THRESHOLD&quot;, &quot;0.2&quot;))
-
+MODEL_DIR = Path(os.getenv("MODEL_DIR", "/models"))
+MODEL_VERSION = os.getenv("MODEL_VERSION", "latest")
+METRICS_PORT = int(os.getenv("METRICS_PORT", os.getenv("RECOMMENDATION_METRICS_PORT", "8004")))
+DRIFT_THRESHOLD = float(os.getenv("DRIFT_THRESHOLD", "0.2"))
 
 class RecommendRequest(BaseModel):
-    &quot;&quot;&quot;Recommendation request with items in the basket.&quot;&quot;&quot;
+    """Recommendation request with items in the basket."""
 
     items: list[str] = Field(
-        ..., min_length=1, max_length=50, description=&quot;Items in the user's basket&quot;
+        ..., min_length=1, max_length=50, description="Items in the user's basket"
     )
-    top_k: int = Field(5, ge=1, le=20, description=&quot;Number of recommendations to return&quot;)
-    exclude_purchased: bool = Field(True, description=&quot;Exclude items already in the basket&quot;)
-
+    top_k: int = Field(5, ge=1, le=20, description="Number of recommendations to return")
+    exclude_purchased: bool = Field(True, description="Exclude items already in the basket")
 
 class RecommendResponse(BaseModel):
-    &quot;&quot;&quot;Recommendation response.&quot;&quot;&quot;
+    """Recommendation response."""
 
     recommendations: list[dict]
     model_version: str
 
-
 class RulesResponse(BaseModel):
-    &quot;&quot;&quot;Association rules response.&quot;&quot;&quot;
+    """Association rules response."""
 
     n_rules: int
     rules: list[dict]
     model_version: str
 
-
 class RulesForItemResponse(BaseModel):
-    &quot;&quot;&quot;Association rules for a specific item.&quot;&quot;&quot;
+    """Association rules for a specific item."""
 
     item: str
     n_rules: int
     rules: list[dict]
     model_version: str
 
-
 class StatsResponse(BaseModel):
-    &quot;&quot;&quot;Model statistics response.&quot;&quot;&quot;
+    """Model statistics response."""
 
     n_transactions: int
     n_products: int
@@ -371,9 +357,8 @@ class StatsResponse(BaseModel):
     min_lift: float
     model_version: str
 
-
 class DriftResponse(BaseModel):
-    &quot;&quot;&quot;Drift detection response.&quot;&quot;&quot;
+    """Drift detection response."""
 
     total_features: int
     drifted_features: int
@@ -381,109 +366,105 @@ class DriftResponse(BaseModel):
     drifted: list[dict]
     all_results: list[dict]
 
-
 # Global model state
 _model: Apriori | None = None
-_model_version: str = &quot;unknown&quot;
+_model_version: str = "unknown"
 _metrics: MetricsCollector | None = None
 _drift_detector: DriftDetector | None = None
 _reference_data: np.ndarray | None = None
 _recent_predictions: list[list[str]] = []
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    &quot;&quot;&quot;Load model at startup and clean up at shutdown.&quot;&quot;&quot;
+    """Load model at startup and clean up at shutdown."""
     global _model, _model_version, _metrics, _drift_detector, _reference_data
 
-    setup_logging(os.getenv(&quot;LOG_LEVEL&quot;, &quot;INFO&quot;))
-    _metrics = MetricsCollector(&quot;recommendation_engine&quot;, port=METRICS_PORT)
+    setup_logging(os.getenv("LOG_LEVEL", "INFO"))
+    _metrics = MetricsCollector("recommendation_engine", port=METRICS_PORT)
     app.state.metrics = _metrics
 
     _drift_detector = DriftDetector(
         feature_names=PRODUCTS,
-        feature_types={p: &quot;binary&quot; for p in PRODUCTS},
+        feature_types={p: "binary" for p in PRODUCTS},
         psi_threshold=DRIFT_THRESHOLD,
     )
 
     _model, _model_version = _load_model()
     _metrics.set_model_version(_model_version)
     _metrics.set_model_info(
-        model_name=&quot;recommendation-engine&quot;,
+        model_name="recommendation-engine",
         model_version=_model_version,
-        model_type=&quot;association_rules&quot;,
+        model_type="association_rules",
     )
 
     # Load reference data for drift detection
     _reference_data = _load_reference_data()
-    logger.info(&quot;Model loaded&quot;, model=&quot;recommendation-engine&quot;, version=_model_version)
+    logger.info("Model loaded", model="recommendation-engine", version=_model_version)
 
     yield
 
-    logger.info(&quot;Shutting down recommendation-engine API&quot;)
+    logger.info("Shutting down recommendation-engine API")
 
-
-def _load_model() -&gt; tuple[Apriori, str]:
-    &quot;&quot;&quot;Load the latest model from the registry or model directory with resilient fallback.&quot;&quot;&quot;
+def _load_model() -> tuple[Apriori, str]:
+    """Load the latest model from the registry or model directory with resilient fallback."""
     # 1. Try model registry
     registry = ModelRegistry(base_dir=MODEL_DIR)
     try:
-        if MODEL_VERSION == &quot;latest&quot;:
+        if MODEL_VERSION == "latest":
             models = registry.list_models()
-            rec_models = [m for m in models if m.get(&quot;model_name&quot;) == &quot;recommendation-engine&quot;]
+            rec_models = [m for m in models if m.get("model_name") == "recommendation-engine"]
             if rec_models:
-                rec_models.sort(key=lambda m: m[&quot;model_version&quot;], reverse=True)
+                rec_models.sort(key=lambda m: m["model_version"], reverse=True)
                 latest = rec_models[0]
-                model_dir = Path(latest[&quot;artifact_path&quot;])
-                npz_files = list(model_dir.glob(&quot;recommendation_model_*.npz&quot;)) + list(
-                    model_dir.glob(&quot;*.npz&quot;)
+                model_dir = Path(latest["artifact_path"])
+                npz_files = list(model_dir.glob("recommendation_model_*.npz")) + list(
+                    model_dir.glob("*.npz")
                 )
                 if npz_files:
-                    return Apriori.load(str(npz_files[0])), latest[&quot;model_version&quot;]
+                    return Apriori.load(str(npz_files[0])), latest["model_version"]
         else:
-            model_dir = MODEL_DIR / &quot;recommendation-engine&quot; / MODEL_VERSION
+            model_dir = MODEL_DIR / "recommendation-engine" / MODEL_VERSION
             if model_dir.exists():
-                npz_files = list(model_dir.glob(&quot;recommendation_model_*.npz&quot;)) + list(
-                    model_dir.glob(&quot;*.npz&quot;)
+                npz_files = list(model_dir.glob("recommendation_model_*.npz")) + list(
+                    model_dir.glob("*.npz")
                 )
                 if npz_files:
                     return Apriori.load(str(npz_files[0])), MODEL_VERSION
     except Exception as e:
-        logger.warning(f&quot;Registry lookup failed: {e}&quot;)
+        logger.warning(f"Registry lookup failed: {e}")
 
     # 2. Try direct model in MODEL_DIR
-    npz_path = MODEL_DIR / &quot;recommendation_model.npz&quot;
+    npz_path = MODEL_DIR / "recommendation_model.npz"
     if npz_path.exists():
-        return Apriori.load(str(npz_path)), &quot;legacy&quot;
+        return Apriori.load(str(npz_path)), "legacy"
 
     # 3. Try bundled artifacts directory
     candidate_paths = [
-        Path(&quot;/app/artifacts/models/recommendation_model_v1.0.0.npz&quot;),
+        Path("/app/artifacts/models/recommendation_model_v1.0.0.npz"),
         Path(__file__).resolve().parents[3]
-        / &quot;artifacts&quot;
-        / &quot;models&quot;
-        / &quot;recommendation_model_v1.0.0.npz&quot;,
+        / "artifacts"
+        / "models"
+        / "recommendation_model_v1.0.0.npz",
     ]
     for p in candidate_paths:
         if p.exists():
-            logger.info(&quot;Loading bundled baseline model&quot;, path=str(p))
-            return Apriori.load(str(p)), &quot;1.0.0-bundled&quot;
+            logger.info("Loading bundled baseline model", path=str(p))
+            return Apriori.load(str(p)), "1.0.0-bundled"
 
     # 4. In-memory baseline fallback (never crash cold start)
-    logger.warning(&quot;No pre-existing model found on disk. Initializing baseline Apriori model.&quot;)
+    logger.warning("No pre-existing model found on disk. Initializing baseline Apriori model.")
     transactions = load_training_data(None)
     model = Apriori(min_support=0.05, min_confidence=0.5, min_lift=1.0, max_itemset_size=4)
     model.fit(transactions)
-    return model, &quot;1.0.0-baseline&quot;
+    return model, "1.0.0-baseline"
 
-
-def _load_reference_data() -&gt; np.ndarray | None:
-    &quot;&quot;&quot;Load reference training data for drift detection.&quot;&quot;&quot;
+def _load_reference_data() -> np.ndarray | None:
+    """Load reference training data for drift detection."""
     candidate_csvs = [
-        MODEL_DIR / &quot;recommendation-engine&quot; / _model_version / &quot;training_data.csv&quot;,
-        MODEL_DIR / &quot;training_data.csv&quot;,
-        Path(&quot;/app/artifacts/models/training_data.csv&quot;),
-        Path(__file__).resolve().parents[3] / &quot;artifacts&quot; / &quot;models&quot; / &quot;training_data.csv&quot;,
+        MODEL_DIR / "recommendation-engine" / _model_version / "training_data.csv",
+        MODEL_DIR / "training_data.csv",
+        Path("/app/artifacts/models/training_data.csv"),
+        Path(__file__).resolve().parents[3] / "artifacts" / "models" / "training_data.csv",
     ]
     for csv_path in candidate_csvs:
         if csv_path.exists():
@@ -505,7 +486,7 @@ def _load_reference_data() -&gt; np.ndarray | None:
                     X, _ = transactions_to_onehot(transactions, PRODUCTS)
                     return X
             except Exception as e:
-                logger.warning(&quot;Could not read reference csv&quot;, path=str(csv_path), error=str(e))
+                logger.warning("Could not read reference csv", path=str(csv_path), error=str(e))
 
     # Generate reference data
     transactions = load_training_data(None)
@@ -514,88 +495,82 @@ def _load_reference_data() -&gt; np.ndarray | None:
     X, _ = transactions_to_onehot(transactions, PRODUCTS)
     return X
 
-
 # Create FastAPI app
 app = FastAPI(
-    title=&quot;Recommendation Engine API&quot;,
-    description=&quot;Association Rule Learning with Apriori Algorithm for product recommendations&quot;,
-    version=&quot;1.0.0&quot;,
+    title="Recommendation Engine API",
+    description="Association Rule Learning with Apriori Algorithm for product recommendations",
+    version="1.0.0",
     lifespan=lifespan,
 )
 
 # Add observability middleware
 add_observability_middleware(app)
 
-
-@app.get(&quot;/&quot;)
+@app.get("/")
 def read_root():
-    &quot;&quot;&quot;Service information.&quot;&quot;&quot;
+    """Service information."""
     return {
-        &quot;service&quot;: &quot;recommendation-engine-api&quot;,
-        &quot;version&quot;: &quot;1.0.0&quot;,
-        &quot;model_version&quot;: _model_version,
-        &quot;endpoints&quot;: {
-            &quot;health&quot;: &quot;/health&quot;,
-            &quot;recommend&quot;: &quot;POST /recommend&quot;,
-            &quot;rules&quot;: &quot;GET /rules&quot;,
-            &quot;rules_for_item&quot;: &quot;GET /rules/{item}&quot;,
-            &quot;stats&quot;: &quot;GET /stats&quot;,
-            &quot;drift&quot;: &quot;GET /drift&quot;,
-            &quot;metrics&quot;: &quot;/metrics&quot;,
+        "service": "recommendation-engine-api",
+        "version": "1.0.0",
+        "model_version": _model_version,
+        "endpoints": {
+            "health": "/health",
+            "recommend": "POST /recommend",
+            "rules": "GET /rules",
+            "rules_for_item": "GET /rules/{item}",
+            "stats": "GET /stats",
+            "drift": "GET /drift",
+            "metrics": "/metrics",
         },
     }
 
-
-@app.get(&quot;/health&quot;)
+@app.get("/health")
 def health_check():
-    &quot;&quot;&quot;Kubernetes liveness/readiness probe.&quot;&quot;&quot;
+    """Kubernetes liveness/readiness probe."""
     if _model is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
     return {
-        &quot;status&quot;: &quot;healthy&quot;,
-        &quot;model_loaded&quot;: True,
-        &quot;model_version&quot;: _model_version,
+        "status": "healthy",
+        "model_loaded": True,
+        "model_version": _model_version,
     }
 
-
-@app.get(&quot;/metrics&quot;)
+@app.get("/metrics")
 def metrics():
-    &quot;&quot;&quot;Prometheus metrics endpoint.&quot;&quot;&quot;
+    """Prometheus metrics endpoint."""
     from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
-
-@app.post(&quot;/reload&quot;)
+@app.post("/reload")
 def reload_model():
-    &quot;&quot;&quot;Dynamically reload the model from disk/registry.&quot;&quot;&quot;
+    """Dynamically reload the model from disk/registry."""
     global _model, _model_version, _reference_data
     try:
         _model, _model_version = _load_model()
         if _metrics:
             _metrics.set_model_version(_model_version)
             _metrics.set_model_info(
-                model_name=&quot;recommendation-engine&quot;,
+                model_name="recommendation-engine",
                 model_version=_model_version,
-                model_type=&quot;association_rules&quot;,
+                model_type="association_rules",
             )
         _reference_data = _load_reference_data()
         logger.info(
-            &quot;Model reloaded dynamically&quot;, model=&quot;recommendation-engine&quot;, version=_model_version
+            "Model reloaded dynamically", model="recommendation-engine", version=_model_version
         )
-        return {&quot;status&quot;: &quot;reloaded&quot;, &quot;model_version&quot;: _model_version}
+        return {"status": "reloaded", "model_version": _model_version}
     except Exception as e:
-        logger.exception(&quot;Model reload failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=f&quot;Reload failed: {e}&quot;) from e
+        logger.exception("Model reload failed", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Reload failed: {e}") from e
 
-
-@app.get(&quot;/drift&quot;, response_model=DriftResponse)
+@app.get("/drift", response_model=DriftResponse)
 def drift_check():
-    &quot;&quot;&quot;Check for data drift between reference and recent predictions.&quot;&quot;&quot;
+    """Check for data drift between reference and recent predictions."""
     if _drift_detector is None or _reference_data is None:
-        raise HTTPException(status_code=503, detail=&quot;Drift detection not available&quot;)
+        raise HTTPException(status_code=503, detail="Drift detection not available")
 
-    if len(_recent_predictions) &lt; 10:
+    if len(_recent_predictions) < 10:
         return DriftResponse(
             total_features=len(PRODUCTS),
             drifted_features=0,
@@ -612,16 +587,15 @@ def drift_check():
     summary = _drift_detector.summarize(results)
 
     if _metrics:
-        _metrics.set_drift_ratio(summary[&quot;drift_ratio&quot;])
+        _metrics.set_drift_ratio(summary["drift_ratio"])
 
     return DriftResponse(**summary)
 
-
-@app.get(&quot;/stats&quot;, response_model=StatsResponse)
+@app.get("/stats", response_model=StatsResponse)
 def get_stats():
-    &quot;&quot;&quot;Return model statistics.&quot;&quot;&quot;
+    """Return model statistics."""
     if _model is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     return StatsResponse(
         n_transactions=_model.n_transactions,
@@ -634,12 +608,11 @@ def get_stats():
         model_version=_model_version,
     )
 
-
-@app.get(&quot;/rules&quot;, response_model=RulesResponse)
+@app.get("/rules", response_model=RulesResponse)
 def get_rules(limit: int = 50):
-    &quot;&quot;&quot;Return the top association rules.&quot;&quot;&quot;
+    """Return the top association rules."""
     if _model is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     rules = [r.to_dict() for r in _model.rules[:limit]]
     return RulesResponse(
@@ -648,12 +621,11 @@ def get_rules(limit: int = 50):
         model_version=_model_version,
     )
 
-
-@app.get(&quot;/rules/{item}&quot;, response_model=RulesForItemResponse)
+@app.get("/rules/{item}", response_model=RulesForItemResponse)
 def get_rules_for_item(item: str, limit: int = 10):
-    &quot;&quot;&quot;Return association rules where the item appears in the consequent.&quot;&quot;&quot;
+    """Return association rules where the item appears in the consequent."""
     if _model is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     rules = _model.get_rules_for_item(item, top_k=limit)
     return RulesForItemResponse(
@@ -663,19 +635,18 @@ def get_rules_for_item(item: str, limit: int = 10):
         model_version=_model_version,
     )
 
-
-@app.post(&quot;/recommend&quot;, response_model=RecommendResponse)
+@app.post("/recommend", response_model=RecommendResponse)
 def recommend(body: RecommendRequest):
-    &quot;&quot;&quot;Generate product recommendations based on basket items.&quot;&quot;&quot;
+    """Generate product recommendations based on basket items."""
     if _model is None or _metrics is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     # Validate items exist in the product catalog
     unknown_items = [item for item in body.items if item not in _model.products]
     if unknown_items:
         raise HTTPException(
             status_code=422,
-            detail=f&quot;Unknown items: {unknown_items}. Available products: {sorted(_model.products)}&quot;,
+            detail=f"Unknown items: {unknown_items}. Available products: {sorted(_model.products)}",
         )
 
     start = time.time()
@@ -690,7 +661,7 @@ def recommend(body: RecommendRequest):
 
         # Track for drift detection
         _recent_predictions.append(body.items)
-        if len(_recent_predictions) &gt; 1000:
+        if len(_recent_predictions) > 1000:
             _recent_predictions.pop(0)
 
         return RecommendResponse(
@@ -698,34 +669,21 @@ def recommend(body: RecommendRequest):
             model_version=_model_version,
         )
     except Exception as e:
-        _metrics.record_error(model_version=_model_version, error_type=&quot;prediction&quot;)
-        logger.exception(&quot;Recommendation failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=&quot;Recommendation failed&quot;) from e</code></pre>
-</div>
-<h3>CLI Commands</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1813204983')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1813204983"><code class="language-bash">uv run python -m recommendation_engine.train --model-dir ./artifacts/models</code></pre>
-</div>
-</section>
-<section id="benchmarks" class="section bench-section">
-<h2><span class="section-icon">📊</span> Benchmarks</h2>
-<p class="section-subtitle">Test results and performance metrics</p>
-<p class="muted">Run <code>pytest tests/test_models.py</code> and <code>pytest tests/test_apis.py</code> for detailed metrics.</p>
-</section>
+        _metrics.record_error(model_version=_model_version, error_type="prediction")
+        logger.exception("Recommendation failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Recommendation failed") from e
+```
 
-</main>
-<footer class="app-footer">
-<p>Generated documentation for <strong>recommendation-engine</strong></p>
-</footer>
-<script>
-function copyCode(id) {
-  const el = document.getElementById(id);
-  navigator.clipboard.writeText(el.innerText);
-}
-function renderMath() {
-  renderMathInElement(document.body, { delimiters: [{left: "$$", right: "$$", display: true}] });
-}
-</script>
-</body>
-</html>
+### CLI Commands
+
+```bash
+uv run python -m recommendation_engine.train --model-dir ./artifacts/models
+```
+
+## 📊 Benchmarks
+
+Test results and performance metrics
+
+Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+
+Generated documentation for **recommendation-engine**

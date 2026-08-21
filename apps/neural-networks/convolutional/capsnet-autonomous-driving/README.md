@@ -1,71 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>capsnet-autonomous-driving - AI App Documentation</title>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMath()"></script>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-<style>
-/* CSS styles here */
-</style>
-</head>
-<body>
-<section id="math" class="section math-section">
-<h2><span class="section-icon">∫</span> Mathematics &amp; Theory</h2>
-<p class="section-subtitle">Capsule Neural Network (CapsNet) — Underlying equations and derivations</p>
-<div class="math-content">
-<div class="equations"><div class="math-block">$$s_j = \sum_i c_{ij} u_{j|i}, \quad c_{ij} \text{ is routing coefficient}$$</div>
-<div class="math-block">$$v_j = \frac{\|s_j\|^2}{1 + \|s_j\|^2} \frac{s_j}{\|s_j\|}, \quad \text{squash function}$$</div>
-<div class="math-block">$$\mathcal{L}_k = T_k \max(0, m^+ - \|v_k\|)^2 + \lambda (1 - T_k) \max(0, \|v_k\| - m^-)^2$$</div>
-<div class="math-block">$$c_{ij} \leftarrow \text{softmax}(b_{ij}), \quad b_{ij} \leftarrow b_{ij} + u_{j|i} \cdot v_j$$</div></div>
-<div class="derivation">
-<h3>Step-by-Step Derivation</h3>
-<p>Capsule Networks replace scalar neurons with vector capsules. The squash function preserves vector length as a probability-like activation. Dynamic routing iteratively adjusts coupling coefficients $c_{ij}$ between capsules. This allows pose matrices to encode spatial relationships between parts and wholes.</p>
-</div>
-<div class="viz-desc">
-<h3>Interactive Visualization</h3>
-<p>Interactive capsule routing diagram; pose matrix heatmap; reconstruction error vs capsule size.</p>
-</div>
-</div>
-</section>
-<section id="architecture" class="section arch-section">
-<h2><span class="section-icon">⚙</span> Architecture</h2>
-<p class="section-subtitle">Model structure, data flow, and layer breakdown</p>
-<div class="arch-diagram">
-<h3>Class Hierarchy</h3>
-<pre class="ascii-diagram">  AutonomousDrivingCapsNet</pre>
-</div>
-<div class="mermaid-wrapper">
-<h3>Data Flow</h3>
-<pre class="mermaid">graph TD
+# capsnet-autonomous-driving
+
+## ∫ Mathematics & Theory
+
+Capsule Neural Network (CapsNet) — Underlying equations and derivations
+
+$$s_j = \sum_i c_{ij} u_{j|i}, \quad c_{ij} \text{ is routing coefficient}$$
+
+$$v_j = \frac{\|s_j\|^2}{1 + \|s_j\|^2} \frac{s_j}{\|s_j\|}, \quad \text{squash function}$$
+
+$$\mathcal{L}_k = T_k \max(0, m^+ - \|v_k\|)^2 + \lambda (1 - T_k) \max(0, \|v_k\| - m^-)^2$$
+
+$$c_{ij} \leftarrow \text{softmax}(b_{ij}), \quad b_{ij} \leftarrow b_{ij} + u_{j|i} \cdot v_j$$
+
+### Step-by-Step Derivation
+
+Capsule Networks replace scalar neurons with vector capsules. The squash function preserves vector length as a probability-like activation. Dynamic routing iteratively adjusts coupling coefficients $c_{ij}$ between capsules. This allows pose matrices to encode spatial relationships between parts and wholes.
+
+### Interactive Visualization
+
+Interactive capsule routing diagram; pose matrix heatmap; reconstruction error vs capsule size.
+
+## ⚙ Architecture
+
+Model structure, data flow, and layer breakdown
+
+### Class Hierarchy
+
+```
+  AutonomousDrivingCapsNet
+```
+
+### Data Flow
+
+```mermaid
+graph TD
   A[Input Data] --> B[Preprocessing]
   B --> C[Model Training]
   C --> D[Evaluation]
   D --> E[Model Registry]
-  E --> F[Serving API]</pre>
-</div>
-</section>
-<section id="api" class="section api-section">
-<h2><span class="section-icon">⚡</span> API Reference</h2>
-<p class="section-subtitle">FastAPI endpoints and model interfaces</p>
-<table class="api-table">
-<thead><tr><th>Method</th><th>Endpoint</th></tr></thead>
-<tbody><tr><td><code>GET</code></td><td><code>/</code></td></tr>
-<tr><td><code>GET</code></td><td><code>/health</code></td></tr>
-<tr><td><code>GET</code></td><td><code>/metrics</code></td></tr>
-<tr><td><code>POST</code></td><td><code>/reload</code></td></tr></tbody>
-</table>
-</section>
-<section id="usage" class="section usage-section">
-<h2><span class="section-icon">▶</span> Usage</h2>
-<p class="section-subtitle">Code examples and CLI commands</p>
-<h3>Training Script</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-4067578147')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-4067578147"><code class="language-python">&quot;&quot;&quot;Training pipeline for Autonomous Driving Object Recognition (CapsNet).&quot;&quot;&quot;
+  E --> F[Serving API]
+```
+
+## ⚡ API Reference
+
+FastAPI endpoints and model interfaces
+
+| Method | Endpoint |
+| --- | --- |
+| `GET` | `/` |
+| `GET` | `/health` |
+| `GET` | `/metrics` |
+| `POST` | `/reload` |
+
+## ▶ Usage
+
+Code examples and CLI commands
+
+### Training Script
+
+```python
+"""Training pipeline for Autonomous Driving Object Recognition (CapsNet)."""
 
 import argparse
 import os
@@ -84,7 +78,6 @@ from capsnet_autonomous_driving.model import AutonomousDrivingCapsNet
 
 logger = get_logger(__name__)
 
-
 def train(
     model_dir: Path,
     data_path: Path | None = None,
@@ -95,30 +88,30 @@ def train(
     learning_rate: float = 0.05,
     n_iterations: int = 300,
     weight_decay: float = 0.001,
-    model_version: str = &quot;1.0.0&quot;,
+    model_version: str = "1.0.0",
     register_to_mlflow: bool = False,
     test_size: float = 0.2,
     random_seed: int = 42,
-) -&gt; dict:
-    &quot;&quot;&quot;Train the autonomous driving object recognition model and save artifacts.&quot;&quot;&quot;
+) -> dict:
+    """Train the autonomous driving object recognition model and save artifacts."""
     X, y = load_training_data(data_path, n_samples=n_samples, random_seed=random_seed)
-    logger.info(&quot;Loaded training data&quot;, n_samples=len(X), data_path=str(data_path))
+    logger.info("Loaded training data", n_samples=len(X), data_path=str(data_path))
 
-    if &quot;classification&quot; in (&quot;classification&quot;, &quot;binary_classification&quot;):
+    if "classification" in ("classification", "binary_classification"):
         validator = DataValidator(create_autonomous_driving_schema())
         validation = validator.validate(X.reshape(-1, 1))
         if not validation.valid:
-            logger.error(&quot;Training data validation failed&quot;, errors=validation.errors)
-            raise ValueError(f&quot;Training data validation failed: {validation.errors}&quot;)
-        logger.info(&quot;Training data validated&quot;, stats=validation.stats)
+            logger.error("Training data validation failed", errors=validation.errors)
+            raise ValueError(f"Training data validation failed: {validation.errors}")
+        logger.info("Training data validated", stats=validation.stats)
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_seed=random_seed
     )
-    logger.info(&quot;Data split&quot;, n_train=len(X_train), n_test=len(X_test), test_size=test_size)
+    logger.info("Data split", n_train=len(X_train), n_test=len(X_test), test_size=test_size)
 
     model_dir.mkdir(parents=True, exist_ok=True)
-    save_training_data(X, y, model_dir / &quot;training_data.npz&quot;)
+    save_training_data(X, y, model_dir / "training_data.npz")
 
     model = AutonomousDrivingCapsNet(
         IMG_SIZE=8,
@@ -137,116 +130,114 @@ def train(
     test_metrics = model.evaluate(X_test, y_test)
 
     logger.info(
-        &quot;Training complete&quot;,
+        "Training complete",
         training_mode=model.training_mode,
         n_epochs=len(model.loss_history),
         final_loss=model.loss_history[-1] if model.loss_history else 0.0,
         test_metrics=test_metrics,
     )
 
-    model_path = model_dir / f&quot;autonomous_driving_model_v{model_version}.npz&quot;
+    model_path = model_dir / f"autonomous_driving_model_v{model_version}.npz"
     model.save(str(model_path))
 
     _save_chart(model, model_dir, model_version)
 
     metrics = {
         **test_metrics,
-        &quot;training_mode&quot;: &quot;supervised&quot;,
-        &quot;n_epochs_run&quot;: float(len(model.loss_history)),
-        &quot;final_loss&quot;: model.loss_history[-1] if model.loss_history else 0.0,
-        &quot;n_train_samples&quot;: float(len(X_train)),
-        &quot;n_test_samples&quot;: float(len(X_test)),
-        &quot;n_filters&quot;: float(n_filters),
-        &quot;learning_rate&quot;: float(learning_rate),
+        "training_mode": "supervised",
+        "n_epochs_run": float(len(model.loss_history)),
+        "final_loss": model.loss_history[-1] if model.loss_history else 0.0,
+        "n_train_samples": float(len(X_train)),
+        "n_test_samples": float(len(X_test)),
+        "n_filters": float(n_filters),
+        "learning_rate": float(learning_rate),
     }
 
     registry = ModelRegistry(base_dir=model_dir)
     registry.save_model(
-        model_name=&quot;autonomous-driving&quot;,
+        model_name="autonomous-driving",
         model_version=model_version,
-        model_type=&quot;classification&quot;,
+        model_type="classification",
         metrics=metrics,
         parameters={
-            &quot;img_size&quot;: 8,
-            &quot;n_channels&quot;: 1,
-            &quot;n_filters&quot;: n_filters,
-            &quot;kernel_size&quot;: kernel_size,
-            &quot;learning_rate&quot;: learning_rate,
-            &quot;n_iterations&quot;: n_iterations,
-            &quot;weight_decay&quot;: weight_decay,
-            &quot;random_seed&quot;: random_seed,
+            "img_size": 8,
+            "n_channels": 1,
+            "n_filters": n_filters,
+            "kernel_size": kernel_size,
+            "learning_rate": learning_rate,
+            "n_iterations": n_iterations,
+            "weight_decay": weight_decay,
+            "random_seed": random_seed,
         },
         artifacts={
-            f&quot;autonomous_driving_model_v{model_version}.npz&quot;: model_path,
-            &quot;training_data.npz&quot;: model_dir / &quot;training_data.npz&quot;,
+            f"autonomous_driving_model_v{model_version}.npz": model_path,
+            "training_data.npz": model_dir / "training_data.npz",
         },
-        tags={&quot;framework&quot;: &quot;numpy&quot;, &quot;task&quot;: &quot;autonomous_driving&quot;, &quot;model_type&quot;: &quot;CapsNet&quot;},
+        tags={"framework": "numpy", "task": "autonomous_driving", "model_type": "CapsNet"},
     )
 
     if register_to_mlflow:
         registry.log_to_mlflow(
-            model_name=&quot;autonomous-driving&quot;,
+            model_name="autonomous-driving",
             model_version=model_version,
             metrics=metrics,
             params={
-                &quot;img_size&quot;: 8,
-                &quot;n_filters&quot;: n_filters,
-                &quot;learning_rate&quot;: learning_rate,
-                &quot;n_iterations&quot;: n_iterations,
+                "img_size": 8,
+                "n_filters": n_filters,
+                "learning_rate": learning_rate,
+                "n_iterations": n_iterations,
             },
             artifacts={
-                &quot;model&quot;: str(model_path),
-                &quot;chart&quot;: str(model_dir / f&quot;autonomous_driving_v{model_version}.png&quot;),
+                "model": str(model_path),
+                "chart": str(model_dir / f"autonomous_driving_v{model_version}.png"),
             },
-            tags={&quot;model_type&quot;: &quot;autonomous_driving&quot;, &quot;framework&quot;: &quot;numpy&quot;},
+            tags={"model_type": "autonomous_driving", "framework": "numpy"},
         )
-        logger.info(&quot;Registered model to MLflow&quot;, model=&quot;autonomous-driving&quot;, version=model_version)
+        logger.info("Registered model to MLflow", model="autonomous-driving", version=model_version)
 
     return metrics
 
-
-def _save_chart(model, output_dir: Path, version: str) -&gt; None:
+def _save_chart(model, output_dir: Path, version: str) -> None:
     import matplotlib
-    matplotlib.use(&quot;Agg&quot;)
+    matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
     if not model.loss_history:
         return
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    ax.plot(model.loss_history, color=&quot;steelblue&quot;, linewidth=1.5)
-    ax.set_xlabel(&quot;Training Epoch&quot;)
-    ax.set_ylabel(&quot;Loss&quot;)
-    ax.set_title(&quot;Autonomous Driving Object Recognition CapsNet Training Loss&quot;)
+    ax.plot(model.loss_history, color="steelblue", linewidth=1.5)
+    ax.set_xlabel("Training Epoch")
+    ax.set_ylabel("Loss")
+    ax.set_title("Autonomous Driving Object Recognition CapsNet Training Loss")
     ax.grid(True, alpha=0.3)
-    ax.set_yscale(&quot;log&quot;)
+    ax.set_yscale("log")
     plt.tight_layout()
-    chart_path = output_dir / f&quot;autonomous_driving_v{version}.png&quot;
+    chart_path = output_dir / f"autonomous_driving_v{version}.png"
     plt.savefig(str(chart_path), dpi=100)
     plt.close()
-    logger.info(&quot;Chart saved&quot;, path=str(chart_path))
-
+    logger.info("Chart saved", path=str(chart_path))
 
 def main():
-    parser = argparse.ArgumentParser(description=&quot;Train Autonomous Driving Object Recognition model&quot;)
-    parser.add_argument(&quot;--model-dir&quot;, type=Path, default=Path(os.getenv(&quot;MODEL_DIR&quot;, &quot;/models&quot;)))
-    parser.add_argument(&quot;--data-path&quot;, type=Path, default=None)
-    parser.add_argument(&quot;--n-samples&quot;, type=int, default=int(os.getenv(&quot;N_SAMPLES&quot;, &quot;500&quot;)))
-    parser.add_argument(&quot;--n-filters&quot;, type=int, default=int(os.getenv(&quot;N_FILTERS&quot;, &quot;8&quot;)))
-    parser.add_argument(&quot;--kernel-size&quot;, type=int, default=int(os.getenv(&quot;KERNEL_SIZE&quot;, &quot;3&quot;)))
-    parser.add_argument(&quot;--hidden-dim&quot;, type=int, default=int(os.getenv(&quot;HIDDEN_DIM&quot;, &quot;32&quot;)))
-    parser.add_argument(&quot;--learning-rate&quot;, type=float, default=float(os.getenv(&quot;LEARNING_RATE&quot;, &quot;0.05&quot;)))
-    parser.add_argument(&quot;--n-iterations&quot;, type=int, default=int(os.getenv(&quot;N_ITERATIONS&quot;, &quot;300&quot;)))
-    parser.add_argument(&quot;--weight-decay&quot;, type=float, default=float(os.getenv(&quot;WEIGHT_DECAY&quot;, &quot;0.001&quot;)))
-    parser.add_argument(&quot;--model-version&quot;, type=str, default=os.getenv(&quot;MODEL_VERSION&quot;, &quot;1.0.0&quot;))
-    parser.add_argument(&quot;--test-size&quot;, type=float, default=float(os.getenv(&quot;TEST_SIZE&quot;, &quot;0.2&quot;)))
-    parser.add_argument(&quot;--random-seed&quot;, type=int, default=int(os.getenv(&quot;RANDOM_SEED&quot;, &quot;42&quot;)))
+    parser = argparse.ArgumentParser(description="Train Autonomous Driving Object Recognition model")
+    parser.add_argument("--model-dir", type=Path, default=Path(os.getenv("MODEL_DIR", "/models")))
+    parser.add_argument("--data-path", type=Path, default=None)
+    parser.add_argument("--n-samples", type=int, default=int(os.getenv("N_SAMPLES", "500")))
+    parser.add_argument("--n-filters", type=int, default=int(os.getenv("N_FILTERS", "8")))
+    parser.add_argument("--kernel-size", type=int, default=int(os.getenv("KERNEL_SIZE", "3")))
+    parser.add_argument("--hidden-dim", type=int, default=int(os.getenv("HIDDEN_DIM", "32")))
+    parser.add_argument("--learning-rate", type=float, default=float(os.getenv("LEARNING_RATE", "0.05")))
+    parser.add_argument("--n-iterations", type=int, default=int(os.getenv("N_ITERATIONS", "300")))
+    parser.add_argument("--weight-decay", type=float, default=float(os.getenv("WEIGHT_DECAY", "0.001")))
+    parser.add_argument("--model-version", type=str, default=os.getenv("MODEL_VERSION", "1.0.0"))
+    parser.add_argument("--test-size", type=float, default=float(os.getenv("TEST_SIZE", "0.2")))
+    parser.add_argument("--random-seed", type=int, default=int(os.getenv("RANDOM_SEED", "42")))
     parser.add_argument(
-        &quot;--register-mlflow&quot;,
-        action=&quot;store_true&quot;,
-        default=os.getenv(&quot;REGISTER_MLFLOW&quot;, &quot;false&quot;).lower() == &quot;true&quot;,
+        "--register-mlflow",
+        action="store_true",
+        default=os.getenv("REGISTER_MLFLOW", "false").lower() == "true",
     )
-    parser.add_argument(&quot;--log-level&quot;, type=str, default=os.getenv(&quot;LOG_LEVEL&quot;, &quot;INFO&quot;))
+    parser.add_argument("--log-level", type=str, default=os.getenv("LOG_LEVEL", "INFO"))
     args = parser.parse_args()
 
     setup_logging(args.log_level)
@@ -268,15 +259,16 @@ def main():
         random_seed=args.random_seed,
     )
 
-    logger.info(&quot;Training finished&quot;, metrics=metrics, model_dir=str(args.model_dir))
+    logger.info("Training finished", metrics=metrics, model_dir=str(args.model_dir))
 
+if __name__ == "__main__":
+    main()
+```
 
-if __name__ == &quot;__main__&quot;:
-    main()</code></pre>
-</div><h3>API Server</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1718770250')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1718770250"><code class="language-python">&quot;&quot;&quot;Serving API for Autonomous Driving Object Recognition (CapsNet).&quot;&quot;&quot;
+### API Server
+
+```python
+"""Serving API for Autonomous Driving Object Recognition (CapsNet)."""
 
 import os
 import time
@@ -298,19 +290,16 @@ from capsnet_autonomous_driving.model import AutonomousDrivingCapsNet
 
 logger = get_logger(__name__)
 
-MODEL_DIR = Path(os.getenv(&quot;MODEL_DIR&quot;, &quot;/models&quot;))
-MODEL_VERSION = os.getenv(&quot;MODEL_VERSION&quot;, &quot;latest&quot;)
-METRICS_PORT = int(os.getenv(&quot;AUTONOMOUS_DRIVING_METRICS_PORT&quot;, &quot;8022&quot;))
-DRIFT_THRESHOLD = float(os.getenv(&quot;DRIFT_THRESHOLD&quot;, &quot;0.2&quot;))
-
+MODEL_DIR = Path(os.getenv("MODEL_DIR", "/models"))
+MODEL_VERSION = os.getenv("MODEL_VERSION", "latest")
+METRICS_PORT = int(os.getenv("AUTONOMOUS_DRIVING_METRICS_PORT", "8022"))
+DRIFT_THRESHOLD = float(os.getenv("DRIFT_THRESHOLD", "0.2"))
 
 class PredictRequest(BaseModel):
     object_type: list[float] = Field(..., min_length=64, max_length=64)
 
-
 class PredictBulkRequest(BaseModel):
     requests: list[list[float]] = Field(..., min_length=1, max_length=50)
-
 
 class PredictResponse(BaseModel):
     object_type: str | list[float] | bool
@@ -318,11 +307,9 @@ class PredictResponse(BaseModel):
     model_version: str
     training_mode: str
 
-
 class BulkPredictResponse(BaseModel):
     predictions: list[PredictResponse]
     model_version: str
-
 
 class DriftResponse(BaseModel):
     total_features: int
@@ -330,7 +317,6 @@ class DriftResponse(BaseModel):
     drift_ratio: float
     drifted: list[dict]
     all_results: list[dict]
-
 
 class StatsResponse(BaseModel):
     img_size: int
@@ -341,83 +327,80 @@ class StatsResponse(BaseModel):
     final_loss: float
     model_version: str
 
-
 _model: AutonomousDrivingCapsNet | None = None
-_model_version: str = &quot;unknown&quot;
+_model_version: str = "unknown"
 _metrics: MetricsCollector | None = None
 _validator: DataValidator | None = None
 _drift_detector: DriftDetector | None = None
 _reference_data: np.ndarray | None = None
 _recent_predictions: list[list[float]] = []
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _model, _model_version, _metrics, _validator, _drift_detector, _reference_data
 
-    setup_logging(os.getenv(&quot;LOG_LEVEL&quot;, &quot;INFO&quot;))
-    _metrics = MetricsCollector(&quot;autonomous_driving&quot;, port=METRICS_PORT)
+    setup_logging(os.getenv("LOG_LEVEL", "INFO"))
+    _metrics = MetricsCollector("autonomous_driving", port=METRICS_PORT)
     app.state.metrics = _metrics
 
     _validator = DataValidator(create_autonomous_driving_schema())
-    feature_names = [f&quot;pixel_{i}&quot; for i in range(64)]
+    feature_names = [f"pixel_{i}" for i in range(64)]
     _drift_detector = DriftDetector(
         feature_names=feature_names,
-        feature_types={f: &quot;float&quot; for f in feature_names},
+        feature_types={f: "float" for f in feature_names},
         psi_threshold=DRIFT_THRESHOLD,
     )
 
     _model, _model_version = _load_model()
     _metrics.set_model_version(_model_version)
     _metrics.set_model_info(
-        model_name=&quot;autonomous-driving&quot;,
+        model_name="autonomous-driving",
         model_version=_model_version,
-        model_type=&quot;classification&quot;,
+        model_type="classification",
     )
 
     _reference_data = _load_reference_data()
-    logger.info(&quot;Model loaded&quot;, model=&quot;autonomous-driving&quot;, version=_model_version)
+    logger.info("Model loaded", model="autonomous-driving", version=_model_version)
 
     yield
-    logger.info(&quot;Shutting down autonomous-driving API&quot;)
+    logger.info("Shutting down autonomous-driving API")
 
-
-def _load_model() -&gt; tuple[AutonomousDrivingCapsNet, str]:
+def _load_model() -> tuple[AutonomousDrivingCapsNet, str]:
     registry = ModelRegistry(base_dir=MODEL_DIR)
     try:
-        if MODEL_VERSION == &quot;latest&quot;:
+        if MODEL_VERSION == "latest":
             models = registry.list_models()
-            nn_models = [m for m in models if m.get(&quot;model_name&quot;) == &quot;autonomous-driving&quot;]
+            nn_models = [m for m in models if m.get("model_name") == "autonomous-driving"]
             if nn_models:
-                nn_models.sort(key=lambda m: m[&quot;model_version&quot;], reverse=True)
+                nn_models.sort(key=lambda m: m["model_version"], reverse=True)
                 latest = nn_models[0]
-                model_dir = Path(latest[&quot;artifact_path&quot;])
-                npz_files = list(model_dir.glob(&quot;autonomous_driving_model_*.npz&quot;)) + list(model_dir.glob(&quot;*.npz&quot;))
+                model_dir = Path(latest["artifact_path"])
+                npz_files = list(model_dir.glob("autonomous_driving_model_*.npz")) + list(model_dir.glob("*.npz"))
                 if npz_files:
-                    return AutonomousDrivingCapsNet.load(str(npz_files[0])), latest[&quot;model_version&quot;]
+                    return AutonomousDrivingCapsNet.load(str(npz_files[0])), latest["model_version"]
         else:
-            model_dir = MODEL_DIR / &quot;autonomous-driving&quot; / MODEL_VERSION
+            model_dir = MODEL_DIR / "autonomous-driving" / MODEL_VERSION
             if model_dir.exists():
-                npz_files = list(model_dir.glob(&quot;autonomous_driving_model_*.npz&quot;)) + list(model_dir.glob(&quot;*.npz&quot;))
+                npz_files = list(model_dir.glob("autonomous_driving_model_*.npz")) + list(model_dir.glob("*.npz"))
                 if npz_files:
                     return AutonomousDrivingCapsNet.load(str(npz_files[0])), MODEL_VERSION
     except Exception as e:
-        logger.warning(f&quot;Registry lookup failed: {e}&quot;)
+        logger.warning(f"Registry lookup failed: {e}")
 
-    npz_path = MODEL_DIR / &quot;autonomous_driving_model.npz&quot;
+    npz_path = MODEL_DIR / "autonomous_driving_model.npz"
     if npz_path.exists():
-        return AutonomousDrivingCapsNet.load(str(npz_path)), &quot;legacy&quot;
+        return AutonomousDrivingCapsNet.load(str(npz_path)), "legacy"
 
     candidate_paths = [
-        Path(&quot;/app/artifacts/models/autonomous_driving_model_v1.0.0.npz&quot;),
-        Path(__file__).resolve().parents[3] / &quot;artifacts&quot; / &quot;models&quot; / &quot;autonomous_driving_model_v1.0.0.npz&quot;,
+        Path("/app/artifacts/models/autonomous_driving_model_v1.0.0.npz"),
+        Path(__file__).resolve().parents[3] / "artifacts" / "models" / "autonomous_driving_model_v1.0.0.npz",
     ]
     for p in candidate_paths:
         if p.exists():
-            logger.info(&quot;Loading bundled baseline model&quot;, path=str(p))
-            return AutonomousDrivingCapsNet.load(str(p)), &quot;1.0.0-bundled&quot;
+            logger.info("Loading bundled baseline model", path=str(p))
+            return AutonomousDrivingCapsNet.load(str(p)), "1.0.0-bundled"
 
-    logger.warning(&quot;No pre-existing model found. Initializing baseline model.&quot;)
+    logger.warning("No pre-existing model found. Initializing baseline model.")
     X_base, y_base = generate_synthetic_data(n_samples=100, random_seed=42)
     model = AutonomousDrivingCapsNet(
         IMG_SIZE=8,
@@ -430,63 +413,57 @@ def _load_model() -&gt; tuple[AutonomousDrivingCapsNet, str]:
         random_seed=42,
     )
     model.fit(X_base, y_base)
-    return model, &quot;1.0.0-baseline&quot;
+    return model, "1.0.0-baseline"
 
-
-def _load_reference_data() -&gt; np.ndarray | None:
+def _load_reference_data() -> np.ndarray | None:
     X_base, _ = generate_synthetic_data(n_samples=100, random_seed=42)
     return X_base
 
-
 app = FastAPI(
-    title=&quot;Autonomous Driving Object Recognition API&quot;,
-    description=&quot;Recognizes traffic signs and pedestrians accurately even when partially hidden&quot;,
-    version=&quot;1.0.0&quot;,
+    title="Autonomous Driving Object Recognition API",
+    description="Recognizes traffic signs and pedestrians accurately even when partially hidden",
+    version="1.0.0",
     lifespan=lifespan,
 )
 
 add_observability_middleware(app)
 
-
-@app.get(&quot;/&quot;)
+@app.get("/")
 def read_root():
     return {
-        &quot;service&quot;: &quot;autonomous_driving-api&quot;,
-        &quot;version&quot;: &quot;1.0.0&quot;,
-        &quot;model_version&quot;: _model_version,
-        &quot;training_mode&quot;: _model.training_mode if _model else &quot;unknown&quot;,
-        &quot;n_features&quot;: 64,
-        &quot;endpoints&quot;: {
-            &quot;health&quot;: &quot;/health&quot;,
-            &quot;predict&quot;: &quot;POST /predict&quot;,
-            &quot;predict/bulk&quot;: &quot;POST /predict/bulk&quot;,
-            &quot;stats&quot;: &quot;GET /stats&quot;,
-            &quot;drift&quot;: &quot;GET /drift&quot;,
-            &quot;metrics&quot;: &quot;/metrics&quot;,
+        "service": "autonomous_driving-api",
+        "version": "1.0.0",
+        "model_version": _model_version,
+        "training_mode": _model.training_mode if _model else "unknown",
+        "n_features": 64,
+        "endpoints": {
+            "health": "/health",
+            "predict": "POST /predict",
+            "predict/bulk": "POST /predict/bulk",
+            "stats": "GET /stats",
+            "drift": "GET /drift",
+            "metrics": "/metrics",
         },
     }
 
-
-@app.get(&quot;/health&quot;)
+@app.get("/health")
 def health_check():
     if _model is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
     return {
-        &quot;status&quot;: &quot;healthy&quot;,
-        &quot;model_loaded&quot;: True,
-        &quot;model_version&quot;: _model_version,
-        &quot;training_mode&quot;: _model.training_mode if _model else &quot;unknown&quot;,
+        "status": "healthy",
+        "model_loaded": True,
+        "model_version": _model_version,
+        "training_mode": _model.training_mode if _model else "unknown",
     }
 
-
-@app.get(&quot;/metrics&quot;)
+@app.get("/metrics")
 def metrics():
     from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
-
-@app.post(&quot;/reload&quot;)
+@app.post("/reload")
 def reload_model():
     global _model, _model_version, _reference_data
     try:
@@ -494,60 +471,57 @@ def reload_model():
         if _metrics:
             _metrics.set_model_version(_model_version)
             _metrics.set_model_info(
-                model_name=&quot;autonomous-driving&quot;,
+                model_name="autonomous-driving",
                 model_version=_model_version,
-                model_type=&quot;classification&quot;,
+                model_type="classification",
             )
         _reference_data = _load_reference_data()
-        logger.info(&quot;Model reloaded dynamically&quot;, model=&quot;autonomous-driving&quot;, version=_model_version)
-        return {&quot;status&quot;: &quot;reloaded&quot;, &quot;model_version&quot;: _model_version}
+        logger.info("Model reloaded dynamically", model="autonomous-driving", version=_model_version)
+        return {"status": "reloaded", "model_version": _model_version}
     except Exception as e:
-        logger.exception(&quot;Model reload failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=f&quot;Reload failed: {e}&quot;) from e
+        logger.exception("Model reload failed", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Reload failed: {e}") from e
 
-
-@app.get(&quot;/drift&quot;, response_model=DriftResponse)
+@app.get("/drift", response_model=DriftResponse)
 def drift_check():
     if _drift_detector is None or _reference_data is None:
-        raise HTTPException(status_code=503, detail=&quot;Drift detection not available&quot;)
-    if len(_recent_predictions) &lt; 10:
+        raise HTTPException(status_code=503, detail="Drift detection not available")
+    if len(_recent_predictions) < 10:
         return {
-            &quot;total_features&quot;: 64,
-            &quot;drifted_features&quot;: 0,
-            &quot;drift_ratio&quot;: 0.0,
-            &quot;drifted&quot;: [],
-            &quot;all_results&quot;: [],
+            "total_features": 64,
+            "drifted_features": 0,
+            "drift_ratio": 0.0,
+            "drifted": [],
+            "all_results": [],
         }
     current = np.array(_recent_predictions[-100:])
     results = _drift_detector.detect_drift(_reference_data, current)
     summary = _drift_detector.summarize(results)
     if _metrics:
-        _metrics.set_drift_ratio(summary[&quot;drift_ratio&quot;])
+        _metrics.set_drift_ratio(summary["drift_ratio"])
     return summary
 
-
-@app.get(&quot;/stats&quot;, response_model=StatsResponse)
+@app.get("/stats", response_model=StatsResponse)
 def get_stats():
-    if _model is None or getattr(_model, &quot;model&quot;, None) is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+    if _model is None or getattr(_model, "model", None) is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
     return StatsResponse(
         img_size=IMAGE_SIZE,
         n_channels=N_CHANNELS,
-        n_filters=getattr(_model, &quot;n_filters&quot;, 8),
+        n_filters=getattr(_model, "n_filters", 8),
         training_mode=_model.training_mode,
         n_epochs_run=len(_model.loss_history),
         final_loss=_model.loss_history[-1] if _model.loss_history else 0.0,
         model_version=_model_version,
     )
 
-
 def _compute_prediction(object_type: list[float]):
     if _model is None or _metrics is None or _validator is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     X = np.array([object_type]).reshape(1, -1)
 
-    if &quot;classification&quot; in (&quot;classification&quot;, &quot;binary_classification&quot;):
+    if "classification" in ("classification", "binary_classification"):
         validation = _validator.validate(X)
     else:
         validation = _validator.validate(X)
@@ -570,65 +544,52 @@ def _compute_prediction(object_type: list[float]):
         _metrics.record_prediction(model_version=_model_version, duration=duration)
 
         _recent_predictions.append(object_type)
-        if len(_recent_predictions) &gt; 1000:
+        if len(_recent_predictions) > 1000:
             _recent_predictions.pop(0)
 
         return response
     except Exception as e:
-        _metrics.record_error(model_version=_model_version, error_type=&quot;prediction&quot;)
-        logger.exception(&quot;Prediction failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=&quot;Prediction failed&quot;) from e
+        _metrics.record_error(model_version=_model_version, error_type="prediction")
+        logger.exception("Prediction failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Prediction failed") from e
 
-
-@app.post(&quot;/predict&quot;, response_model=PredictResponse)
+@app.post("/predict", response_model=PredictResponse)
 def predict(body: PredictRequest):
-    &quot;&quot;&quot;Make a autonomous driving object recognition prediction.&quot;&quot;&quot;
+    """Make a autonomous driving object recognition prediction."""
     return _compute_prediction(body.object_type)
 
-
-@app.post(&quot;/predict/bulk&quot;, response_model=BulkPredictResponse)
+@app.post("/predict/bulk", response_model=BulkPredictResponse)
 def predict_bulk(body: PredictBulkRequest):
-    &quot;&quot;&quot;Make multiple autonomous driving object recognition predictions.&quot;&quot;&quot;
+    """Make multiple autonomous driving object recognition predictions."""
     global _recent_predictions
     if _model is None or _metrics is None or _validator is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
-    if len(body.requests) &lt; 1 or len(body.requests) &gt; 50:
-        raise HTTPException(status_code=422, detail=&quot;Batch size must be between 1 and 50&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
+    if len(body.requests) < 1 or len(body.requests) > 50:
+        raise HTTPException(status_code=422, detail="Batch size must be between 1 and 50")
 
     predictions = []
     for object_type in body.requests:
         predictions.append(_compute_prediction(object_type))
 
-    return BulkPredictResponse(predictions=predictions, model_version=_model_version)</code></pre>
-</div>
-<h3>CLI Commands</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3019629961')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3019629961"><code class="language-bash">uv run python -m capsnet_autonomous_driving.train --model-dir ./artifacts/models</code></pre>
-</div>
-</section>
-<section id="benchmarks" class="section bench-section">
-<h2><span class="section-icon">📊</span> Benchmarks</h2>
-<p class="section-subtitle">Test results and performance metrics</p>
-<p class="muted">Run <code>pytest tests/test_models.py</code> and <code>pytest tests/test_apis.py</code> for detailed metrics.</p>
-</section>
-<div class="related-links">
-<h3>Related Apps</h3>
-<ul><li><a href="../capsnet-medical-scan/README.md">capsnet-medical-scan</a></li>
-<li><a href="../capsnet-text-recognition/README.md">capsnet-text-recognition</a></li></ul>
-</div>
-</main>
-<footer class="app-footer">
-<p>Generated documentation for <strong>capsnet-autonomous-driving</strong></p>
-</footer>
-<script>
-function copyCode(id) {
-  const el = document.getElementById(id);
-  navigator.clipboard.writeText(el.innerText);
-}
-function renderMath() {
-  renderMathInElement(document.body, { delimiters: [{left: "$$", right: "$$", display: true}] });
-}
-</script>
-</body>
-</html>
+    return BulkPredictResponse(predictions=predictions, model_version=_model_version)
+```
+
+### CLI Commands
+
+```bash
+uv run python -m capsnet_autonomous_driving.train --model-dir ./artifacts/models
+```
+
+## 📊 Benchmarks
+
+Test results and performance metrics
+
+Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+
+### Related Apps
+
+- [capsnet-medical-scan](../capsnet-medical-scan/README.md)
+
+- [capsnet-text-recognition](../capsnet-text-recognition/README.md)
+
+Generated documentation for **capsnet-autonomous-driving**

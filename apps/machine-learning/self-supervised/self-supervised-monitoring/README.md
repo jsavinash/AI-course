@@ -1,75 +1,68 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>self-supervised-monitoring - AI App Documentation</title>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMath()"></script>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-<style>
-/* CSS styles here */
-</style>
-</head>
-<body>
-<section id="math" class="section math-section">
-<h2><span class="section-icon">∫</span> Mathematics &amp; Theory</h2>
-<p class="section-subtitle">Self-Supervised Learning — Underlying equations and derivations</p>
-<div class="math-content">
-<div class="equations"><div class="math-block">$$\mathcal{L}_{InfoNCE} = -\log \frac{\exp(\text{sim}(z_i, z_j) / \tau)}{\sum_{k=1}^{2N} \mathbb{1}_{[k \neq i]} \exp(\text{sim}(z_i, z_k) / \tau)}$$</div>
-<div class="math-block">$$z_i = g_\theta(f_\theta(x_i))$$</div>
-<div class="math-block">$$\text{sim}(u, v) = \frac{u^T v}{\|u\| \|v\|}$$</div></div>
-<div class="derivation">
-<h3>Step-by-Step Derivation</h3>
-<p>Self-supervised learning creates labels from the data itself via pretext tasks. Contrastive learning (e.g., SimCLR, MoCo) maximizes agreement between augmented views of the same sample. The InfoNCE loss pulls positive pairs together while pushing apart negatives. A temperature parameter $\tau$ controls the sharpness of the distribution.</p>
-</div>
-<div class="viz-desc">
-<h3>Interactive Visualization</h3>
-<p>Interactive augmentation preview; contrastive embedding t-SNE; similarity matrix heatmap.</p>
-</div>
-</div>
-</section>
-<section id="architecture" class="section arch-section">
-<h2><span class="section-icon">⚙</span> Architecture</h2>
-<p class="section-subtitle">Model structure, data flow, and layer breakdown</p>
-<div class="arch-diagram">
-<h3>Class Hierarchy</h3>
-<pre class="ascii-diagram">  DenoisingAutoencoder</pre>
-</div>
-<div class="mermaid-wrapper">
-<h3>Data Flow</h3>
-<pre class="mermaid">graph TD
+# self-supervised-monitoring
+
+## ∫ Mathematics & Theory
+
+Self-Supervised Learning — Underlying equations and derivations
+
+$$\mathcal{L}_{InfoNCE} = -\log \frac{\exp(\text{sim}(z_i, z_j) / \tau)}{\sum_{k=1}^{2N} \mathbb{1}_{[k \neq i]} \exp(\text{sim}(z_i, z_k) / \tau)}$$
+
+$$z_i = g_\theta(f_\theta(x_i))$$
+
+$$\text{sim}(u, v) = \frac{u^T v}{\|u\| \|v\|}$$
+
+### Step-by-Step Derivation
+
+Self-supervised learning creates labels from the data itself via pretext tasks. Contrastive learning (e.g., SimCLR, MoCo) maximizes agreement between augmented views of the same sample. The InfoNCE loss pulls positive pairs together while pushing apart negatives. A temperature parameter $\tau$ controls the sharpness of the distribution.
+
+### Interactive Visualization
+
+Interactive augmentation preview; contrastive embedding t-SNE; similarity matrix heatmap.
+
+## ⚙ Architecture
+
+Model structure, data flow, and layer breakdown
+
+### Class Hierarchy
+
+```
+  DenoisingAutoencoder
+```
+
+### Data Flow
+
+```mermaid
+graph TD
   A[Input Data] --> B[Preprocessing]
   B --> C[Model Training]
   C --> D[Evaluation]
   D --> E[Model Registry]
-  E --> F[Serving API]</pre>
-</div>
-</section>
-<section id="api" class="section api-section">
-<h2><span class="section-icon">⚡</span> API Reference</h2>
-<p class="section-subtitle">FastAPI endpoints and model interfaces</p>
-<table class="api-table">
-<thead><tr><th>Method</th><th>Endpoint</th></tr></thead>
-<tbody><tr><td><code>GET</code></td><td><code>/</code></td></tr>
-<tr><td><code>GET</code></td><td><code>/health</code></td></tr>
-<tr><td><code>GET</code></td><td><code>/metrics</code></td></tr>
-<tr><td><code>POST</code></td><td><code>/reload</code></td></tr></tbody>
-</table>
-</section>
-<section id="usage" class="section usage-section">
-<h2><span class="section-icon">▶</span> Usage</h2>
-<p class="section-subtitle">Code examples and CLI commands</p>
-<h3>Training Script</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3503285913')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3503285913"><code class="language-python">&quot;&quot;&quot;Production training pipeline for self-supervised server monitoring.
+  E --> F[Serving API]
+```
+
+## ⚡ API Reference
+
+FastAPI endpoints and model interfaces
+
+| Method | Endpoint |
+| --- | --- |
+| `GET` | `/` |
+| `GET` | `/health` |
+| `GET` | `/metrics` |
+| `POST` | `/reload` |
+
+## ▶ Usage
+
+Code examples and CLI commands
+
+### Training Script
+
+```python
+"""Production training pipeline for self-supervised server monitoring.
 
 Trains a denoising autoencoder to reconstruct normal server metrics from
 corrupted inputs. The self-supervised signal comes from the data itself -
 no human labels are required for training.
-&quot;&quot;&quot;
+"""
 
 import argparse
 import os
@@ -87,7 +80,6 @@ from self_supervised_monitoring.model import DenoisingAutoencoder
 
 logger = get_logger(__name__)
 
-
 def train(
     model_dir: Path,
     data_path: Path | None = None,
@@ -97,18 +89,18 @@ def train(
     n_iterations: int = 5000,
     noise_rate: float = 0.25,
     threshold_percentile: float = 95.0,
-    model_version: str = &quot;1.0.0&quot;,
+    model_version: str = "1.0.0",
     register_to_mlflow: bool = False,
     random_seed: int = 42,
-) -&gt; dict:
-    &quot;&quot;&quot;Train the self-supervised denoising autoencoder and save artifacts.
+) -> dict:
+    """Train the self-supervised denoising autoencoder and save artifacts.
 
     The model is trained on normal server metrics only. Anomalies are
     detected at inference time via high reconstruction error.
 
     Returns:
         Dictionary with training metrics
-    &quot;&quot;&quot;
+    """
     # Generate or load data
     # For self-supervised training, we use only the anomaly-free portion
     X_full, y_full = generate_synthetic_data(n_samples=n_samples, random_seed=random_seed)
@@ -143,17 +135,17 @@ def train(
     y_test = np.concatenate([y_test_normal, y_test_anomaly])
 
     logger.info(
-        &quot;Loaded self-supervised training data&quot;,
+        "Loaded self-supervised training data",
         n_train=len(X_train),
         n_val=len(X_val),
         n_test=len(X_test),
         n_features=X_train.shape[1],
-        training_mode=&quot;self-supervised (denoising autoencoder)&quot;,
+        training_mode="self-supervised (denoising autoencoder)",
     )
 
     # Save full dataset for reproducibility
     model_dir.mkdir(parents=True, exist_ok=True)
-    save_training_data(X_full, y_full, model_dir / &quot;training_data.csv&quot;)
+    save_training_data(X_full, y_full, model_dir / "training_data.csv")
 
     # Train self-supervised model
     model = DenoisingAutoencoder(
@@ -173,35 +165,35 @@ def train(
 
     metrics = {
         **test_metrics,
-        &quot;training_mode&quot;: &quot;self-supervised&quot;,
-        &quot;n_train_samples&quot;: float(len(X_train)),
-        &quot;n_val_samples&quot;: float(len(X_val)),
-        &quot;n_test_samples&quot;: float(len(X_test)),
-        &quot;n_anomaly_test&quot;: float(np.sum(y_test == 1)),
-        &quot;n_normal_test&quot;: float(np.sum(y_test == 0)),
-        &quot;train_mean_recon_error&quot;: float(np.mean(train_errors)),
-        &quot;train_max_recon_error&quot;: float(np.max(train_errors)),
-        &quot;val_mean_recon_error&quot;: float(np.mean(val_errors)),
-        &quot;final_loss&quot;: model.loss_history[-1] if model.loss_history else 0.0,
-        &quot;n_epochs_run&quot;: float(len(model.loss_history)),
-        &quot;reconstruction_threshold&quot;: float(model.threshold),
-        &quot;threshold_percentile&quot;: float(model.threshold_percentile),
-        &quot;noise_rate&quot;: float(noise_rate),
-        &quot;hidden_dim&quot;: float(hidden_dim),
-        &quot;learning_rate&quot;: float(learning_rate),
+        "training_mode": "self-supervised",
+        "n_train_samples": float(len(X_train)),
+        "n_val_samples": float(len(X_val)),
+        "n_test_samples": float(len(X_test)),
+        "n_anomaly_test": float(np.sum(y_test == 1)),
+        "n_normal_test": float(np.sum(y_test == 0)),
+        "train_mean_recon_error": float(np.mean(train_errors)),
+        "train_max_recon_error": float(np.max(train_errors)),
+        "val_mean_recon_error": float(np.mean(val_errors)),
+        "final_loss": model.loss_history[-1] if model.loss_history else 0.0,
+        "n_epochs_run": float(len(model.loss_history)),
+        "reconstruction_threshold": float(model.threshold),
+        "threshold_percentile": float(model.threshold_percentile),
+        "noise_rate": float(noise_rate),
+        "hidden_dim": float(hidden_dim),
+        "learning_rate": float(learning_rate),
     }
 
     logger.info(
-        &quot;Self-supervised training complete&quot;,
-        training_mode=&quot;self-supervised&quot;,
+        "Self-supervised training complete",
+        training_mode="self-supervised",
         n_epochs=len(model.loss_history),
         final_loss=model.loss_history[-1] if model.loss_history else 0.0,
         threshold=model.threshold,
-        test_accuracy=test_metrics[&quot;accuracy&quot;],
+        test_accuracy=test_metrics["accuracy"],
     )
 
     # Save model
-    model_path = model_dir / f&quot;self_supervised_monitoring_model_v{model_version}.npz&quot;
+    model_path = model_dir / f"self_supervised_monitoring_model_v{model_version}.npz"
     model.save(str(model_path))
 
     # Save training chart
@@ -210,107 +202,105 @@ def train(
     # Register model
     registry = ModelRegistry(base_dir=model_dir)
     registry.save_model(
-        model_name=&quot;self-supervised-monitoring&quot;,
+        model_name="self-supervised-monitoring",
         model_version=model_version,
-        model_type=&quot;self_supervised_anomaly_detection&quot;,
+        model_type="self_supervised_anomaly_detection",
         metrics=metrics,
         parameters={
-            &quot;hidden_dim&quot;: hidden_dim,
-            &quot;learning_rate&quot;: learning_rate,
-            &quot;n_iterations&quot;: n_iterations,
-            &quot;noise_rate&quot;: noise_rate,
-            &quot;threshold_percentile&quot;: threshold_percentile,
-            &quot;random_seed&quot;: random_seed,
+            "hidden_dim": hidden_dim,
+            "learning_rate": learning_rate,
+            "n_iterations": n_iterations,
+            "noise_rate": noise_rate,
+            "threshold_percentile": threshold_percentile,
+            "random_seed": random_seed,
         },
         artifacts={
-            f&quot;self_supervised_monitoring_model_v{model_version}.npz&quot;: model_path,
-            &quot;training_data.csv&quot;: model_dir / &quot;training_data.csv&quot;,
+            f"self_supervised_monitoring_model_v{model_version}.npz": model_path,
+            "training_data.csv": model_dir / "training_data.csv",
         },
         tags={
-            &quot;framework&quot;: &quot;numpy&quot;,
-            &quot;task&quot;: &quot;self_supervised_anomaly_detection&quot;,
-            &quot;base_model&quot;: &quot;denoising_autoencoder&quot;,
+            "framework": "numpy",
+            "task": "self_supervised_anomaly_detection",
+            "base_model": "denoising_autoencoder",
         },
     )
 
     if register_to_mlflow:
         registry.log_to_mlflow(
-            model_name=&quot;self-supervised-monitoring&quot;,
+            model_name="self-supervised-monitoring",
             model_version=model_version,
             metrics=metrics,
             params={
-                &quot;hidden_dim&quot;: hidden_dim,
-                &quot;learning_rate&quot;: learning_rate,
-                &quot;n_iterations&quot;: n_iterations,
-                &quot;noise_rate&quot;: noise_rate,
-                &quot;threshold_percentile&quot;: threshold_percentile,
-                &quot;random_seed&quot;: random_seed,
+                "hidden_dim": hidden_dim,
+                "learning_rate": learning_rate,
+                "n_iterations": n_iterations,
+                "noise_rate": noise_rate,
+                "threshold_percentile": threshold_percentile,
+                "random_seed": random_seed,
             },
             artifacts={
-                &quot;model&quot;: str(model_path),
-                &quot;chart&quot;: str(model_dir / f&quot;self_supervised_monitoring_v{model_version}.png&quot;),
-                &quot;training_data&quot;: str(model_dir / &quot;training_data.csv&quot;),
+                "model": str(model_path),
+                "chart": str(model_dir / f"self_supervised_monitoring_v{model_version}.png"),
+                "training_data": str(model_dir / "training_data.csv"),
             },
-            tags={&quot;model_type&quot;: &quot;self_supervised_anomaly_detection&quot;, &quot;framework&quot;: &quot;numpy&quot;},
+            tags={"model_type": "self_supervised_anomaly_detection", "framework": "numpy"},
         )
         logger.info(
-            &quot;Registered model to MLflow&quot;, model=&quot;self-supervised-monitoring&quot;, version=model_version
+            "Registered model to MLflow", model="self-supervised-monitoring", version=model_version
         )
 
     return metrics
 
-
-def _save_chart(model: DenoisingAutoencoder, output_dir: Path, version: str) -&gt; None:
-    &quot;&quot;&quot;Save the training loss chart.&quot;&quot;&quot;
+def _save_chart(model: DenoisingAutoencoder, output_dir: Path, version: str) -> None:
+    """Save the training loss chart."""
     import matplotlib
 
-    matplotlib.use(&quot;Agg&quot;)
+    matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
     if not model.loss_history:
         return
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    ax.plot(model.loss_history, color=&quot;steelblue&quot;, linewidth=1.5)
-    ax.set_xlabel(&quot;Training Iteration&quot;)
-    ax.set_ylabel(&quot;Reconstruction Loss (MSE)&quot;)
-    ax.set_title(&quot;Self-Supervised Denoising Autoencoder Training Loss&quot;)
+    ax.plot(model.loss_history, color="steelblue", linewidth=1.5)
+    ax.set_xlabel("Training Iteration")
+    ax.set_ylabel("Reconstruction Loss (MSE)")
+    ax.set_title("Self-Supervised Denoising Autoencoder Training Loss")
     ax.grid(True, alpha=0.3)
-    ax.set_yscale(&quot;log&quot;)
+    ax.set_yscale("log")
 
     plt.tight_layout()
-    chart_path = output_dir / f&quot;self_supervised_monitoring_v{version}.png&quot;
+    chart_path = output_dir / f"self_supervised_monitoring_v{version}.png"
     plt.savefig(str(chart_path), dpi=100)
     plt.close()
-    logger.info(&quot;Chart saved&quot;, path=str(chart_path))
-
+    logger.info("Chart saved", path=str(chart_path))
 
 def main():
     parser = argparse.ArgumentParser(
-        description=&quot;Train self-supervised monitoring model (denoising autoencoder)&quot;
+        description="Train self-supervised monitoring model (denoising autoencoder)"
     )
-    parser.add_argument(&quot;--model-dir&quot;, type=Path, default=Path(os.getenv(&quot;MODEL_DIR&quot;, &quot;/models&quot;)))
-    parser.add_argument(&quot;--data-path&quot;, type=Path, default=None)
-    parser.add_argument(&quot;--n-samples&quot;, type=int, default=int(os.getenv(&quot;N_SAMPLES&quot;, &quot;2000&quot;)))
-    parser.add_argument(&quot;--hidden-dim&quot;, type=int, default=int(os.getenv(&quot;HIDDEN_DIM&quot;, &quot;16&quot;)))
+    parser.add_argument("--model-dir", type=Path, default=Path(os.getenv("MODEL_DIR", "/models")))
+    parser.add_argument("--data-path", type=Path, default=None)
+    parser.add_argument("--n-samples", type=int, default=int(os.getenv("N_SAMPLES", "2000")))
+    parser.add_argument("--hidden-dim", type=int, default=int(os.getenv("HIDDEN_DIM", "16")))
     parser.add_argument(
-        &quot;--learning-rate&quot;, type=float, default=float(os.getenv(&quot;LEARNING_RATE&quot;, &quot;0.01&quot;))
+        "--learning-rate", type=float, default=float(os.getenv("LEARNING_RATE", "0.01"))
     )
-    parser.add_argument(&quot;--n-iterations&quot;, type=int, default=int(os.getenv(&quot;N_ITERATIONS&quot;, &quot;5000&quot;)))
-    parser.add_argument(&quot;--noise-rate&quot;, type=float, default=float(os.getenv(&quot;NOISE_RATE&quot;, &quot;0.25&quot;)))
+    parser.add_argument("--n-iterations", type=int, default=int(os.getenv("N_ITERATIONS", "5000")))
+    parser.add_argument("--noise-rate", type=float, default=float(os.getenv("NOISE_RATE", "0.25")))
     parser.add_argument(
-        &quot;--threshold-percentile&quot;,
+        "--threshold-percentile",
         type=float,
-        default=float(os.getenv(&quot;THRESHOLD_PERCENTILE&quot;, &quot;95.0&quot;)),
+        default=float(os.getenv("THRESHOLD_PERCENTILE", "95.0")),
     )
-    parser.add_argument(&quot;--model-version&quot;, type=str, default=os.getenv(&quot;MODEL_VERSION&quot;, &quot;1.0.0&quot;))
-    parser.add_argument(&quot;--random-seed&quot;, type=int, default=int(os.getenv(&quot;RANDOM_SEED&quot;, &quot;42&quot;)))
+    parser.add_argument("--model-version", type=str, default=os.getenv("MODEL_VERSION", "1.0.0"))
+    parser.add_argument("--random-seed", type=int, default=int(os.getenv("RANDOM_SEED", "42")))
     parser.add_argument(
-        &quot;--register-mlflow&quot;,
-        action=&quot;store_true&quot;,
-        default=os.getenv(&quot;REGISTER_MLFLOW&quot;, &quot;false&quot;).lower() == &quot;true&quot;,
+        "--register-mlflow",
+        action="store_true",
+        default=os.getenv("REGISTER_MLFLOW", "false").lower() == "true",
     )
-    parser.add_argument(&quot;--log-level&quot;, type=str, default=os.getenv(&quot;LOG_LEVEL&quot;, &quot;INFO&quot;))
+    parser.add_argument("--log-level", type=str, default=os.getenv("LOG_LEVEL", "INFO"))
     args = parser.parse_args()
 
     setup_logging(args.log_level)
@@ -330,20 +320,21 @@ def main():
         random_seed=args.random_seed,
     )
 
-    logger.info(&quot;Training finished&quot;, metrics=metrics, model_dir=str(args.model_dir))
+    logger.info("Training finished", metrics=metrics, model_dir=str(args.model_dir))
 
+if __name__ == "__main__":
+    main()
+```
 
-if __name__ == &quot;__main__&quot;:
-    main()</code></pre>
-</div><h3>API Server</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-4073351800')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-4073351800"><code class="language-python">&quot;&quot;&quot;Production serving API for self-supervised server monitoring anomaly detection.
+### API Server
+
+```python
+"""Production serving API for self-supervised server monitoring anomaly detection.
 
 Uses a denoising autoencoder trained on normal server metrics to detect
 anomalies via reconstruction error. The model is trained in a self-supervised
 manner - no human labels are required.
-&quot;&quot;&quot;
+"""
 
 import os
 import time
@@ -366,37 +357,34 @@ from self_supervised_monitoring.model import DenoisingAutoencoder
 logger = get_logger(__name__)
 
 # Configuration
-MODEL_DIR = Path(os.getenv(&quot;MODEL_DIR&quot;, &quot;/models&quot;))
-MODEL_VERSION = os.getenv(&quot;MODEL_VERSION&quot;, &quot;latest&quot;)
+MODEL_DIR = Path(os.getenv("MODEL_DIR", "/models"))
+MODEL_VERSION = os.getenv("MODEL_VERSION", "latest")
 METRICS_PORT = int(
-    os.getenv(&quot;METRICS_PORT&quot;, os.getenv(&quot;SELF_SUPERVISED_MONITORING_METRICS_PORT&quot;, &quot;8007&quot;))
+    os.getenv("METRICS_PORT", os.getenv("SELF_SUPERVISED_MONITORING_METRICS_PORT", "8007"))
 )
-DRIFT_THRESHOLD = float(os.getenv(&quot;DRIFT_THRESHOLD&quot;, &quot;0.2&quot;))
-
+DRIFT_THRESHOLD = float(os.getenv("DRIFT_THRESHOLD", "0.2"))
 
 class MetricsRequest(BaseModel):
-    &quot;&quot;&quot;Single metrics observation for anomaly detection.&quot;&quot;&quot;
+    """Single metrics observation for anomaly detection."""
 
-    request_count: float = Field(..., ge=0, description=&quot;Number of requests&quot;)
-    bytes_per_request: float = Field(..., ge=0, description=&quot;Average bytes per request&quot;)
-    cpu_usage: float = Field(..., ge=0, le=100, description=&quot;CPU usage percentage&quot;)
-    memory_usage: float = Field(..., ge=0, le=100, description=&quot;Memory usage percentage&quot;)
-    disk_io: float = Field(..., ge=0, description=&quot;Disk I/O operations per second&quot;)
-    network_in: float = Field(..., ge=0, description=&quot;Network inbound MB/s&quot;)
-    network_out: float = Field(..., ge=0, description=&quot;Network outbound MB/s&quot;)
-    error_rate: float = Field(..., ge=0, le=100, description=&quot;Error rate percentage&quot;)
-    connection_count: float = Field(..., ge=0, description=&quot;Active connections&quot;)
-    response_time: float = Field(..., ge=0, description=&quot;Average response time in ms&quot;)
-
+    request_count: float = Field(..., ge=0, description="Number of requests")
+    bytes_per_request: float = Field(..., ge=0, description="Average bytes per request")
+    cpu_usage: float = Field(..., ge=0, le=100, description="CPU usage percentage")
+    memory_usage: float = Field(..., ge=0, le=100, description="Memory usage percentage")
+    disk_io: float = Field(..., ge=0, description="Disk I/O operations per second")
+    network_in: float = Field(..., ge=0, description="Network inbound MB/s")
+    network_out: float = Field(..., ge=0, description="Network outbound MB/s")
+    error_rate: float = Field(..., ge=0, le=100, description="Error rate percentage")
+    connection_count: float = Field(..., ge=0, description="Active connections")
+    response_time: float = Field(..., ge=0, description="Average response time in ms")
 
 class MetricsBulkRequest(BaseModel):
-    &quot;&quot;&quot;Bulk metrics request for anomaly detection.&quot;&quot;&quot;
+    """Bulk metrics request for anomaly detection."""
 
     samples: list[MetricsRequest] = Field(..., min_length=1, max_length=100)
 
-
 class AnomalyResponse(BaseModel):
-    &quot;&quot;&quot;Anomaly detection response for a single observation.&quot;&quot;&quot;
+    """Anomaly detection response for a single observation."""
 
     is_anomaly: bool
     anomaly_score: float
@@ -406,18 +394,16 @@ class AnomalyResponse(BaseModel):
     model_version: str
     training_mode: str
 
-
 class BulkAnomalyResponse(BaseModel):
-    &quot;&quot;&quot;Bulk anomaly detection response.&quot;&quot;&quot;
+    """Bulk anomaly detection response."""
 
     samples: list[AnomalyResponse]
     n_anomalies: int
     n_samples: int
     model_version: str
 
-
 class StatsResponse(BaseModel):
-    &quot;&quot;&quot;Model statistics response.&quot;&quot;&quot;
+    """Model statistics response."""
 
     n_features: int
     hidden_dim: int
@@ -430,9 +416,8 @@ class StatsResponse(BaseModel):
     n_epochs_run: int
     model_version: str
 
-
 class ModelInfoResponse(BaseModel):
-    &quot;&quot;&quot;Model information response.&quot;&quot;&quot;
+    """Model information response."""
 
     n_features: int
     hidden_dim: int
@@ -441,9 +426,8 @@ class ModelInfoResponse(BaseModel):
     training_mode: str
     model_version: str
 
-
 class DriftResponse(BaseModel):
-    &quot;&quot;&quot;Drift detection response.&quot;&quot;&quot;
+    """Drift detection response."""
 
     total_features: int
     drifted_features: int
@@ -451,99 +435,96 @@ class DriftResponse(BaseModel):
     drifted: list[dict]
     all_results: list[dict]
 
-
 # Global model state
 _model: DenoisingAutoencoder | None = None
-_model_version: str = &quot;unknown&quot;
+_model_version: str = "unknown"
 _metrics: MetricsCollector | None = None
 _validator: DataValidator | None = None
 _drift_detector: DriftDetector | None = None
 _reference_data: np.ndarray | None = None
 _recent_predictions: list[list[float]] = []
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    &quot;&quot;&quot;Load model at startup and clean up at shutdown.&quot;&quot;&quot;
+    """Load model at startup and clean up at shutdown."""
     global _model, _model_version, _metrics, _validator, _drift_detector, _reference_data
 
-    setup_logging(os.getenv(&quot;LOG_LEVEL&quot;, &quot;INFO&quot;))
-    _metrics = MetricsCollector(&quot;self_supervised_monitoring&quot;, port=METRICS_PORT)
+    setup_logging(os.getenv("LOG_LEVEL", "INFO"))
+    _metrics = MetricsCollector("self_supervised_monitoring", port=METRICS_PORT)
     app.state.metrics = _metrics
 
     _validator = DataValidator(create_self_supervised_monitoring_schema())
     _drift_detector = DriftDetector(
         feature_names=FEATURE_NAMES,
-        feature_types={f: &quot;float&quot; for f in FEATURE_NAMES},
+        feature_types={f: "float" for f in FEATURE_NAMES},
         psi_threshold=DRIFT_THRESHOLD,
     )
 
     _model, _model_version = _load_model()
     _metrics.set_model_version(_model_version)
     _metrics.set_model_info(
-        model_name=&quot;self-supervised-monitoring&quot;,
+        model_name="self-supervised-monitoring",
         model_version=_model_version,
-        model_type=&quot;self_supervised_anomaly_detection&quot;,
+        model_type="self_supervised_anomaly_detection",
     )
 
     # Load reference data for drift detection
     _reference_data = _load_reference_data()
-    logger.info(&quot;Model loaded&quot;, model=&quot;self-supervised-monitoring&quot;, version=_model_version)
+    logger.info("Model loaded", model="self-supervised-monitoring", version=_model_version)
 
     yield
 
-    logger.info(&quot;Shutting down self-supervised-monitoring API&quot;)
+    logger.info("Shutting down self-supervised-monitoring API")
 
-
-def _load_model() -&gt; tuple[DenoisingAutoencoder, str]:
-    &quot;&quot;&quot;Load the latest model from the registry or model directory with resilient fallback.&quot;&quot;&quot;
+def _load_model() -> tuple[DenoisingAutoencoder, str]:
+    """Load the latest model from the registry or model directory with resilient fallback."""
     # 1. Try model registry
     registry = ModelRegistry(base_dir=MODEL_DIR)
     try:
-        if MODEL_VERSION == &quot;latest&quot;:
+        if MODEL_VERSION == "latest":
             models = registry.list_models()
-            ss_models = [m for m in models if m.get(&quot;model_name&quot;) == &quot;self-supervised-monitoring&quot;]
+            ss_models = [m for m in models if m.get("model_name") == "self-supervised-monitoring"]
             if ss_models:
-                ss_models.sort(key=lambda m: m[&quot;model_version&quot;], reverse=True)
+                ss_models.sort(key=lambda m: m["model_version"], reverse=True)
                 latest = ss_models[0]
-                model_dir = Path(latest[&quot;artifact_path&quot;])
-                npz_files = list(model_dir.glob(&quot;self_supervised_monitoring_model_*.npz&quot;)) + list(
-                    model_dir.glob(&quot;*.npz&quot;)
+                model_dir = Path(latest["artifact_path"])
+                npz_files = list(model_dir.glob("self_supervised_monitoring_model_*.npz")) + list(
+                    model_dir.glob("*.npz")
                 )
                 if npz_files:
-                    return DenoisingAutoencoder.load(str(npz_files[0])), latest[&quot;model_version&quot;]
+                    return DenoisingAutoencoder.load(str(npz_files[0])), latest["model_version"]
         else:
-            model_dir = MODEL_DIR / &quot;self-supervised-monitoring&quot; / MODEL_VERSION
+            model_dir = MODEL_DIR / "self-supervised-monitoring" / MODEL_VERSION
             if model_dir.exists():
-                npz_files = list(model_dir.glob(&quot;self_supervised_monitoring_model_*.npz&quot;)) + list(
-                    model_dir.glob(&quot;*.npz&quot;)
+                npz_files = list(model_dir.glob("self_supervised_monitoring_model_*.npz")) + list(
+                    model_dir.glob("*.npz")
                 )
                 if npz_files:
                     return DenoisingAutoencoder.load(str(npz_files[0])), MODEL_VERSION
     except Exception as e:
-        logger.warning(f&quot;Registry lookup failed: {e}&quot;)
+        logger.warning(f"Registry lookup failed: {e}")
 
     # 2. Try direct model in MODEL_DIR
-    npz_path = MODEL_DIR / &quot;self_supervised_monitoring_model.npz&quot;
+    npz_path = MODEL_DIR / "self_supervised_monitoring_model.npz"
     if npz_path.exists():
-        return DenoisingAutoencoder.load(str(npz_path)), &quot;legacy&quot;
+        return DenoisingAutoencoder.load(str(npz_path)), "legacy"
 
     # 3. Try bundled artifacts directory
     candidate_paths = [
-        Path(&quot;/app/artifacts/models/self_supervised_monitoring_model_v1.0.0.npz&quot;),
+        Path("/app/artifacts/models/self_supervised_monitoring_model_v1.0.0.npz"),
         Path(__file__).resolve().parents[3]
-        / &quot;artifacts&quot;
-        / &quot;models&quot;
-        / &quot;self_supervised_monitoring_model_v1.0.0.npz&quot;,
+        / "artifacts"
+        / "models"
+        / "self_supervised_monitoring_model_v1.0.0.npz",
     ]
     for p in candidate_paths:
         if p.exists():
-            logger.info(&quot;Loading bundled baseline model&quot;, path=str(p))
-            return DenoisingAutoencoder.load(str(p)), &quot;1.0.0-bundled&quot;
+            logger.info("Loading bundled baseline model", path=str(p))
+            return DenoisingAutoencoder.load(str(p)), "1.0.0-bundled"
 
     # 4. In-memory baseline fallback (never crash cold start)
     logger.warning(
-        &quot;No pre-existing model found on disk. Initializing baseline self-supervised model.&quot;
+        "No pre-existing model found on disk. Initializing baseline self-supervised model."
     )
     from self_supervised_monitoring.data import generate_normal_data
 
@@ -556,16 +537,15 @@ def _load_model() -&gt; tuple[DenoisingAutoencoder, str]:
         random_seed=42,
     )
     model.fit(X_base)
-    return model, &quot;1.0.0-baseline&quot;
+    return model, "1.0.0-baseline"
 
-
-def _load_reference_data() -&gt; np.ndarray | None:
-    &quot;&quot;&quot;Load reference training data for drift detection.&quot;&quot;&quot;
+def _load_reference_data() -> np.ndarray | None:
+    """Load reference training data for drift detection."""
     candidate_csvs = [
-        MODEL_DIR / &quot;self-supervised-monitoring&quot; / _model_version / &quot;training_data.csv&quot;,
-        MODEL_DIR / &quot;training_data.csv&quot;,
-        Path(&quot;/app/artifacts/models/training_data.csv&quot;),
-        Path(__file__).resolve().parents[3] / &quot;artifacts&quot; / &quot;models&quot; / &quot;training_data.csv&quot;,
+        MODEL_DIR / "self-supervised-monitoring" / _model_version / "training_data.csv",
+        MODEL_DIR / "training_data.csv",
+        Path("/app/artifacts/models/training_data.csv"),
+        Path(__file__).resolve().parents[3] / "artifacts" / "models" / "training_data.csv",
     ]
     for csv_path in candidate_csvs:
         if csv_path.exists():
@@ -576,98 +556,92 @@ def _load_reference_data() -&gt; np.ndarray | None:
                 if all(f in df.columns for f in FEATURE_NAMES):
                     return df[FEATURE_NAMES].values
             except Exception as e:
-                logger.warning(&quot;Could not read reference csv&quot;, path=str(csv_path), error=str(e))
+                logger.warning("Could not read reference csv", path=str(csv_path), error=str(e))
 
     from self_supervised_monitoring.data import generate_normal_data
 
     X_base = generate_normal_data(n_samples=500, random_seed=42)
     return X_base
 
-
 # Create FastAPI app
 app = FastAPI(
-    title=&quot;Self-Supervised Monitoring API&quot;,
-    description=&quot;Self-supervised anomaly detection using a denoising autoencoder trained on normal server metrics&quot;,
-    version=&quot;1.0.0&quot;,
+    title="Self-Supervised Monitoring API",
+    description="Self-supervised anomaly detection using a denoising autoencoder trained on normal server metrics",
+    version="1.0.0",
     lifespan=lifespan,
 )
 
 # Add observability middleware
 add_observability_middleware(app)
 
-
-@app.get(&quot;/&quot;)
+@app.get("/")
 def read_root():
-    &quot;&quot;&quot;Service information.&quot;&quot;&quot;
+    """Service information."""
     return {
-        &quot;service&quot;: &quot;self-supervised-monitoring-api&quot;,
-        &quot;version&quot;: &quot;1.0.0&quot;,
-        &quot;model_version&quot;: _model_version,
-        &quot;training_mode&quot;: _model.training_mode if _model else &quot;unknown&quot;,
-        &quot;features&quot;: FEATURE_NAMES,
-        &quot;endpoints&quot;: {
-            &quot;health&quot;: &quot;/health&quot;,
-            &quot;predict&quot;: &quot;POST /predict&quot;,
-            &quot;predict/bulk&quot;: &quot;POST /predict/bulk&quot;,
-            &quot;stats&quot;: &quot;GET /stats&quot;,
-            &quot;model_info&quot;: &quot;GET /model/info&quot;,
-            &quot;drift&quot;: &quot;GET /drift&quot;,
-            &quot;metrics&quot;: &quot;/metrics&quot;,
+        "service": "self-supervised-monitoring-api",
+        "version": "1.0.0",
+        "model_version": _model_version,
+        "training_mode": _model.training_mode if _model else "unknown",
+        "features": FEATURE_NAMES,
+        "endpoints": {
+            "health": "/health",
+            "predict": "POST /predict",
+            "predict/bulk": "POST /predict/bulk",
+            "stats": "GET /stats",
+            "model_info": "GET /model/info",
+            "drift": "GET /drift",
+            "metrics": "/metrics",
         },
     }
 
-
-@app.get(&quot;/health&quot;)
+@app.get("/health")
 def health_check():
-    &quot;&quot;&quot;Kubernetes liveness/readiness probe.&quot;&quot;&quot;
+    """Kubernetes liveness/readiness probe."""
     if _model is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
     return {
-        &quot;status&quot;: &quot;healthy&quot;,
-        &quot;model_loaded&quot;: True,
-        &quot;model_version&quot;: _model_version,
-        &quot;training_mode&quot;: _model.training_mode,
+        "status": "healthy",
+        "model_loaded": True,
+        "model_version": _model_version,
+        "training_mode": _model.training_mode,
     }
 
-
-@app.get(&quot;/metrics&quot;)
+@app.get("/metrics")
 def metrics():
-    &quot;&quot;&quot;Prometheus metrics endpoint.&quot;&quot;&quot;
+    """Prometheus metrics endpoint."""
     from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
-
-@app.post(&quot;/reload&quot;)
+@app.post("/reload")
 def reload_model():
-    &quot;&quot;&quot;Dynamically reload the model from disk/registry.&quot;&quot;&quot;
+    """Dynamically reload the model from disk/registry."""
     global _model, _model_version, _reference_data
     try:
         _model, _model_version = _load_model()
         if _metrics:
             _metrics.set_model_version(_model_version)
             _metrics.set_model_info(
-                model_name=&quot;self-supervised-monitoring&quot;,
+                model_name="self-supervised-monitoring",
                 model_version=_model_version,
-                model_type=&quot;self_supervised_anomaly_detection&quot;,
+                model_type="self_supervised_anomaly_detection",
             )
         _reference_data = _load_reference_data()
         logger.info(
-            &quot;Model reloaded dynamically&quot;, model=&quot;self-supervised-monitoring&quot;, version=_model_version
+            "Model reloaded dynamically", model="self-supervised-monitoring", version=_model_version
         )
-        return {&quot;status&quot;: &quot;reloaded&quot;, &quot;model_version&quot;: _model_version}
+        return {"status": "reloaded", "model_version": _model_version}
     except Exception as e:
-        logger.exception(&quot;Model reload failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=f&quot;Reload failed: {e}&quot;) from e
+        logger.exception("Model reload failed", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Reload failed: {e}") from e
 
-
-@app.get(&quot;/drift&quot;, response_model=DriftResponse)
+@app.get("/drift", response_model=DriftResponse)
 def drift_check():
-    &quot;&quot;&quot;Check for data drift between reference and recent predictions.&quot;&quot;&quot;
+    """Check for data drift between reference and recent predictions."""
     if _drift_detector is None or _reference_data is None:
-        raise HTTPException(status_code=503, detail=&quot;Drift detection not available&quot;)
+        raise HTTPException(status_code=503, detail="Drift detection not available")
 
-    if len(_recent_predictions) &lt; 10:
+    if len(_recent_predictions) < 10:
         return DriftResponse(
             total_features=len(FEATURE_NAMES),
             drifted_features=0,
@@ -681,16 +655,15 @@ def drift_check():
     summary = _drift_detector.summarize(results)
 
     if _metrics:
-        _metrics.set_drift_ratio(summary[&quot;drift_ratio&quot;])
+        _metrics.set_drift_ratio(summary["drift_ratio"])
 
     return DriftResponse(**summary)
 
-
-@app.get(&quot;/stats&quot;, response_model=StatsResponse)
+@app.get("/stats", response_model=StatsResponse)
 def get_stats():
-    &quot;&quot;&quot;Return model statistics.&quot;&quot;&quot;
+    """Return model statistics."""
     if _model is None or _model.W1 is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     return StatsResponse(
         n_features=_model.input_dim,
@@ -705,12 +678,11 @@ def get_stats():
         model_version=_model_version,
     )
 
-
-@app.get(&quot;/model/info&quot;, response_model=ModelInfoResponse)
+@app.get("/model/info", response_model=ModelInfoResponse)
 def get_model_info():
-    &quot;&quot;&quot;Return detailed model information.&quot;&quot;&quot;
+    """Return detailed model information."""
     if _model is None or _model.W1 is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     return ModelInfoResponse(
         n_features=_model.input_dim,
@@ -721,9 +693,8 @@ def get_model_info():
         model_version=_model_version,
     )
 
-
-def _extract_features(observation: MetricsRequest) -&gt; list[float]:
-    &quot;&quot;&quot;Extract feature vector from request.&quot;&quot;&quot;
+def _extract_features(observation: MetricsRequest) -> list[float]:
+    """Extract feature vector from request."""
     return [
         observation.request_count,
         observation.bytes_per_request,
@@ -737,11 +708,10 @@ def _extract_features(observation: MetricsRequest) -&gt; list[float]:
         observation.response_time,
     ]
 
-
-def _compute_anomaly(observation: MetricsRequest) -&gt; AnomalyResponse:
-    &quot;&quot;&quot;Core anomaly detection logic shared by all detection endpoints.&quot;&quot;&quot;
+def _compute_anomaly(observation: MetricsRequest) -> AnomalyResponse:
+    """Core anomaly detection logic shared by all detection endpoints."""
     if _model is None or _metrics is None or _validator is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     features = _extract_features(observation)
     X = np.array([features])
@@ -761,7 +731,7 @@ def _compute_anomaly(observation: MetricsRequest) -&gt; AnomalyResponse:
 
         # Track for drift detection
         _recent_predictions.append(features)
-        if len(_recent_predictions) &gt; 1000:
+        if len(_recent_predictions) > 1000:
             _recent_predictions.pop(0)
 
         return AnomalyResponse(
@@ -771,29 +741,27 @@ def _compute_anomaly(observation: MetricsRequest) -&gt; AnomalyResponse:
             reconstruction_error=round(recon_error, 4),
             anomaly_threshold=round(_model.threshold, 4),
             model_version=_model_version,
-            training_mode=_model.training_mode if _model else &quot;unknown&quot;,
+            training_mode=_model.training_mode if _model else "unknown",
         )
     except Exception as e:
-        _metrics.record_error(model_version=_model_version, error_type=&quot;prediction&quot;)
-        logger.exception(&quot;Anomaly detection failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=&quot;Anomaly detection failed&quot;) from e
+        _metrics.record_error(model_version=_model_version, error_type="prediction")
+        logger.exception("Anomaly detection failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Anomaly detection failed") from e
 
-
-@app.post(&quot;/predict&quot;, response_model=AnomalyResponse)
+@app.post("/predict", response_model=AnomalyResponse)
 def predict_anomaly(body: MetricsRequest):
-    &quot;&quot;&quot;Detect anomaly for a single metrics observation.&quot;&quot;&quot;
+    """Detect anomaly for a single metrics observation."""
     return _compute_anomaly(body)
 
-
-@app.post(&quot;/predict/bulk&quot;, response_model=BulkAnomalyResponse)
+@app.post("/predict/bulk", response_model=BulkAnomalyResponse)
 def predict_anomaly_bulk(body: MetricsBulkRequest):
-    &quot;&quot;&quot;Detect anomalies for multiple metrics observations.&quot;&quot;&quot;
+    """Detect anomalies for multiple metrics observations."""
     global _recent_predictions
     if _model is None or _metrics is None or _validator is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
-    if len(body.samples) &lt; 1 or len(body.samples) &gt; 100:
-        raise HTTPException(status_code=422, detail=&quot;Batch size must be between 1 and 100&quot;)
+    if len(body.samples) < 1 or len(body.samples) > 100:
+        raise HTTPException(status_code=422, detail="Batch size must be between 1 and 100")
 
     X = np.array([_extract_features(s) for s in body.samples])
 
@@ -812,7 +780,7 @@ def predict_anomaly_bulk(body: MetricsBulkRequest):
 
         # Track for drift detection
         _recent_predictions.extend(X.tolist())
-        if len(_recent_predictions) &gt; 1000:
+        if len(_recent_predictions) > 1000:
             _recent_predictions = _recent_predictions[-1000:]
 
         results = [
@@ -823,7 +791,7 @@ def predict_anomaly_bulk(body: MetricsBulkRequest):
                 reconstruction_error=round(float(recon_error), 4),
                 anomaly_threshold=round(_model.threshold, 4),
                 model_version=_model_version,
-                training_mode=_model.training_mode if _model else &quot;unknown&quot;,
+                training_mode=_model.training_mode if _model else "unknown",
             )
             for anom, recon_error, proba in zip(anomalies, recon_errors, probas, strict=False)
         ]
@@ -836,38 +804,27 @@ def predict_anomaly_bulk(body: MetricsBulkRequest):
             model_version=_model_version,
         )
     except Exception as e:
-        _metrics.record_error(model_version=_model_version, error_type=&quot;prediction&quot;)
-        logger.exception(&quot;Bulk anomaly detection failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=&quot;Bulk anomaly detection failed&quot;) from e</code></pre>
-</div>
-<h3>CLI Commands</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-445399025')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-445399025"><code class="language-bash">uv run python -m self_supervised_monitoring.train --model-dir ./artifacts/models</code></pre>
-</div>
-</section>
-<section id="benchmarks" class="section bench-section">
-<h2><span class="section-icon">📊</span> Benchmarks</h2>
-<p class="section-subtitle">Test results and performance metrics</p>
-<p class="muted">Run <code>pytest tests/test_models.py</code> and <code>pytest tests/test_apis.py</code> for detailed metrics.</p>
-</section>
-<div class="related-links">
-<h3>Related Apps</h3>
-<ul><li><a href="../semi-supervised-email/README.md">semi-supervised-email</a></li>
-<li><a href="../self-organizing-maps/README.md">self-organizing-maps</a></li></ul>
-</div>
-</main>
-<footer class="app-footer">
-<p>Generated documentation for <strong>self-supervised-monitoring</strong></p>
-</footer>
-<script>
-function copyCode(id) {
-  const el = document.getElementById(id);
-  navigator.clipboard.writeText(el.innerText);
-}
-function renderMath() {
-  renderMathInElement(document.body, { delimiters: [{left: "$$", right: "$$", display: true}] });
-}
-</script>
-</body>
-</html>
+        _metrics.record_error(model_version=_model_version, error_type="prediction")
+        logger.exception("Bulk anomaly detection failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Bulk anomaly detection failed") from e
+```
+
+### CLI Commands
+
+```bash
+uv run python -m self_supervised_monitoring.train --model-dir ./artifacts/models
+```
+
+## 📊 Benchmarks
+
+Test results and performance metrics
+
+Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+
+### Related Apps
+
+- [semi-supervised-email](../semi-supervised-email/README.md)
+
+- [self-organizing-maps](../self-organizing-maps/README.md)
+
+Generated documentation for **self-supervised-monitoring**

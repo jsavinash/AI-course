@@ -1,72 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>anomaly-detection-pca - AI App Documentation</title>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMath()"></script>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-<style>
-/* CSS styles here */
-</style>
-</head>
-<body>
-<section id="math" class="section math-section">
-<h2><span class="section-icon">∫</span> Mathematics &amp; Theory</h2>
-<p class="section-subtitle">Anomaly Detection / PCA — Underlying equations and derivations</p>
-<div class="math-content">
-<div class="equations"><div class="math-block">$$X_{\text{centered}} = X - \bar{x}$$</div>
-<div class="math-block">$$\Sigma = \frac{1}{n} X_{\text{centered}}^T X_{\text{centered}}$$</div>
-<div class="math-block">$$\Sigma v = \lambda v$$</div>
-<div class="math-block">$$X_{\text{reduced}} = X_{\text{centered}} V_k$$</div>
-<div class="math-block">$$\text{recon error} = \|X - X_{\text{reconstructed}}\|^2$$</div></div>
-<div class="derivation">
-<h3>Step-by-Step Derivation</h3>
-<p>PCA finds orthogonal directions of maximum variance. By computing the SVD of centered data $X = U\Sigma V^T$, the right singular vectors $V$ are the principal components. Anomalies are detected from large reconstruction error after projection.</p>
-</div>
-<div class="viz-desc">
-<h3>Interactive Visualization</h3>
-<p>Interactive 2D/3D PCA projection; explained variance scree plot; anomaly score distribution.</p>
-</div>
-</div>
-</section>
-<section id="architecture" class="section arch-section">
-<h2><span class="section-icon">⚙</span> Architecture</h2>
-<p class="section-subtitle">Model structure, data flow, and layer breakdown</p>
-<div class="arch-diagram">
-<h3>Class Hierarchy</h3>
-<pre class="ascii-diagram">  PCAAnomalyDetector</pre>
-</div>
-<div class="mermaid-wrapper">
-<h3>Data Flow</h3>
-<pre class="mermaid">graph TD
+# anomaly-detection-pca
+
+## ∫ Mathematics & Theory
+
+Anomaly Detection / PCA — Underlying equations and derivations
+
+$$X_{\text{centered}} = X - \bar{x}$$
+
+$$\Sigma = \frac{1}{n} X_{\text{centered}}^T X_{\text{centered}}$$
+
+$$\Sigma v = \lambda v$$
+
+$$X_{\text{reduced}} = X_{\text{centered}} V_k$$
+
+$$\text{recon error} = \|X - X_{\text{reconstructed}}\|^2$$
+
+### Step-by-Step Derivation
+
+PCA finds orthogonal directions of maximum variance. By computing the SVD of centered data $X = U\Sigma V^T$, the right singular vectors $V$ are the principal components. Anomalies are detected from large reconstruction error after projection.
+
+### Interactive Visualization
+
+Interactive 2D/3D PCA projection; explained variance scree plot; anomaly score distribution.
+
+## ⚙ Architecture
+
+Model structure, data flow, and layer breakdown
+
+### Class Hierarchy
+
+```
+  PCAAnomalyDetector
+```
+
+### Data Flow
+
+```mermaid
+graph TD
   A[Input Data] --> B[Preprocessing]
   B --> C[Model Training]
   C --> D[Evaluation]
   D --> E[Model Registry]
-  E --> F[Serving API]</pre>
-</div>
-</section>
-<section id="api" class="section api-section">
-<h2><span class="section-icon">⚡</span> API Reference</h2>
-<p class="section-subtitle">FastAPI endpoints and model interfaces</p>
-<table class="api-table">
-<thead><tr><th>Method</th><th>Endpoint</th></tr></thead>
-<tbody><tr><td><code>GET</code></td><td><code>/</code></td></tr>
-<tr><td><code>GET</code></td><td><code>/health</code></td></tr>
-<tr><td><code>GET</code></td><td><code>/metrics</code></td></tr>
-<tr><td><code>POST</code></td><td><code>/reload</code></td></tr></tbody>
-</table>
-</section>
-<section id="usage" class="section usage-section">
-<h2><span class="section-icon">▶</span> Usage</h2>
-<p class="section-subtitle">Code examples and CLI commands</p>
-<h3>Training Script</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2834585931')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2834585931"><code class="language-python">&quot;&quot;&quot;Production training pipeline for PCA-based anomaly detection.&quot;&quot;&quot;
+  E --> F[Serving API]
+```
+
+## ⚡ API Reference
+
+FastAPI endpoints and model interfaces
+
+| Method | Endpoint |
+| --- | --- |
+| `GET` | `/` |
+| `GET` | `/health` |
+| `GET` | `/metrics` |
+| `POST` | `/reload` |
+
+## ▶ Usage
+
+Code examples and CLI commands
+
+### Training Script
+
+```python
+"""Production training pipeline for PCA-based anomaly detection."""
 
 import argparse
 import os
@@ -82,7 +77,6 @@ from anomaly_detection.model import PCAAnomalyDetector
 
 logger = get_logger(__name__)
 
-
 def train(
     model_dir: Path,
     data_path: Path,
@@ -93,41 +87,41 @@ def train(
     model_version: str,
     register_to_mlflow: bool = False,
     random_seed: int = 42,
-) -&gt; dict:
-    &quot;&quot;&quot;Train the PCA anomaly detection model and save artifacts.
+) -> dict:
+    """Train the PCA anomaly detection model and save artifacts.
 
     Args:
         model_dir: Directory to save model artifacts
         data_path: Optional path to CSV data
         n_components: Number of PCA components or variance ratio to retain
-        threshold_method: Method for anomaly threshold (&quot;percentile&quot;, &quot;iqr&quot;, &quot;fixed&quot;)
-        threshold_percentile: Percentile for threshold if method=&quot;percentile&quot;
-        threshold_iqr_multiplier: IQR multiplier if method=&quot;iqr&quot;
+        threshold_method: Method for anomaly threshold ("percentile", "iqr", "fixed")
+        threshold_percentile: Percentile for threshold if method="percentile"
+        threshold_iqr_multiplier: IQR multiplier if method="iqr"
         model_version: Model version string
         register_to_mlflow: Whether to register to MLflow
         random_seed: Random seed for reproducibility
 
     Returns:
         Dictionary with training metrics
-    &quot;&quot;&quot;
+    """
     # Load training data
     X, y = load_training_data(data_path, random_seed=random_seed)
-    logger.info(&quot;Loaded training data&quot;, n_samples=len(X), n_features=X.shape[1])
+    logger.info("Loaded training data", n_samples=len(X), n_features=X.shape[1])
 
     # Validate training data
     validator = DataValidator(create_anomaly_detection_schema())
     validation = validator.validate(X)
     if not validation.valid:
-        logger.error(&quot;Training data validation failed&quot;, errors=validation.errors)
-        raise ValueError(f&quot;Training data validation failed: {validation.errors}&quot;)
-    logger.info(&quot;Training data validated&quot;, stats=validation.stats)
+        logger.error("Training data validation failed", errors=validation.errors)
+        raise ValueError(f"Training data validation failed: {validation.errors}")
+    logger.info("Training data validated", stats=validation.stats)
 
     # Save training data for reproducibility
-    save_training_data(X, y, model_dir / &quot;training_data.csv&quot;)
+    save_training_data(X, y, model_dir / "training_data.csv")
 
     # Use only normal samples for PCA training (unsupervised anomaly detection)
     X_normal = X[y == 0]
-    logger.info(&quot;Training on normal samples&quot;, n_normal=len(X_normal), n_anomaly=int(np.sum(y)))
+    logger.info("Training on normal samples", n_normal=len(X_normal), n_anomaly=int(np.sum(y)))
 
     # Train model
     model = PCAAnomalyDetector(
@@ -142,25 +136,25 @@ def train(
     # Evaluate on all data
     metrics = model.evaluate(X, y)
     logger.info(
-        &quot;Training complete&quot;,
+        "Training complete",
         n_components=model.n_components_selected,
-        explained_variance=metrics[&quot;explained_variance_ratio&quot;],
+        explained_variance=metrics["explained_variance_ratio"],
         threshold=model.threshold,
-        mean_error=metrics[&quot;mean_reconstruction_error&quot;],
-        max_error=metrics[&quot;max_reconstruction_error&quot;],
+        mean_error=metrics["mean_reconstruction_error"],
+        max_error=metrics["max_reconstruction_error"],
     )
 
-    if &quot;accuracy&quot; in metrics:
+    if "accuracy" in metrics:
         logger.info(
-            &quot;Evaluation metrics&quot;,
-            accuracy=metrics[&quot;accuracy&quot;],
-            precision=metrics[&quot;precision&quot;],
-            recall=metrics[&quot;recall&quot;],
-            f1=metrics[&quot;f1&quot;],
+            "Evaluation metrics",
+            accuracy=metrics["accuracy"],
+            precision=metrics["precision"],
+            recall=metrics["recall"],
+            f1=metrics["f1"],
         )
 
     # Save model
-    model_path = model_dir / f&quot;anomaly_detection_model_v{model_version}.npz&quot;
+    model_path = model_dir / f"anomaly_detection_model_v{model_version}.npz"
     model.save(str(model_path))
 
     # Save training chart
@@ -168,76 +162,75 @@ def train(
 
     # Combined metrics for registry
     training_metrics = {
-        &quot;mean_reconstruction_error&quot;: metrics[&quot;mean_reconstruction_error&quot;],
-        &quot;std_reconstruction_error&quot;: metrics[&quot;std_reconstruction_error&quot;],
-        &quot;max_reconstruction_error&quot;: metrics[&quot;max_reconstruction_error&quot;],
-        &quot;threshold&quot;: model.threshold,
-        &quot;n_components&quot;: float(model.n_components_selected),
-        &quot;explained_variance_ratio&quot;: metrics[&quot;explained_variance_ratio&quot;],
-        &quot;n_samples&quot;: float(len(X)),
-        &quot;n_normal&quot;: float(len(X_normal)),
-        &quot;n_anomaly&quot;: float(int(np.sum(y))),
+        "mean_reconstruction_error": metrics["mean_reconstruction_error"],
+        "std_reconstruction_error": metrics["std_reconstruction_error"],
+        "max_reconstruction_error": metrics["max_reconstruction_error"],
+        "threshold": model.threshold,
+        "n_components": float(model.n_components_selected),
+        "explained_variance_ratio": metrics["explained_variance_ratio"],
+        "n_samples": float(len(X)),
+        "n_normal": float(len(X_normal)),
+        "n_anomaly": float(int(np.sum(y))),
     }
 
-    if &quot;accuracy&quot; in metrics:
+    if "accuracy" in metrics:
         training_metrics.update(
             {
-                &quot;accuracy&quot;: metrics[&quot;accuracy&quot;],
-                &quot;precision&quot;: metrics[&quot;precision&quot;],
-                &quot;recall&quot;: metrics[&quot;recall&quot;],
-                &quot;f1&quot;: metrics[&quot;f1&quot;],
-                &quot;false_positive_rate&quot;: metrics[&quot;false_positive_rate&quot;],
-                &quot;true_positives&quot;: metrics[&quot;true_positives&quot;],
-                &quot;false_positives&quot;: metrics[&quot;false_positives&quot;],
-                &quot;true_negatives&quot;: metrics[&quot;true_negatives&quot;],
-                &quot;false_negatives&quot;: metrics[&quot;false_negatives&quot;],
+                "accuracy": metrics["accuracy"],
+                "precision": metrics["precision"],
+                "recall": metrics["recall"],
+                "f1": metrics["f1"],
+                "false_positive_rate": metrics["false_positive_rate"],
+                "true_positives": metrics["true_positives"],
+                "false_positives": metrics["false_positives"],
+                "true_negatives": metrics["true_negatives"],
+                "false_negatives": metrics["false_negatives"],
             }
         )
 
     # Register model
     registry = ModelRegistry(base_dir=model_dir)
     registry.save_model(
-        model_name=&quot;anomaly-detection&quot;,
+        model_name="anomaly-detection",
         model_version=model_version,
-        model_type=&quot;anomaly_detection&quot;,
+        model_type="anomaly_detection",
         metrics=training_metrics,
         parameters={
-            &quot;n_components&quot;: n_components,
-            &quot;threshold_method&quot;: threshold_method,
-            &quot;threshold_percentile&quot;: threshold_percentile,
-            &quot;threshold_iqr_multiplier&quot;: threshold_iqr_multiplier,
-            &quot;random_seed&quot;: random_seed,
+            "n_components": n_components,
+            "threshold_method": threshold_method,
+            "threshold_percentile": threshold_percentile,
+            "threshold_iqr_multiplier": threshold_iqr_multiplier,
+            "random_seed": random_seed,
         },
         artifacts={
-            f&quot;anomaly_detection_model_v{model_version}.npz&quot;: model_path,
-            &quot;training_data.csv&quot;: model_dir / &quot;training_data.csv&quot;,
+            f"anomaly_detection_model_v{model_version}.npz": model_path,
+            "training_data.csv": model_dir / "training_data.csv",
         },
-        tags={&quot;framework&quot;: &quot;numpy&quot;, &quot;task&quot;: &quot;anomaly_detection&quot;, &quot;method&quot;: &quot;pca&quot;},
+        tags={"framework": "numpy", "task": "anomaly_detection", "method": "pca"},
     )
 
     if register_to_mlflow:
         registry.log_to_mlflow(
-            model_name=&quot;anomaly-detection&quot;,
+            model_name="anomaly-detection",
             model_version=model_version,
             metrics=training_metrics,
             params={
-                &quot;n_components&quot;: n_components,
-                &quot;threshold_method&quot;: threshold_method,
-                &quot;threshold_percentile&quot;: threshold_percentile,
-                &quot;threshold_iqr_multiplier&quot;: threshold_iqr_multiplier,
-                &quot;random_seed&quot;: random_seed,
+                "n_components": n_components,
+                "threshold_method": threshold_method,
+                "threshold_percentile": threshold_percentile,
+                "threshold_iqr_multiplier": threshold_iqr_multiplier,
+                "random_seed": random_seed,
             },
             artifacts={
-                &quot;model&quot;: str(model_path),
-                &quot;chart&quot;: str(model_dir / f&quot;anomaly_detection_v{model_version}.png&quot;),
-                &quot;training_data&quot;: str(model_dir / &quot;training_data.csv&quot;),
+                "model": str(model_path),
+                "chart": str(model_dir / f"anomaly_detection_v{model_version}.png"),
+                "training_data": str(model_dir / "training_data.csv"),
             },
-            tags={&quot;model_type&quot;: &quot;anomaly_detection&quot;, &quot;framework&quot;: &quot;numpy&quot;, &quot;method&quot;: &quot;pca&quot;},
+            tags={"model_type": "anomaly_detection", "framework": "numpy", "method": "pca"},
         )
-        logger.info(&quot;Registered model to MLflow&quot;, model=&quot;anomaly-detection&quot;, version=model_version)
+        logger.info("Registered model to MLflow", model="anomaly-detection", version=model_version)
 
     return training_metrics
-
 
 def _save_chart(
     model: PCAAnomalyDetector,
@@ -245,11 +238,11 @@ def _save_chart(
     y: np.ndarray,
     output_dir: Path,
     version: str,
-) -&gt; None:
-    &quot;&quot;&quot;Save the anomaly detection visualization chart.&quot;&quot;&quot;
+) -> None:
+    """Save the anomaly detection visualization chart."""
     import matplotlib
 
-    matplotlib.use(&quot;Agg&quot;)
+    matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
     if model.components is None:
@@ -269,23 +262,23 @@ def _save_chart(
     ax1.scatter(
         projected[normal_mask, 0],
         projected[normal_mask, 1],
-        c=&quot;steelblue&quot;,
+        c="steelblue",
         s=30,
         alpha=0.5,
-        label=&quot;Normal&quot;,
+        label="Normal",
     )
     ax1.scatter(
         projected[anomaly_mask, 0],
         projected[anomaly_mask, 1],
-        c=&quot;crimson&quot;,
+        c="crimson",
         s=50,
         alpha=0.8,
-        marker=&quot;x&quot;,
-        label=&quot;Anomaly&quot;,
+        marker="x",
+        label="Anomaly",
     )
-    ax1.set_xlabel(f&quot;PC1 ({model.explained_variance_ratio[0]:.1%} variance)&quot;)
-    ax1.set_ylabel(f&quot;PC2 ({model.explained_variance_ratio[1]:.1%} variance)&quot;)
-    ax1.set_title(f&quot;PCA Projection - v{version}&quot;)
+    ax1.set_xlabel(f"PC1 ({model.explained_variance_ratio[0]:.1%} variance)")
+    ax1.set_ylabel(f"PC2 ({model.explained_variance_ratio[1]:.1%} variance)")
+    ax1.set_title(f"PCA Projection - v{version}")
     ax1.grid(True, alpha=0.3)
     ax1.legend()
 
@@ -295,62 +288,61 @@ def _save_chart(
         errors[normal_mask],
         bins=50,
         alpha=0.6,
-        label=&quot;Normal&quot;,
-        color=&quot;steelblue&quot;,
+        label="Normal",
+        color="steelblue",
         density=True,
     )
     ax2.hist(
         errors[anomaly_mask],
         bins=50,
         alpha=0.6,
-        label=&quot;Anomaly&quot;,
-        color=&quot;crimson&quot;,
+        label="Anomaly",
+        color="crimson",
         density=True,
     )
     ax2.axvline(
         model.threshold,
-        color=&quot;black&quot;,
-        linestyle=&quot;--&quot;,
+        color="black",
+        linestyle="--",
         linewidth=2,
-        label=f&quot;Threshold ({model.threshold:.2f})&quot;,
+        label=f"Threshold ({model.threshold:.2f})",
     )
-    ax2.set_xlabel(&quot;Reconstruction Error&quot;)
-    ax2.set_ylabel(&quot;Density&quot;)
-    ax2.set_title(f&quot;Reconstruction Error Distribution - v{version}&quot;)
+    ax2.set_xlabel("Reconstruction Error")
+    ax2.set_ylabel("Density")
+    ax2.set_title(f"Reconstruction Error Distribution - v{version}")
     ax2.grid(True, alpha=0.3)
     ax2.legend()
 
     plt.tight_layout()
-    chart_path = output_dir / f&quot;anomaly_detection_v{version}.png&quot;
+    chart_path = output_dir / f"anomaly_detection_v{version}.png"
     plt.savefig(str(chart_path), dpi=100)
     plt.close()
-    logger.info(&quot;Chart saved&quot;, path=str(chart_path))
-
+    logger.info("Chart saved", path=str(chart_path))
 
 def main():
-    parser = argparse.ArgumentParser(description=&quot;Train PCA anomaly detection model&quot;)
-    parser.add_argument(&quot;--model-dir&quot;, type=Path, default=Path(os.getenv(&quot;MODEL_DIR&quot;, &quot;/models&quot;)))
-    parser.add_argument(&quot;--data-path&quot;, type=Path, default=None)
-    parser.add_argument(&quot;--n-components&quot;, type=str, default=os.getenv(&quot;N_COMPONENTS&quot;, &quot;0.95&quot;))
+    parser = argparse.ArgumentParser(description="Train PCA anomaly detection model")
+    parser.add_argument("--model-dir", type=Path, default=Path(os.getenv("MODEL_DIR", "/models")))
+    parser.add_argument("--data-path", type=Path, default=None)
+    parser.add_argument("--n-components", type=str, default=os.getenv("N_COMPONENTS", "0.95"))
     parser.add_argument(
-        &quot;--threshold-method&quot;, type=str, default=os.getenv(&quot;THRESHOLD_METHOD&quot;, &quot;percentile&quot;)
+        "--threshold-method", type=str, default=os.getenv("THRESHOLD_METHOD", "percentile")
     )
     parser.add_argument(
-        &quot;--threshold-percentile&quot;, type=float, default=float(os.getenv(&quot;THRESHOLD_PERCENTILE&quot;, &quot;95&quot;))
+        "--threshold-percentile", type=float, default=float(os.getenv("THRESHOLD_PERCENTILE", "95"))
     )
     parser.add_argument(
-        &quot;--threshold-iqr-multiplier&quot;,
+        "--threshold-iqr-multiplier",
         type=float,
-        default=float(os.getenv(&quot;THRESHOLD_IQR_MULTIPLIER&quot;, &quot;1.5&quot;)),
+        default=float(os.getenv("THRESHOLD_IQR_MULTIPLIER", "1.5")),
     )
-    parser.add_argument(&quot;--model-version&quot;, type=str, default=os.getenv(&quot;MODEL_VERSION&quot;, &quot;1.0.0&quot;))
-    parser.add_argument(&quot;--random-seed&quot;, type=int, default=int(os.getenv(&quot;RANDOM_SEED&quot;, &quot;42&quot;)))
+    parser.add_argument("--model-version", type=str, default=os.getenv("MODEL_VERSION", "1.0.0"))
+    parser.add_argument("--random-seed", type=int, default=int(os.getenv("RANDOM_SEED", "42")))
     parser.add_argument(
-        &quot;--register-mlflow&quot;,
-        action=&quot;store_true&quot;,
-        default=os.getenv(&quot;REGISTER_MLFLOW&quot;, &quot;false&quot;).lower() == &quot;true&quot;,
+        "--register-mlflow",
+        action="store_true",
+        default=os.getenv("REGISTER_MLFLOW", "false").lower() == "true",
     )
-    parser.add_argument(&quot;--log-level&quot;, type=str, default=os.getenv(&quot;LOG_LEVEL&quot;, &quot;INFO&quot;))
+    parser.add_argument("--log-level", type=str, default=os.getenv("LOG_LEVEL", "INFO"))
     args = parser.parse_args()
 
     # Parse n_components (could be int or float)
@@ -375,15 +367,16 @@ def main():
         random_seed=args.random_seed,
     )
 
-    logger.info(&quot;Training finished&quot;, metrics=metrics, model_dir=str(args.model_dir))
+    logger.info("Training finished", metrics=metrics, model_dir=str(args.model_dir))
 
+if __name__ == "__main__":
+    main()
+```
 
-if __name__ == &quot;__main__&quot;:
-    main()</code></pre>
-</div><h3>API Server</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3748401341')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3748401341"><code class="language-python">&quot;&quot;&quot;Production serving API for PCA-based anomaly detection.&quot;&quot;&quot;
+### API Server
+
+```python
+"""Production serving API for PCA-based anomaly detection."""
 
 import os
 import time
@@ -406,35 +399,32 @@ from anomaly_detection.model import PCAAnomalyDetector
 logger = get_logger(__name__)
 
 # Configuration
-MODEL_DIR = Path(os.getenv(&quot;MODEL_DIR&quot;, &quot;/models&quot;))
-MODEL_VERSION = os.getenv(&quot;MODEL_VERSION&quot;, &quot;latest&quot;)
-METRICS_PORT = int(os.getenv(&quot;METRICS_PORT&quot;, os.getenv(&quot;ANOMALY_METRICS_PORT&quot;, &quot;8005&quot;)))
-DRIFT_THRESHOLD = float(os.getenv(&quot;DRIFT_THRESHOLD&quot;, &quot;0.2&quot;))
-
+MODEL_DIR = Path(os.getenv("MODEL_DIR", "/models"))
+MODEL_VERSION = os.getenv("MODEL_VERSION", "latest")
+METRICS_PORT = int(os.getenv("METRICS_PORT", os.getenv("ANOMALY_METRICS_PORT", "8005")))
+DRIFT_THRESHOLD = float(os.getenv("DRIFT_THRESHOLD", "0.2"))
 
 class MetricsRequest(BaseModel):
-    &quot;&quot;&quot;Single metrics observation for anomaly detection.&quot;&quot;&quot;
+    """Single metrics observation for anomaly detection."""
 
-    request_count: float = Field(..., ge=0, description=&quot;Number of requests&quot;)
-    bytes_per_request: float = Field(..., ge=0, description=&quot;Average bytes per request&quot;)
-    cpu_usage: float = Field(..., ge=0, le=100, description=&quot;CPU usage percentage&quot;)
-    memory_usage: float = Field(..., ge=0, le=100, description=&quot;Memory usage percentage&quot;)
-    disk_io: float = Field(..., ge=0, description=&quot;Disk I/O operations per second&quot;)
-    network_in: float = Field(..., ge=0, description=&quot;Network inbound MB/s&quot;)
-    network_out: float = Field(..., ge=0, description=&quot;Network outbound MB/s&quot;)
-    error_rate: float = Field(..., ge=0, le=100, description=&quot;Error rate percentage&quot;)
-    connection_count: float = Field(..., ge=0, description=&quot;Active connections&quot;)
-    response_time: float = Field(..., ge=0, description=&quot;Average response time in ms&quot;)
-
+    request_count: float = Field(..., ge=0, description="Number of requests")
+    bytes_per_request: float = Field(..., ge=0, description="Average bytes per request")
+    cpu_usage: float = Field(..., ge=0, le=100, description="CPU usage percentage")
+    memory_usage: float = Field(..., ge=0, le=100, description="Memory usage percentage")
+    disk_io: float = Field(..., ge=0, description="Disk I/O operations per second")
+    network_in: float = Field(..., ge=0, description="Network inbound MB/s")
+    network_out: float = Field(..., ge=0, description="Network outbound MB/s")
+    error_rate: float = Field(..., ge=0, le=100, description="Error rate percentage")
+    connection_count: float = Field(..., ge=0, description="Active connections")
+    response_time: float = Field(..., ge=0, description="Average response time in ms")
 
 class MetricsBulkRequest(BaseModel):
-    &quot;&quot;&quot;Bulk metrics request for anomaly detection.&quot;&quot;&quot;
+    """Bulk metrics request for anomaly detection."""
 
     samples: list[MetricsRequest] = Field(..., min_length=1, max_length=100)
 
-
 class AnomalyResponse(BaseModel):
-    &quot;&quot;&quot;Anomaly detection response for a single observation.&quot;&quot;&quot;
+    """Anomaly detection response for a single observation."""
 
     is_anomaly: bool
     anomaly_score: float
@@ -443,18 +433,16 @@ class AnomalyResponse(BaseModel):
     anomaly_threshold: float
     model_version: str
 
-
 class BulkAnomalyResponse(BaseModel):
-    &quot;&quot;&quot;Bulk anomaly detection response.&quot;&quot;&quot;
+    """Bulk anomaly detection response."""
 
     samples: list[AnomalyResponse]
     n_anomalies: int
     n_samples: int
     model_version: str
 
-
 class StatsResponse(BaseModel):
-    &quot;&quot;&quot;Model statistics response.&quot;&quot;&quot;
+    """Model statistics response."""
 
     n_features: int
     n_components: int
@@ -465,9 +453,8 @@ class StatsResponse(BaseModel):
     max_reconstruction_error: float
     model_version: str
 
-
 class ModelInfoResponse(BaseModel):
-    &quot;&quot;&quot;Model information response.&quot;&quot;&quot;
+    """Model information response."""
 
     n_components: int
     n_features: int
@@ -476,9 +463,8 @@ class ModelInfoResponse(BaseModel):
     reconstruction_threshold: float
     model_version: str
 
-
 class DriftResponse(BaseModel):
-    &quot;&quot;&quot;Drift detection response.&quot;&quot;&quot;
+    """Drift detection response."""
 
     total_features: int
     drifted_features: int
@@ -486,112 +472,108 @@ class DriftResponse(BaseModel):
     drifted: list[dict]
     all_results: list[dict]
 
-
 # Global model state
 _model: PCAAnomalyDetector | None = None
-_model_version: str = &quot;unknown&quot;
+_model_version: str = "unknown"
 _metrics: MetricsCollector | None = None
 _validator: DataValidator | None = None
 _drift_detector: DriftDetector | None = None
 _reference_data: np.ndarray | None = None
 _recent_predictions: list[list[float]] = []
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    &quot;&quot;&quot;Load model at startup and clean up at shutdown.&quot;&quot;&quot;
+    """Load model at startup and clean up at shutdown."""
     global _model, _model_version, _metrics, _validator, _drift_detector, _reference_data
 
-    setup_logging(os.getenv(&quot;LOG_LEVEL&quot;, &quot;INFO&quot;))
-    _metrics = MetricsCollector(&quot;anomaly_detection&quot;, port=METRICS_PORT)
+    setup_logging(os.getenv("LOG_LEVEL", "INFO"))
+    _metrics = MetricsCollector("anomaly_detection", port=METRICS_PORT)
     app.state.metrics = _metrics
 
     _validator = DataValidator(create_anomaly_detection_schema())
     _drift_detector = DriftDetector(
         feature_names=FEATURE_NAMES,
-        feature_types={f: &quot;float&quot; for f in FEATURE_NAMES},
+        feature_types={f: "float" for f in FEATURE_NAMES},
         psi_threshold=DRIFT_THRESHOLD,
     )
 
     _model, _model_version = _load_model()
     _metrics.set_model_version(_model_version)
     _metrics.set_model_info(
-        model_name=&quot;anomaly-detection&quot;, model_version=_model_version, model_type=&quot;anomaly_detection&quot;
+        model_name="anomaly-detection", model_version=_model_version, model_type="anomaly_detection"
     )
 
     # Load reference data for drift detection
     _reference_data = _load_reference_data()
-    logger.info(&quot;Model loaded&quot;, model=&quot;anomaly-detection&quot;, version=_model_version)
+    logger.info("Model loaded", model="anomaly-detection", version=_model_version)
 
     yield
 
-    logger.info(&quot;Shutting down anomaly-detection API&quot;)
+    logger.info("Shutting down anomaly-detection API")
 
-
-def _load_model() -&gt; tuple[PCAAnomalyDetector, str]:
-    &quot;&quot;&quot;Load the latest model from the registry or model directory with resilient fallback.&quot;&quot;&quot;
+def _load_model() -> tuple[PCAAnomalyDetector, str]:
+    """Load the latest model from the registry or model directory with resilient fallback."""
     # 1. Try model registry
     registry = ModelRegistry(base_dir=MODEL_DIR)
     try:
-        if MODEL_VERSION == &quot;latest&quot;:
+        if MODEL_VERSION == "latest":
             models = registry.list_models()
-            ad_models = [m for m in models if m.get(&quot;model_name&quot;) == &quot;anomaly-detection&quot;]
+            ad_models = [m for m in models if m.get("model_name") == "anomaly-detection"]
             if ad_models:
-                ad_models.sort(key=lambda m: m[&quot;model_version&quot;], reverse=True)
+                ad_models.sort(key=lambda m: m["model_version"], reverse=True)
                 latest = ad_models[0]
-                model_dir = Path(latest[&quot;artifact_path&quot;])
-                npz_files = list(model_dir.glob(&quot;anomaly_detection_model_*.npz&quot;)) + list(
-                    model_dir.glob(&quot;*.npz&quot;)
+                model_dir = Path(latest["artifact_path"])
+                npz_files = list(model_dir.glob("anomaly_detection_model_*.npz")) + list(
+                    model_dir.glob("*.npz")
                 )
                 if npz_files:
-                    return PCAAnomalyDetector.load(str(npz_files[0])), latest[&quot;model_version&quot;]
+                    return PCAAnomalyDetector.load(str(npz_files[0])), latest["model_version"]
         else:
-            model_dir = MODEL_DIR / &quot;anomaly-detection&quot; / MODEL_VERSION
+            model_dir = MODEL_DIR / "anomaly-detection" / MODEL_VERSION
             if model_dir.exists():
-                npz_files = list(model_dir.glob(&quot;anomaly_detection_model_*.npz&quot;)) + list(
-                    model_dir.glob(&quot;*.npz&quot;)
+                npz_files = list(model_dir.glob("anomaly_detection_model_*.npz")) + list(
+                    model_dir.glob("*.npz")
                 )
                 if npz_files:
                     return PCAAnomalyDetector.load(str(npz_files[0])), MODEL_VERSION
     except Exception as e:
-        logger.warning(f&quot;Registry lookup failed: {e}&quot;)
+        logger.warning(f"Registry lookup failed: {e}")
 
     # 2. Try direct model in MODEL_DIR
-    npz_path = MODEL_DIR / &quot;anomaly_detection_model.npz&quot;
+    npz_path = MODEL_DIR / "anomaly_detection_model.npz"
     if npz_path.exists():
-        return PCAAnomalyDetector.load(str(npz_path)), &quot;legacy&quot;
+        return PCAAnomalyDetector.load(str(npz_path)), "legacy"
 
     # 3. Try bundled artifacts directory
     candidate_paths = [
-        Path(&quot;/app/artifacts/models/anomaly_detection_model_v1.0.0.npz&quot;),
+        Path("/app/artifacts/models/anomaly_detection_model_v1.0.0.npz"),
         Path(__file__).resolve().parents[3]
-        / &quot;artifacts&quot;
-        / &quot;models&quot;
-        / &quot;anomaly_detection_model_v1.0.0.npz&quot;,
+        / "artifacts"
+        / "models"
+        / "anomaly_detection_model_v1.0.0.npz",
     ]
     for p in candidate_paths:
         if p.exists():
-            logger.info(&quot;Loading bundled baseline model&quot;, path=str(p))
-            return PCAAnomalyDetector.load(str(p)), &quot;1.0.0-bundled&quot;
+            logger.info("Loading bundled baseline model", path=str(p))
+            return PCAAnomalyDetector.load(str(p)), "1.0.0-bundled"
 
     # 4. In-memory baseline fallback (never crash cold start)
-    logger.warning(&quot;No pre-existing model found on disk. Initializing baseline PCA model.&quot;)
+    logger.warning("No pre-existing model found on disk. Initializing baseline PCA model.")
     from anomaly_detection.data import load_training_data
 
     X_base, y_base = load_training_data(None)
     X_normal = X_base[y_base == 0]
-    model = PCAAnomalyDetector(n_components=0.95, threshold_method=&quot;percentile&quot;, random_seed=42)
+    model = PCAAnomalyDetector(n_components=0.95, threshold_method="percentile", random_seed=42)
     model.fit(X_normal)
-    return model, &quot;1.0.0-baseline&quot;
+    return model, "1.0.0-baseline"
 
-
-def _load_reference_data() -&gt; np.ndarray | None:
-    &quot;&quot;&quot;Load reference training data for drift detection.&quot;&quot;&quot;
+def _load_reference_data() -> np.ndarray | None:
+    """Load reference training data for drift detection."""
     candidate_csvs = [
-        MODEL_DIR / &quot;anomaly-detection&quot; / _model_version / &quot;training_data.csv&quot;,
-        MODEL_DIR / &quot;training_data.csv&quot;,
-        Path(&quot;/app/artifacts/models/training_data.csv&quot;),
-        Path(__file__).resolve().parents[3] / &quot;artifacts&quot; / &quot;models&quot; / &quot;training_data.csv&quot;,
+        MODEL_DIR / "anomaly-detection" / _model_version / "training_data.csv",
+        MODEL_DIR / "training_data.csv",
+        Path("/app/artifacts/models/training_data.csv"),
+        Path(__file__).resolve().parents[3] / "artifacts" / "models" / "training_data.csv",
     ]
     for csv_path in candidate_csvs:
         if csv_path.exists():
@@ -602,94 +584,88 @@ def _load_reference_data() -&gt; np.ndarray | None:
                 if all(f in df.columns for f in FEATURE_NAMES):
                     return df[FEATURE_NAMES].values
             except Exception as e:
-                logger.warning(&quot;Could not read reference csv&quot;, path=str(csv_path), error=str(e))
+                logger.warning("Could not read reference csv", path=str(csv_path), error=str(e))
 
     from anomaly_detection.data import load_training_data
 
     X_base, _ = load_training_data(None)
     return X_base
 
-
 # Create FastAPI app
 app = FastAPI(
-    title=&quot;Anomaly Detection API&quot;,
-    description=&quot;PCA-based anomaly detection using dimensionality reduction&quot;,
-    version=&quot;1.0.0&quot;,
+    title="Anomaly Detection API",
+    description="PCA-based anomaly detection using dimensionality reduction",
+    version="1.0.0",
     lifespan=lifespan,
 )
 
 # Add observability middleware
 add_observability_middleware(app)
 
-
-@app.get(&quot;/&quot;)
+@app.get("/")
 def read_root():
-    &quot;&quot;&quot;Service information.&quot;&quot;&quot;
+    """Service information."""
     return {
-        &quot;service&quot;: &quot;anomaly-detection-api&quot;,
-        &quot;version&quot;: &quot;1.0.0&quot;,
-        &quot;model_version&quot;: _model_version,
-        &quot;features&quot;: FEATURE_NAMES,
-        &quot;endpoints&quot;: {
-            &quot;health&quot;: &quot;/health&quot;,
-            &quot;predict&quot;: &quot;POST /predict&quot;,
-            &quot;predict_bulk&quot;: &quot;POST /predict/bulk&quot;,
-            &quot;stats&quot;: &quot;GET /stats&quot;,
-            &quot;model_info&quot;: &quot;GET /model/info&quot;,
-            &quot;drift&quot;: &quot;GET /drift&quot;,
-            &quot;metrics&quot;: &quot;/metrics&quot;,
+        "service": "anomaly-detection-api",
+        "version": "1.0.0",
+        "model_version": _model_version,
+        "features": FEATURE_NAMES,
+        "endpoints": {
+            "health": "/health",
+            "predict": "POST /predict",
+            "predict_bulk": "POST /predict/bulk",
+            "stats": "GET /stats",
+            "model_info": "GET /model/info",
+            "drift": "GET /drift",
+            "metrics": "/metrics",
         },
     }
 
-
-@app.get(&quot;/health&quot;)
+@app.get("/health")
 def health_check():
-    &quot;&quot;&quot;Kubernetes liveness/readiness probe.&quot;&quot;&quot;
+    """Kubernetes liveness/readiness probe."""
     if _model is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
     return {
-        &quot;status&quot;: &quot;healthy&quot;,
-        &quot;model_loaded&quot;: True,
-        &quot;model_version&quot;: _model_version,
+        "status": "healthy",
+        "model_loaded": True,
+        "model_version": _model_version,
     }
 
-
-@app.get(&quot;/metrics&quot;)
+@app.get("/metrics")
 def metrics():
-    &quot;&quot;&quot;Prometheus metrics endpoint.&quot;&quot;&quot;
+    """Prometheus metrics endpoint."""
     from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
-
-@app.post(&quot;/reload&quot;)
+@app.post("/reload")
 def reload_model():
-    &quot;&quot;&quot;Dynamically reload the model from disk/registry.&quot;&quot;&quot;
+    """Dynamically reload the model from disk/registry."""
     global _model, _model_version, _reference_data
     try:
         _model, _model_version = _load_model()
         if _metrics:
             _metrics.set_model_version(_model_version)
             _metrics.set_model_info(
-                model_name=&quot;anomaly-detection&quot;,
+                model_name="anomaly-detection",
                 model_version=_model_version,
-                model_type=&quot;anomaly_detection&quot;,
+                model_type="anomaly_detection",
             )
         _reference_data = _load_reference_data()
-        logger.info(&quot;Model reloaded dynamically&quot;, model=&quot;anomaly-detection&quot;, version=_model_version)
-        return {&quot;status&quot;: &quot;reloaded&quot;, &quot;model_version&quot;: _model_version}
+        logger.info("Model reloaded dynamically", model="anomaly-detection", version=_model_version)
+        return {"status": "reloaded", "model_version": _model_version}
     except Exception as e:
-        logger.exception(&quot;Model reload failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=f&quot;Reload failed: {e}&quot;) from e
+        logger.exception("Model reload failed", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Reload failed: {e}") from e
 
-
-@app.get(&quot;/drift&quot;, response_model=DriftResponse)
+@app.get("/drift", response_model=DriftResponse)
 def drift_check():
-    &quot;&quot;&quot;Check for data drift between reference and recent predictions.&quot;&quot;&quot;
+    """Check for data drift between reference and recent predictions."""
     if _drift_detector is None or _reference_data is None:
-        raise HTTPException(status_code=503, detail=&quot;Drift detection not available&quot;)
+        raise HTTPException(status_code=503, detail="Drift detection not available")
 
-    if len(_recent_predictions) &lt; 10:
+    if len(_recent_predictions) < 10:
         return DriftResponse(
             total_features=len(FEATURE_NAMES),
             drifted_features=0,
@@ -703,16 +679,15 @@ def drift_check():
     summary = _drift_detector.summarize(results)
 
     if _metrics:
-        _metrics.set_drift_ratio(summary[&quot;drift_ratio&quot;])
+        _metrics.set_drift_ratio(summary["drift_ratio"])
 
     return DriftResponse(**summary)
 
-
-@app.get(&quot;/stats&quot;, response_model=StatsResponse)
+@app.get("/stats", response_model=StatsResponse)
 def get_stats():
-    &quot;&quot;&quot;Return model statistics.&quot;&quot;&quot;
+    """Return model statistics."""
     if _model is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     evr = _model.explained_variance_ratio
 
@@ -737,12 +712,11 @@ def get_stats():
         model_version=_model_version,
     )
 
-
-@app.get(&quot;/model/info&quot;, response_model=ModelInfoResponse)
+@app.get("/model/info", response_model=ModelInfoResponse)
 def get_model_info():
-    &quot;&quot;&quot;Return detailed model information.&quot;&quot;&quot;
+    """Return detailed model information."""
     if _model is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     return ModelInfoResponse(
         n_components=_model.n_components_selected,
@@ -753,11 +727,10 @@ def get_model_info():
         model_version=_model_version,
     )
 
-
-def _compute_anomaly(observation: MetricsRequest) -&gt; AnomalyResponse:
-    &quot;&quot;&quot;Core anomaly detection logic shared by all detection endpoints.&quot;&quot;&quot;
+def _compute_anomaly(observation: MetricsRequest) -> AnomalyResponse:
+    """Core anomaly detection logic shared by all detection endpoints."""
     if _model is None or _metrics is None or _validator is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     # Validate input
     X = np.array(
@@ -803,7 +776,7 @@ def _compute_anomaly(observation: MetricsRequest) -&gt; AnomalyResponse:
                 observation.response_time,
             ]
         )
-        if len(_recent_predictions) &gt; 1000:
+        if len(_recent_predictions) > 1000:
             _recent_predictions.pop(0)
 
         return AnomalyResponse(
@@ -815,23 +788,21 @@ def _compute_anomaly(observation: MetricsRequest) -&gt; AnomalyResponse:
             model_version=_model_version,
         )
     except Exception as e:
-        _metrics.record_error(model_version=_model_version, error_type=&quot;prediction&quot;)
-        logger.exception(&quot;Anomaly detection failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=&quot;Anomaly detection failed&quot;) from e
+        _metrics.record_error(model_version=_model_version, error_type="prediction")
+        logger.exception("Anomaly detection failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Anomaly detection failed") from e
 
-
-@app.post(&quot;/predict&quot;, response_model=AnomalyResponse)
+@app.post("/predict", response_model=AnomalyResponse)
 def predict_anomaly(body: MetricsRequest):
-    &quot;&quot;&quot;Detect anomaly for a single metrics observation.&quot;&quot;&quot;
+    """Detect anomaly for a single metrics observation."""
     return _compute_anomaly(body)
 
-
-@app.post(&quot;/predict/bulk&quot;, response_model=BulkAnomalyResponse)
+@app.post("/predict/bulk", response_model=BulkAnomalyResponse)
 def predict_anomaly_bulk(body: MetricsBulkRequest):
-    &quot;&quot;&quot;Detect anomalies for multiple metrics observations.&quot;&quot;&quot;
+    """Detect anomalies for multiple metrics observations."""
     global _recent_predictions
     if _model is None or _metrics is None or _validator is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     X = np.array(
         [
@@ -865,7 +836,7 @@ def predict_anomaly_bulk(body: MetricsBulkRequest):
 
         # Track for drift detection
         _recent_predictions.extend(X.tolist())
-        if len(_recent_predictions) &gt; 1000:
+        if len(_recent_predictions) > 1000:
             _recent_predictions = _recent_predictions[-1000:]
 
         results = [
@@ -888,37 +859,25 @@ def predict_anomaly_bulk(body: MetricsBulkRequest):
             model_version=_model_version,
         )
     except Exception as e:
-        _metrics.record_error(model_version=_model_version, error_type=&quot;prediction&quot;)
-        logger.exception(&quot;Bulk anomaly detection failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=&quot;Bulk anomaly detection failed&quot;) from e</code></pre>
-</div>
-<h3>CLI Commands</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1682521896')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1682521896"><code class="language-bash">uv run python -m anomaly_detection_pca.train --model-dir ./artifacts/models</code></pre>
-</div>
-</section>
-<section id="benchmarks" class="section bench-section">
-<h2><span class="section-icon">📊</span> Benchmarks</h2>
-<p class="section-subtitle">Test results and performance metrics</p>
-<p class="muted">Run <code>pytest tests/test_models.py</code> and <code>pytest tests/test_apis.py</code> for detailed metrics.</p>
-</section>
-<div class="related-links">
-<h3>Related Apps</h3>
-<ul><li><a href="../anomaly-detection-fraud/README.md">anomaly-detection-fraud</a></li></ul>
-</div>
-</main>
-<footer class="app-footer">
-<p>Generated documentation for <strong>anomaly-detection-pca</strong></p>
-</footer>
-<script>
-function copyCode(id) {
-  const el = document.getElementById(id);
-  navigator.clipboard.writeText(el.innerText);
-}
-function renderMath() {
-  renderMathInElement(document.body, { delimiters: [{left: "$$", right: "$$", display: true}] });
-}
-</script>
-</body>
-</html>
+        _metrics.record_error(model_version=_model_version, error_type="prediction")
+        logger.exception("Bulk anomaly detection failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Bulk anomaly detection failed") from e
+```
+
+### CLI Commands
+
+```bash
+uv run python -m anomaly_detection_pca.train --model-dir ./artifacts/models
+```
+
+## 📊 Benchmarks
+
+Test results and performance metrics
+
+Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+
+### Related Apps
+
+- [anomaly-detection-fraud](../anomaly-detection-fraud/README.md)
+
+Generated documentation for **anomaly-detection-pca**

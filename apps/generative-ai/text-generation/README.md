@@ -1,76 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>text-generation - AI App Documentation</title>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMath()"></script>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-<style>
-/* CSS styles here */
-</style>
-</head>
-<body>
-<section id="math" class="section math-section">
-<h2><span class="section-icon">∫</span> Mathematics &amp; Theory</h2>
-<p class="section-subtitle">Text Generation — Underlying equations and derivations</p>
-<div class="math-content">
-<div class="equations"><div class="math-block">$$P(w_t | w_{<t}) = \text{softmax}(W_h h_t + b_h)$$</div>
-<div class="math-block">$$h_t = \text{LSTM}(x_t, h_{t-1})$$</div>
-<div class="math-block">$$\mathcal{L} = -\sum_{t=1}^{T} \log P(w_t | w_{<t})$$</div></div>
-<div class="derivation">
-<h3>Step-by-Step Derivation</h3>
-<p>Text generation models learn to predict the next token given past context. Temperature scaling controls randomness: high temperature yields creative but incoherent text; low temperature yields repetitive but safe text. Top-k and nucleus sampling truncate the probability mass to improve diversity.</p>
-</div>
-<div class="viz-desc">
-<h3>Interactive Visualization</h3>
-<p>Interactive temperature slider; generated text preview; perplexity vs context length.</p>
-</div>
-</div>
-</section>
-<section id="architecture" class="section arch-section">
-<h2><span class="section-icon">⚙</span> Architecture</h2>
-<p class="section-subtitle">Model structure, data flow, and layer breakdown</p>
-<div class="arch-diagram">
-<h3>Class Hierarchy</h3>
-<pre class="ascii-diagram">  TextTokenizer
+# text-generation
+
+## ∫ Mathematics & Theory
+
+Text Generation — Underlying equations and derivations
+
+$$P(w_t | w_{
+
+$$h_t = \text{LSTM}(x_t, h_{t-1})$$
+
+$$\mathcal{L} = -\sum_{t=1}^{T} \log P(w_t | w_{
+
+### Step-by-Step Derivation
+
+Text generation models learn to predict the next token given past context. Temperature scaling controls randomness: high temperature yields creative but incoherent text; low temperature yields repetitive but safe text. Top-k and nucleus sampling truncate the probability mass to improve diversity.
+
+### Interactive Visualization
+
+Interactive temperature slider; generated text preview; perplexity vs context length.
+
+## ⚙ Architecture
+
+Model structure, data flow, and layer breakdown
+
+### Class Hierarchy
+
+```
+  TextTokenizer
   MultiHeadAttention
   AddNorm
   FeedForward
   TransformerBlock
   BaseTextModel
   SamplingStrategy
-  TextGenerationModel</pre>
-</div>
-<div class="mermaid-wrapper">
-<h3>Data Flow</h3>
-<pre class="mermaid">graph TD
+  TextGenerationModel
+```
+
+### Data Flow
+
+```mermaid
+graph TD
   A[Input Data] --> B[Preprocessing]
   B --> C[Model Training]
   C --> D[Evaluation]
   D --> E[Model Registry]
-  E --> F[Serving API]</pre>
-</div>
-</section>
-<section id="api" class="section api-section">
-<h2><span class="section-icon">⚡</span> API Reference</h2>
-<p class="section-subtitle">FastAPI endpoints and model interfaces</p>
-<table class="api-table">
-<thead><tr><th>Method</th><th>Endpoint</th></tr></thead>
-<tbody><tr><td><code>GET</code></td><td><code>/</code></td></tr>
-<tr><td><code>GET</code></td><td><code>/health</code></td></tr>
-<tr><td><code>GET</code></td><td><code>/metrics</code></td></tr></tbody>
-</table>
-</section>
-<section id="usage" class="section usage-section">
-<h2><span class="section-icon">▶</span> Usage</h2>
-<p class="section-subtitle">Code examples and CLI commands</p>
-<h3>Training Script</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2457126292')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2457126292"><code class="language-python">&quot;&quot;&quot;Training pipeline for Text Generation.&quot;&quot;&quot;
+  E --> F[Serving API]
+```
+
+## ⚡ API Reference
+
+FastAPI endpoints and model interfaces
+
+| Method | Endpoint |
+| --- | --- |
+| `GET` | `/` |
+| `GET` | `/health` |
+| `GET` | `/metrics` |
+
+## ▶ Usage
+
+Code examples and CLI commands
+
+### Training Script
+
+```python
+"""Training pipeline for Text Generation."""
 
 import argparse
 import os
@@ -83,28 +76,27 @@ from text_gen.model import TextGenerationModel
 
 logger = get_logger(__name__)
 
-
 def train(
     model_dir: Path,
     data_path: Path | None = None,
     n_samples: int = 500,
     vocab_size: int = 1000,
-    model_id: str = &quot;text-generation-v1&quot;,
+    model_id: str = "text-generation-v1",
     temperature: float = 0.8,
     top_k: int = 50,
     top_p: float = 0.9,
-    model_version: str = &quot;1.0.0&quot;,
+    model_version: str = "1.0.0",
     register_to_mlflow: bool = False,
     random_seed: int = 42,
-) -&gt; dict:
-    logger.info(&quot;Loading text dataset&quot;, n_samples=n_samples, temperature=temperature)
+) -> dict:
+    logger.info("Loading text dataset", n_samples=n_samples, temperature=temperature)
     X, y = load_text_dataset(data_path=data_path, n_samples=n_samples, random_seed=random_seed)
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_seed=random_seed)
-    logger.info(&quot;Data split&quot;, n_train=len(X_train), n_test=len(X_test))
+    logger.info("Data split", n_train=len(X_train), n_test=len(X_test))
 
     model_dir.mkdir(parents=True, exist_ok=True)
-    save_dataset(X, y, model_dir / &quot;training_data.npz&quot;)
+    save_dataset(X, y, model_dir / "training_data.npz")
 
     model = TextGenerationModel(
         model_id=model_id,
@@ -117,69 +109,68 @@ def train(
     model._init()
 
     metrics = model.fit(X_train, y_train)
-    logger.info(&quot;Training finished&quot;, metrics=metrics)
+    logger.info("Training finished", metrics=metrics)
 
     eval_metrics = model.evaluate(X_test, y_test)
-    logger.info(&quot;Evaluation metrics&quot;, metrics=eval_metrics)
+    logger.info("Evaluation metrics", metrics=eval_metrics)
 
-    model_path = model_dir / f&quot;text_generation_v{model_version}.npz&quot;
+    model_path = model_dir / f"text_generation_v{model_version}.npz"
     model.save(str(model_path))
 
     combined_metrics = {**metrics, **eval_metrics}
     combined_metrics.update({
-        &quot;temperature&quot;: temperature,
-        &quot;top_k&quot;: float(top_k),
-        &quot;top_p&quot;: top_p,
-        &quot;n_samples&quot;: float(n_samples),
-        &quot;vocab_size&quot;: float(vocab_size),
+        "temperature": temperature,
+        "top_k": float(top_k),
+        "top_p": top_p,
+        "n_samples": float(n_samples),
+        "vocab_size": float(vocab_size),
     })
 
     registry = ModelRegistry(base_dir=model_dir)
     registry.save_model(
-        model_name=&quot;text-generation&quot;,
+        model_name="text-generation",
         model_version=model_version,
-        model_type=&quot;generative&quot;,
+        model_type="generative",
         metrics=combined_metrics,
         parameters={
-            &quot;model_id&quot;: model_id,
-            &quot;vocab_size&quot;: vocab_size,
-            &quot;temperature&quot;: temperature,
-            &quot;top_k&quot;: top_k,
-            &quot;top_p&quot;: top_p,
-            &quot;n_samples&quot;: n_samples,
-            &quot;random_seed&quot;: random_seed,
+            "model_id": model_id,
+            "vocab_size": vocab_size,
+            "temperature": temperature,
+            "top_k": top_k,
+            "top_p": top_p,
+            "n_samples": n_samples,
+            "random_seed": random_seed,
         },
-        artifacts={f&quot;text_generation_v{model_version}.npz&quot;: model_path, &quot;training_data.npz&quot;: model_dir / &quot;training_data.npz&quot;},
-        tags={&quot;framework&quot;: &quot;numpy&quot;, &quot;task&quot;: &quot;text_generation&quot;, &quot;model_type&quot;: &quot;TextGeneration&quot;},
+        artifacts={f"text_generation_v{model_version}.npz": model_path, "training_data.npz": model_dir / "training_data.npz"},
+        tags={"framework": "numpy", "task": "text_generation", "model_type": "TextGeneration"},
     )
 
     if register_to_mlflow:
         registry.log_to_mlflow(
-            model_name=&quot;text-generation&quot;,
+            model_name="text-generation",
             model_version=model_version,
             metrics=combined_metrics,
-            params={&quot;model_id&quot;: model_id, &quot;temperature&quot;: temperature, &quot;top_k&quot;: top_k, &quot;top_p&quot;: top_p, &quot;n_samples&quot;: n_samples},
-            artifacts={&quot;model&quot;: str(model_path)},
-            tags={&quot;model_type&quot;: &quot;text_generation&quot;, &quot;framework&quot;: &quot;numpy&quot;},
+            params={"model_id": model_id, "temperature": temperature, "top_k": top_k, "top_p": top_p, "n_samples": n_samples},
+            artifacts={"model": str(model_path)},
+            tags={"model_type": "text_generation", "framework": "numpy"},
         )
 
     return combined_metrics
 
-
 def main():
-    parser = argparse.ArgumentParser(description=&quot;Train Text Generation Model&quot;)
-    parser.add_argument(&quot;--model-dir&quot;, type=Path, default=Path(os.getenv(&quot;MODEL_DIR&quot;, &quot;/models&quot;)))
-    parser.add_argument(&quot;--data-path&quot;, type=Path, default=None)
-    parser.add_argument(&quot;--n-samples&quot;, type=int, default=int(os.getenv(&quot;N_SAMPLES&quot;, &quot;500&quot;)))
-    parser.add_argument(&quot;--vocab-size&quot;, type=int, default=int(os.getenv(&quot;VOCAB_SIZE&quot;, &quot;1000&quot;)))
-    parser.add_argument(&quot;--model-id&quot;, type=str, default=os.getenv(&quot;MODEL_ID&quot;, &quot;text-generation-v1&quot;))
-    parser.add_argument(&quot;--temperature&quot;, type=float, default=float(os.getenv(&quot;TEMPERATURE&quot;, &quot;0.8&quot;)))
-    parser.add_argument(&quot;--top-k&quot;, type=int, default=int(os.getenv(&quot;TOP_K&quot;, &quot;50&quot;)))
-    parser.add_argument(&quot;--top-p&quot;, type=float, default=float(os.getenv(&quot;TOP_P&quot;, &quot;0.9&quot;)))
-    parser.add_argument(&quot;--model-version&quot;, type=str, default=os.getenv(&quot;MODEL_VERSION&quot;, &quot;1.0.0&quot;))
-    parser.add_argument(&quot;--random-seed&quot;, type=int, default=int(os.getenv(&quot;RANDOM_SEED&quot;, &quot;42&quot;)))
-    parser.add_argument(&quot;--register-mlflow&quot;, action=&quot;store_true&quot;, default=os.getenv(&quot;REGISTER_MLFLOW&quot;, &quot;false&quot;).lower() == &quot;true&quot;)
-    parser.add_argument(&quot;--log-level&quot;, type=str, default=os.getenv(&quot;LOG_LEVEL&quot;, &quot;INFO&quot;))
+    parser = argparse.ArgumentParser(description="Train Text Generation Model")
+    parser.add_argument("--model-dir", type=Path, default=Path(os.getenv("MODEL_DIR", "/models")))
+    parser.add_argument("--data-path", type=Path, default=None)
+    parser.add_argument("--n-samples", type=int, default=int(os.getenv("N_SAMPLES", "500")))
+    parser.add_argument("--vocab-size", type=int, default=int(os.getenv("VOCAB_SIZE", "1000")))
+    parser.add_argument("--model-id", type=str, default=os.getenv("MODEL_ID", "text-generation-v1"))
+    parser.add_argument("--temperature", type=float, default=float(os.getenv("TEMPERATURE", "0.8")))
+    parser.add_argument("--top-k", type=int, default=int(os.getenv("TOP_K", "50")))
+    parser.add_argument("--top-p", type=float, default=float(os.getenv("TOP_P", "0.9")))
+    parser.add_argument("--model-version", type=str, default=os.getenv("MODEL_VERSION", "1.0.0"))
+    parser.add_argument("--random-seed", type=int, default=int(os.getenv("RANDOM_SEED", "42")))
+    parser.add_argument("--register-mlflow", action="store_true", default=os.getenv("REGISTER_MLFLOW", "false").lower() == "true")
+    parser.add_argument("--log-level", type=str, default=os.getenv("LOG_LEVEL", "INFO"))
     args = parser.parse_args()
 
     setup_logging(args.log_level)
@@ -198,15 +189,16 @@ def main():
         register_to_mlflow=args.register_mlflow,
         random_seed=args.random_seed,
     )
-    logger.info(&quot;Training finished&quot;, metrics=metrics, model_dir=str(args.model_dir))
+    logger.info("Training finished", metrics=metrics, model_dir=str(args.model_dir))
 
+if __name__ == "__main__":
+    main()
+```
 
-if __name__ == &quot;__main__&quot;:
-    main()</code></pre>
-</div><h3>API Server</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1864193360')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1864193360"><code class="language-python">&quot;&quot;&quot;Serving API for Text Generation.&quot;&quot;&quot;
+### API Server
+
+```python
+"""Serving API for Text Generation."""
 
 import os
 import time
@@ -226,11 +218,10 @@ from text_gen.model import TextGenerationModel
 
 logger = get_logger(__name__)
 
-MODEL_DIR = Path(os.getenv(&quot;MODEL_DIR&quot;, &quot;/models&quot;))
-MODEL_VERSION = os.getenv(&quot;MODEL_VERSION&quot;, &quot;latest&quot;)
-METRICS_PORT = int(os.getenv(&quot;TEXT_GENERATION_METRICS_PORT&quot;, &quot;9024&quot;))
-DRIFT_THRESHOLD = float(os.getenv(&quot;DRIFT_THRESHOLD&quot;, &quot;0.2&quot;))
-
+MODEL_DIR = Path(os.getenv("MODEL_DIR", "/models"))
+MODEL_VERSION = os.getenv("MODEL_VERSION", "latest")
+METRICS_PORT = int(os.getenv("TEXT_GENERATION_METRICS_PORT", "9024"))
+DRIFT_THRESHOLD = float(os.getenv("DRIFT_THRESHOLD", "0.2"))
 
 class GenerateRequest(BaseModel):
     prompt: str = Field(..., min_length=1)
@@ -239,22 +230,18 @@ class GenerateRequest(BaseModel):
     top_k: int = Field(default=50, ge=1, le=100)
     top_p: float = Field(default=0.9, ge=0.1, le=1.0)
 
-
 class GenerateResponse(BaseModel):
     generated_text: str
     prompt: str
     model_version: str
 
-
 class EvaluateRequest(BaseModel):
     prompt: str = Field(..., min_length=1)
     reference_text: str = Field(..., min_length=1)
 
-
 class EvaluateResponse(BaseModel):
     score: float
     model_version: str
-
 
 class StatsResponse(BaseModel):
     model_id: str
@@ -267,141 +254,132 @@ class StatsResponse(BaseModel):
     top_p: float
     model_version: str
 
-
 _model: TextGenerationModel | None = None
-_model_version: str = &quot;unknown&quot;
+_model_version: str = "unknown"
 _metrics: MetricsCollector | None = None
 _drift_detector: DriftDetector | None = None
 _reference_data: np.ndarray | None = None
 _recent_predictions: list[list[float]] = []
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _model, _model_version, _metrics, _drift_detector, _reference_data
 
-    setup_logging(os.getenv(&quot;LOG_LEVEL&quot;, &quot;INFO&quot;))
-    _metrics = MetricsCollector(&quot;text_gen_generative&quot;, port=METRICS_PORT)
+    setup_logging(os.getenv("LOG_LEVEL", "INFO"))
+    _metrics = MetricsCollector("text_gen_generative", port=METRICS_PORT)
     app.state.metrics = _metrics
 
-    feature_names = [f&quot;token_{i}&quot; for i in range(DEFAULT_VOCAB_SIZE)]
+    feature_names = [f"token_{i}" for i in range(DEFAULT_VOCAB_SIZE)]
     _drift_detector = DriftDetector(
         feature_names=feature_names,
-        feature_types={f: &quot;float&quot; for f in feature_names},
+        feature_types={f: "float" for f in feature_names},
         psi_threshold=DRIFT_THRESHOLD,
     )
 
     _model, _model_version = _load_model()
     _metrics.set_model_version(_model_version)
     _metrics.set_model_info(
-        model_name=&quot;text-generation&quot;,
+        model_name="text-generation",
         model_version=_model_version,
-        model_type=&quot;generative&quot;,
+        model_type="generative",
     )
 
     _reference_data = _load_reference_data()
-    logger.info(&quot;Model loaded&quot;, model=&quot;text-generation&quot;, version=_model_version)
+    logger.info("Model loaded", model="text-generation", version=_model_version)
 
     yield
-    logger.info(&quot;Shutting down text-generation API&quot;)
+    logger.info("Shutting down text-generation API")
 
-
-def _load_model() -&gt; tuple[TextGenerationModel, str]:
+def _load_model() -> tuple[TextGenerationModel, str]:
     registry = ModelRegistry(base_dir=MODEL_DIR)
     try:
-        if MODEL_VERSION == &quot;latest&quot;:
+        if MODEL_VERSION == "latest":
             models = registry.list_models()
-            tg_models = [m for m in models if m.get(&quot;model_name&quot;) == &quot;text-generation&quot;]
+            tg_models = [m for m in models if m.get("model_name") == "text-generation"]
             if tg_models:
-                tg_models.sort(key=lambda m: m[&quot;model_version&quot;], reverse=True)
+                tg_models.sort(key=lambda m: m["model_version"], reverse=True)
                 latest = tg_models[0]
-                model_dir = Path(latest[&quot;artifact_path&quot;])
-                npz_files = list(model_dir.glob(&quot;text_generation_v*.npz&quot;)) + list(model_dir.glob(&quot;*.npz&quot;))
+                model_dir = Path(latest["artifact_path"])
+                npz_files = list(model_dir.glob("text_generation_v*.npz")) + list(model_dir.glob("*.npz"))
                 if npz_files:
-                    return TextGenerationModel.load(str(npz_files[0])), latest[&quot;model_version&quot;]
+                    return TextGenerationModel.load(str(npz_files[0])), latest["model_version"]
         else:
-            model_dir = MODEL_DIR / &quot;text-generation&quot; / MODEL_VERSION
+            model_dir = MODEL_DIR / "text-generation" / MODEL_VERSION
             if model_dir.exists():
-                npz_files = list(model_dir.glob(&quot;text_generation_v*.npz&quot;)) + list(model_dir.glob(&quot;*.npz&quot;))
+                npz_files = list(model_dir.glob("text_generation_v*.npz")) + list(model_dir.glob("*.npz"))
                 if npz_files:
                     return TextGenerationModel.load(str(npz_files[0])), MODEL_VERSION
     except Exception as e:
-        logger.warning(f&quot;Registry lookup failed: {e}&quot;)
+        logger.warning(f"Registry lookup failed: {e}")
 
-    npz_path = MODEL_DIR / &quot;text_generation.npz&quot;
+    npz_path = MODEL_DIR / "text_generation.npz"
     if npz_path.exists():
-        return TextGenerationModel.load(str(npz_path)), &quot;legacy&quot;
+        return TextGenerationModel.load(str(npz_path)), "legacy"
 
     candidate_paths = [
-        Path(&quot;/app/artifacts/models/text_generation_v1.0.0.npz&quot;),
-        Path(__file__).resolve().parents[3] / &quot;artifacts&quot; / &quot;models&quot; / &quot;text_generation_v1.0.0.npz&quot;,
+        Path("/app/artifacts/models/text_generation_v1.0.0.npz"),
+        Path(__file__).resolve().parents[3] / "artifacts" / "models" / "text_generation_v1.0.0.npz",
     ]
     for p in candidate_paths:
         if p.exists():
-            logger.info(&quot;Loading bundled baseline model&quot;, path=str(p))
-            return TextGenerationModel.load(str(p)), &quot;1.0.0-bundled&quot;
+            logger.info("Loading bundled baseline model", path=str(p))
+            return TextGenerationModel.load(str(p)), "1.0.0-bundled"
 
-    logger.warning(&quot;No pre-existing model found. Initializing baseline model.&quot;)
-    model = TextGenerationModel(model_id=&quot;baseline&quot;, vocab_size=DEFAULT_VOCAB_SIZE)
+    logger.warning("No pre-existing model found. Initializing baseline model.")
+    model = TextGenerationModel(model_id="baseline", vocab_size=DEFAULT_VOCAB_SIZE)
     model._init()
-    return model, &quot;1.0.0-baseline&quot;
+    return model, "1.0.0-baseline"
 
-
-def _load_reference_data() -&gt; np.ndarray | None:
+def _load_reference_data() -> np.ndarray | None:
     from nlp_text_generation.data import generate_synthetic_text
     X_base, _ = generate_synthetic_text(n_samples=100, random_seed=42)
     return X_base.astype(float)
 
-
 app = FastAPI(
-    title=&quot;Text Generation API&quot;,
-    description=&quot;Transformer-based autoregressive text generation with temperature, top-k, and top-p sampling&quot;,
-    version=&quot;1.0.0&quot;,
+    title="Text Generation API",
+    description="Transformer-based autoregressive text generation with temperature, top-k, and top-p sampling",
+    version="1.0.0",
     lifespan=lifespan,
 )
 
 add_observability_middleware(app)
 
-
-@app.get(&quot;/&quot;)
+@app.get("/")
 def read_root():
     return {
-        &quot;service&quot;: &quot;text-generation-api&quot;,
-        &quot;version&quot;: &quot;1.0.0&quot;,
-        &quot;model_version&quot;: _model_version,
-        &quot;endpoints&quot;: {
-            &quot;health&quot;: &quot;/health&quot;,
-            &quot;generate&quot;: &quot;POST /generate&quot;,
-            &quot;evaluate&quot;: &quot;POST /evaluate&quot;,
-            &quot;stats&quot;: &quot;GET /stats&quot;,
-            &quot;metrics&quot;: &quot;/metrics&quot;,
+        "service": "text-generation-api",
+        "version": "1.0.0",
+        "model_version": _model_version,
+        "endpoints": {
+            "health": "/health",
+            "generate": "POST /generate",
+            "evaluate": "POST /evaluate",
+            "stats": "GET /stats",
+            "metrics": "/metrics",
         },
     }
 
-
-@app.get(&quot;/health&quot;)
+@app.get("/health")
 def health_check():
     if _model is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
     return {
-        &quot;status&quot;: &quot;healthy&quot;,
-        &quot;model_loaded&quot;: True,
-        &quot;model_version&quot;: _model_version,
-        &quot;model_id&quot;: _model.model_id if _model else &quot;unknown&quot;,
+        "status": "healthy",
+        "model_loaded": True,
+        "model_version": _model_version,
+        "model_id": _model.model_id if _model else "unknown",
     }
 
-
-@app.get(&quot;/metrics&quot;)
+@app.get("/metrics")
 def metrics():
     from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
-
-@app.post(&quot;/generate&quot;, response_model=GenerateResponse)
+@app.post("/generate", response_model=GenerateResponse)
 def generate_text(body: GenerateRequest):
-    &quot;&quot;&quot;Generate text from a prompt using the transformer model.&quot;&quot;&quot;
+    """Generate text from a prompt using the transformer model."""
     if _model is None or _metrics is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     start = time.time()
     try:
@@ -419,21 +397,20 @@ def generate_text(body: GenerateRequest):
         _metrics.record_prediction(model_version=_model_version, duration=duration)
 
         _recent_predictions.append([float(len(body.prompt.split()))])
-        if len(_recent_predictions) &gt; 1000:
+        if len(_recent_predictions) > 1000:
             _recent_predictions.pop(0)
 
         return response
     except Exception as e:
-        _metrics.record_error(model_version=_model_version, error_type=&quot;generation&quot;)
-        logger.exception(&quot;Text generation failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=&quot;Text generation failed&quot;) from e
+        _metrics.record_error(model_version=_model_version, error_type="generation")
+        logger.exception("Text generation failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Text generation failed") from e
 
-
-@app.post(&quot;/evaluate&quot;, response_model=EvaluateResponse)
+@app.post("/evaluate", response_model=EvaluateResponse)
 def evaluate_text(body: EvaluateRequest):
-    &quot;&quot;&quot;Evaluate generated text against a reference.&quot;&quot;&quot;
+    """Evaluate generated text against a reference."""
     if _model is None or _metrics is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     start = time.time()
     try:
@@ -451,58 +428,48 @@ def evaluate_text(body: EvaluateRequest):
 
         return response
     except Exception as e:
-        _metrics.record_error(model_version=_model_version, error_type=&quot;evaluation&quot;)
-        logger.exception(&quot;Text evaluation failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=&quot;Text evaluation failed&quot;) from e
+        _metrics.record_error(model_version=_model_version, error_type="evaluation")
+        logger.exception("Text evaluation failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Text evaluation failed") from e
 
-
-@app.get(&quot;/stats&quot;, response_model=StatsResponse)
+@app.get("/stats", response_model=StatsResponse)
 def get_stats():
     if _model is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
     info = _model.to_dict()
     return StatsResponse(
-        model_id=info.get(&quot;model_id&quot;, &quot;unknown&quot;),
-        vocab_size=info.get(&quot;vocab_size&quot;, DEFAULT_VOCAB_SIZE),
-        d_model=info.get(&quot;d_model&quot;, 256),
-        n_layers=info.get(&quot;n_layers&quot;, 2),
-        max_seq_len=info.get(&quot;max_seq_len&quot;, 128),
-        temperature=info.get(&quot;temperature&quot;, 0.8),
-        top_k=info.get(&quot;top_k&quot;, 50),
-        top_p=info.get(&quot;top_p&quot;, 0.9),
+        model_id=info.get("model_id", "unknown"),
+        vocab_size=info.get("vocab_size", DEFAULT_VOCAB_SIZE),
+        d_model=info.get("d_model", 256),
+        n_layers=info.get("n_layers", 2),
+        max_seq_len=info.get("max_seq_len", 128),
+        temperature=info.get("temperature", 0.8),
+        top_k=info.get("top_k", 50),
+        top_p=info.get("top_p", 0.9),
         model_version=_model_version,
-    )</code></pre>
-</div>
-<h3>CLI Commands</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3125044378')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3125044378"><code class="language-bash">uv run python -m text_generation.train --model-dir ./artifacts/models</code></pre>
-</div>
-</section>
-<section id="benchmarks" class="section bench-section">
-<h2><span class="section-icon">📊</span> Benchmarks</h2>
-<p class="section-subtitle">Test results and performance metrics</p>
-<p class="muted">Run <code>pytest tests/test_models.py</code> and <code>pytest tests/test_apis.py</code> for detailed metrics.</p>
-</section>
-<div class="related-links">
-<h3>Related Apps</h3>
-<ul><li><a href="../code-generation/README.md">code-generation</a></li>
-<li><a href="../image-generation/README.md">image-generation</a></li>
-<li><a href="../retrieval-augmented-generation/README.md">retrieval-augmented-generation</a></li>
-<li><a href="../video-generation/README.md">video-generation</a></li></ul>
-</div>
-</main>
-<footer class="app-footer">
-<p>Generated documentation for <strong>text-generation</strong></p>
-</footer>
-<script>
-function copyCode(id) {
-  const el = document.getElementById(id);
-  navigator.clipboard.writeText(el.innerText);
-}
-function renderMath() {
-  renderMathInElement(document.body, { delimiters: [{left: "$$", right: "$$", display: true}] });
-}
-</script>
-</body>
-</html>
+    )
+```
+
+### CLI Commands
+
+```bash
+uv run python -m text_generation.train --model-dir ./artifacts/models
+```
+
+## 📊 Benchmarks
+
+Test results and performance metrics
+
+Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+
+### Related Apps
+
+- [code-generation](../code-generation/README.md)
+
+- [image-generation](../image-generation/README.md)
+
+- [retrieval-augmented-generation](../retrieval-augmented-generation/README.md)
+
+- [video-generation](../video-generation/README.md)
+
+Generated documentation for **text-generation**

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>classification-email-spam — Neural Network App Documentation</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --surface: #181b21;
+    --surface-2: #1f232b;
+    --text: #e6e6e6;
+    --muted: #a0a4b0;
+    --accent: #5eead4;
+    --accent-2: #67e8f9;
+    --border: #2a2f3a;
+    --code-bg: #121418;
+    --tag-bg: #1a2634;
+    --tag-text: #7dd3fc;
+    --warn: #fbbf24;
+    --ok: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-monospace, "SF Mono", "Fira Code", "Cascadia Code", monospace;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 28px 40px;
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  header h1 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--accent);
+  }
+  header p { margin: 0; color: var(--muted); font-size: 13px; }
+  main { max-width: 980px; margin: 0 auto; padding: 36px 40px 80px; }
+  section { margin-bottom: 56px; }
+  h2 {
+    font-size: 16px;
+    margin: 0 0 18px;
+    color: var(--accent-2);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+  }
+  h3 { font-size: 14px; margin: 20px 0 8px; color: var(--text); }
+  p { margin: 0 0 12px; color: var(--muted); }
+  .tag {
+    display: inline-block;
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 12px;
+    margin: 2px 4px 2px 0;
+  }
+  code {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 12px;
+    color: var(--warn);
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+  pre code { background: none; border: none; padding: 0; color: inherit; }
+  .kw { color: #c084fc; }
+  .fn { color: #67e8f9; }
+  .str { color: #4ade80; }
+  .num { color: #fbbf24; }
+  .cm { color: #6b7280; font-style: italic; }
+  .op { color: #f472b6; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+  }
+  th { background: var(--surface-2); color: var(--accent-2); }
+  td { background: var(--surface); }
+  .math-block {
+    background: var(--surface-2);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    margin: 10px 0;
+    border-radius: 4px;
+    font-style: italic;
+    color: var(--text);
+    white-space: pre-wrap;
+    font-size: 13px;
+  }
+  .callout {
+    background: var(--surface-2);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin: 12px 0;
+    color: var(--muted);
+  }
+  .callout strong { color: var(--accent-2); }
+  ul { padding-left: 20px; margin: 8px 0; }
+  li { margin: 4px 0; color: var(--muted); }
+  .file-path { color: var(--tag-text); font-size: 12px; }
+  .section-icon { margin-right: 6px; }
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="section-icon">✉</span>classification-email-spam</h1>
+  <p>Supervised MLP Classifier &nbsp;·&nbsp; Email Spam vs. Ham &nbsp;·&nbsp; MLOps Example</p>
+</header>
+<main>
+
+<section id="overview">
+  <h2><span class="section-icon">◈</span>Overview &amp; Monorepo Context</h2>
+  <p><strong>classification-email-spam</strong> is a Python package that classifies emails as <strong>spam</strong> or <strong>ham</strong> using a <strong>feedforward neural network (MLP)</strong> implemented from scratch with NumPy. It sits in the <code>feedforward</code> monorepo and complements the other three apps by demonstrating <strong>supervised binary classification</strong>.</p>
+  <p>Unlike anomaly detection, this app uses labelled data (spam / ham) during training. The MLP learns a non-linear decision boundary in feature space defined by email characteristics like keyword presence, link count, sender reputation, and message length.</p>
+
+  <h3>Package Identity</h3>
+  <div class="callout">
+    <strong>pyproject.toml</strong><br>
+    Name: <code>email-spam-detection</code><br>
+    Version: <code>0.2.0</code><br>
+    Package module: <code>classification_email_spam</code><br>
+    CLI entry-point: <code>email-spam-detection-train = email_spam_detection.train:main</code>
+  </div>
+
+  <h3>Dependencies &amp; Monorepo Coupling</h3>
+  <ul>
+    <li><code>ai-core</code> — workspace-local shared library providing logging, model registry, drift detection, metrics, and FastAPI middleware.</li>
+    <li><code>numpy &gt;=1.26.0</code> — sole ML framework.</li>
+    <li><code>fastapi + uvicorn + pydantic</code> — production REST API.</li>
+    <li><code>prometheus-client</code> — Prometheus metrics.</li>
+    <li><code>matplotlib</code> — training-loss charting.</li>
+    <li><code>pytest + pytest-cov</code> — testing.</li>
+  </ul>
+  <p>The app also uniquely depends on <code>ai_core.validation.DataValidator</code> — a schema-aware input validator that rejects out-of-range feature values at the API boundary before they reach the model.</p>
+</section>
+
+<section id="math">
+  <h2><span class="section-icon">∫</span>The Mathematical Foundation</h2>
+  <p class="callout"><strong>Task type:</strong> Supervised binary classification.<br>
+  <strong>Architecture:</strong> Input (n_features) → Hidden (ReLU) → Output (Sigmoid, 1 neuron).</p>
+
+  <h3>1. Forward Pass</h3>
+  <div class="math-block">z₁ = W₁ · x + b₁</div>
+  <div class="math-block">a₁ = ReLU(z₁) = max(0, z₁)</div>
+  <div class="math-block">z₂ = W₂ · a₁ + b₂</div>
+  <div class="math-block">ŷ = σ(z₂) = 1 / (1 + e^{-z₂})</div>
+  <p>The sigmoid squashes the output to (0, 1), interpreted as <em>P(spam | x)</em>. Numerical stability is enforced by clipping z₂ to [−500, 500] before exponentiation.</p>
+
+  <h3>2. Loss — Binary Cross-Entropy</h3>
+  <div class="math-block">L_BCE = −(1/n) · Σᵢ [ yᵢ · log(ŷᵢ) + (1−yᵢ) · log(1−ŷᵢ) ]</div>
+  <p>BCE is the canonical loss for binary classification with sigmoid outputs. It penalises confident wrong predictions exponentially: predicting ŷ=0.99 when y=0 incurs a massive penalty via <code>log(0.01)</code>.</p>
+
+  <h3>3. Gradients</h3>
+  <div class="math-block">∂L/∂z₂ = (ŷ − y) / n</div>
+  <div class="math-block">∂L/∂W₂ = a₁ᵀ · ∂L/∂z₂ + 2λW₂</div>
+  <div class="math-block">∂L/∂W₁ = xᵀ · (∂L/∂z₂ · W₂ᵀ ⊙ σ′(z₁)) + 2λW₁</div>
+  <p>The derivative of sigmoid + BCE collapses beautifully: <code>∂L/∂z₂ = ŷ − y</code>. This is why logistic regression and sigmoid-output networks are so efficient — no messy chain-rule through the sigmoid derivative remains.</p>
+
+  <h3>4. L2 Regularisation</h3>
+  <div class="math-block">L_total = L_BCE + λ · (‖W₁‖² + ‖W₂‖²)</div>
+  <p>Weight decay λ = 0.001 prevents overfitting, especially important with a small hidden layer (default 16 neurons) on a 12-feature input.</p>
+
+  <h3>5. Why an MLP over Logistic Regression?</h3>
+  <p>A single logistic-regression unit learns a linear decision boundary. The hidden ReLU layer introduces non-linearity, enabling the model to learn conjunctions of features (e.g., "has_link AND high amount AND !sender_reputation"). The extra capacity is warranted because spam vs. ham is not linearly separable in keyword-feature space.</p>
+</section>
+
+<section id="architecture">
+  <h2><span class="section-icon">⚙</span>Core Logic &amp; Architecture</h2>
+
+  <h3>File Map</h3>
+  <ul>
+    <li><span class="file-path">model.py</span> — <code>SpamDetectionNN</code> dataclass: forward, fit, predict_proba, evaluate, save/load.</li>
+    <li><span class="file-path">data.py</span> — 12 email feature generators, train/test split, CSV persistence.</li>
+    <li><span class="file-path">train.py</span> — CLI pipeline with schema validation, model training, registry, MLflow logging.</li>
+    <li><span class="file-path">api.py</span> — FastAPI server: validation, prediction, drift detection, metrics, live reload.</li>
+  </ul>
+
+  <h3>Data Flow</h3>
+  <pre class="mermaid">graph TD
+    A[Synthetic / CSV Email Features] --> B[Validate Schema]
+    B --> C[Normalize Features]
+    C --> D[Train MLP with BCE + L2]
+    D --> E[Evaluate on Test Split]
+    E --> F[Save Model &amp; Register]
+    F --> G{Serving}
+    G --> H[Validate Input]
+    H --> I[Predict Probability]
+    I --> J{>= 0.5?}
+    J -->|Yes| K[SPAM]
+    J -->|No| L[NOT spam]</pre>
+
+  <h3>Design Constraints &amp; Patterns</h3>
+  <ul>
+    <li><strong>Schema validation:</strong> <code>DataValidator(create_email_spam_schema())</code> checks feature ranges before training and at every API request.</li>
+    <li><strong>Input validation at the edge:</strong> The <code>/predict</code> and <code>/predict/bulk</code> endpoints call <code>_validator.validate(X)</code> and return HTTP 422 if features are out of bounds.</li>
+    <li><strong>Decision threshold:</strong> Fixed at 0.5 probability. <code>proba >= 0.5</code> → <code>is_spam = True</code>. The threshold is not tuned on a validation set — a deliberate simplification for the example.</li>
+    <li><strong>Early stopping:</strong> Same 1e-7 convergence criterion as the other apps.</li>
+    <li><strong>Validation accuracy tracking:</code> Every 50 epochs, validation accuracy is recorded, enabling dual-axis training charts (loss + accuracy).</li>
+  </ul>
+</section>
+
+<section id="code-walkthrough">
+  <h2><span class="section-icon">🔬</span>Detailed Code Walkthrough</h2>
+
+  <h3><span class="file-path">model.py</span> — <code>SpamDetectionNN</code></h3>
+
+  <h4>Numerically Stable Sigmoid</h4>
+  <pre><code><span class="kw">def</span> <span class="fn">_sigmoid</span>(z):
+    z = np.clip(z, -<span class="num">500</span>, <span class="num">500</span>)   <span class="cm"># prevent exp overflow</span>
+    <span class="kw">return</span> <span class="num">1</span> / (<span class="num">1</span> + np.exp(-z))</code></pre>
+  <p>Without clipping, large positive z → <code>exp(-z) ≈ 0</code> → <code>1/0 = inf</code>. Large negative z → <code>exp(-z) = inf</code> → <code>1/inf = 0</code>, which is fine but wastes computation. The clip is a defensive guard against NaN propagation.</p>
+
+  <h4>Binary Cross-Entropy with Clipping</h4>
+  <pre><code><span class="kw">def</span> <span class="fn">_binary_cross_entropy</span>(y_true, y_pred):
+    eps = <span class="num">1e-9</span>
+    y_pred = np.clip(y_pred, eps, <span class="num">1</span> - eps)   <span class="cm"># avoid log(0)</span>
+    <span class="kw">return</span> float(-np.mean(y_true * np.log(y_pred) + (<span class="num">1</span> - y_true) * np.log(<span class="num">1</span> - y_pred)))</code></pre>
+  <p><code>log(0) = -inf</code> would produce NaN loss. Clipping predictions to [eps, 1-eps] ensures the gradient remains finite even when the model is very confident.</p>
+
+  <h4>Backpropagation — Collapsed Sigmoid Gradient</h4>
+  <pre><code>dz2 = (output.flatten() - y) / m   <span class="cm"># dL/dz2 for sigmoid+BCE</span>
+dW2 = np.dot(a1.T, dz2.reshape(-<span class="num">1</span>, <span class="num">1</span>)) + self.weight_decay * self.W2
+db2 = float(np.sum(dz2))
+
+da1 = np.dot(dz2.reshape(-<span class="num">1</span>, <span class="num">1</span>), self.W2.T)
+dz1 = da1 * _relu_derivative(z1)   <span class="cm"># ReLU gate: 1 if z1>0 else 0</span>
+
+dW1 = np.dot(X_norm.T, dz1) + self.weight_decay * self.W1
+db1 = np.sum(dz1, axis=<span class="num">0</span>)</code></pre>
+  <p>The collapse <code>dz2 = (output - y) / m</code> is specific to sigmoid + BCE. If the output activation were tanh with MSE, the derivative chain would be longer and more expensive.</p>
+
+  <h4>Evaluation Metrics</h4>
+  <pre><code><span class="kw">def</span> <span class="fn">evaluate</span>(self, X, y):
+    <span class="kw">return</span> {
+        <span class="str">"accuracy"</span>: self.accuracy(X, y),
+        <span class="str">"precision"</span>: self.precision(X, y),
+        <span class="str">"recall"</span>: self.recall(X, y),
+        <span class="str">"f1"</span>: self.f1_score(X, y),
+        <span class="str">"roc_auc"</span>: self.roc_auc(X, y),
+    }</code></pre>
+  <p>ROC AUC is computed via the Wilcoxon-Mann-Whitney ranking formula rather than by integrating the ROC curve — a O(n log n) sort-based approximation that is exact for discrete score distributions.</p>
+
+  <h3><span class="file-path">data.py</span> — Feature Engineering</h3>
+  <p>12 binary / continuous features are generated with deliberate statistical skew:</p>
+  <ul>
+    <li>Spam emails have high <code>num_exclamations (5-20)</code>, high <code>num_links (3-15)</code>, low <code>sender_reputation (0-0.3)</code>.</li>
+    <li>Ham emails have longer body <code>email_length (20-100)</code>, high <code>sender_reputation (0.7-1.0)</code>, fewer links.</li>
+  </ul>
+  <p>This inductive bias ensures the synthetic data is linearly separable enough for the MLP to learn quickly, while still requiring the hidden layer to capture non-linear interactions.</p>
+
+  <h3><span class="file-path">train.py</span> — Validation Gate</h3>
+  <pre><code>validator = DataValidator(create_email_spam_schema())
+validation = validator.validate(X, y)
+<span class="kw">if not</span> validation.valid:
+    <span class="kw">raise</span> ValueError(<span class="str">f"Training data validation failed: {validation.errors}"</span>)</code></pre>
+  <p>Training halts immediately if the data schema is violated. This prevents silent training on corrupted inputs — a common MLOps anti-pattern.</p>
+
+  <h3><span class="file-path">api.py</span> — Input Validation</h3>
+  <pre><code><span class="kw">def</span> <span class="fn">_compute_prediction</span>(features: list[float]) -> PredictResponse:
+    X = np.array([features])
+    validation = _validator.validate(X)
+    <span class="kw">if not</span> validation.valid:
+        <span class="kw">raise</span> HTTPException(status_code=<span class="num">422</span>, detail=validation.errors)
+    proba = float(_model.predict_proba(X)[<span class="num">0</span>])
+    is_spam = bool(proba >= <span class="num">0.5</span>)
+    ...</code></pre>
+  <p>The same validator that guards training data also guards the API. This ensures the model never sees inputs outside the distribution it was trained on, reducing the risk of garbage-in/garbage-out predictions.</p>
+</section>
+
+<section id="usage">
+  <h2><span class="section-icon">▶</span>Examples &amp; Usage</h2>
+
+  <h3>CLI Training</h3>
+  <pre><code class="language-bash">uv run python -m classification_email_spam.train \
+  --model-dir ./artifacts/models \
+  --n-samples 1000 \
+  --hidden-dim 16 \
+  --n-iterations 1000 \
+  --weight-decay 0.001 \
+  --register-mlflow</code></pre>
+
+  <h3>Python — Train &amp; Predict</h3>
+  <pre><code><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">from</span> classification_email_spam.data <span class="kw">import</span> generate_synthetic_data
+<span class="kw">from</span> classification_email_spam.model <span class="kw">import</span> SpamDetectionNN
+
+X, y = generate_synthetic_data(n_samples=<span class="num">1000</span>, random_seed=<span class="num">42</span>)
+model = SpamDetectionNN(hidden_dim=<span class="num">16</span>, learning_rate=<span class="num">0.01</span>, n_iterations=<span class="num">1000</span>)
+model.fit(X, y)
+
+email = np.array([[
+    <span class="num">1</span>, <span class="num">1</span>, <span class="num">1</span>, <span class="num">1</span>, <span class="num">1</span>,   <span class="cm"># has_free, win, link, exclamation, meeting</span>
+    <span class="num">35</span>, <span class="num">1</span>, <span class="num">1</span>,         <span class="cm"># length, caps, money</span>
+    <span class="num">8</span>, <span class="num">12</span>, <span class="num">1</span>, <span class="num">0.1</span>    <span class="cm"># num_links, exclamations, urgent, sender_rep</span>
+]])
+proba = model.predict_proba(email)[<span class="num">0</span>]
+print(<span class="str">f"spam probability: {proba:.4f}"</span>)  <span class="cm"># Expected: high (near 1.0)</span></code></pre>
+
+  <h3>REST API — Single Prediction</h3>
+  <pre><code class="language-bash">curl -X POST http://localhost:8008/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "features": [1, 1, 1, 1, 1, 35, 1, 1, 8, 12, 1, 0.1]
+  }'</code></pre>
+  <p><strong>Response:</strong></p>
+  <pre><code class="language-json">{
+    "is_spam": true,
+    "spam_probability": 0.92,
+    "label": "SPAM",
+    "model_version": "1.0.0",
+    "training_mode": "supervised"
+  }</code></pre>
+
+  <h3>REST API — Bulk Prediction</h3>
+  <pre><code class="language-bash">curl -X POST http://localhost:8008/predict/bulk \
+  -H "Content-Type: application/json" \
+  -d '{"requests": [[1,1,1,1,1,35,1,1,8,12,1,0.1], [0,0,0,0,0,60,0,0,1,0,0,0.95]]}'</code></pre>
+  <p>Returns a <code>BulkPredictResponse</code> with per-email probabilities, labels, and model version.</p>
+</section>
+
+<section id="benchmarks">
+  <h2><span class="section-icon">📊</span>Benchmarks</h2>
+  <p class="callout">Run <code>pytest tests/</code> from the app root.</p>
+  <ul>
+    <li><code>accuracy</code> — fraction correctly classified.</li>
+    <li><code>precision</code> — of flagged emails, fraction truly spam.</li>
+    <li><code>recall</code> — of all spam, fraction flagged.</li>
+    <li><code>f1</code> — harmonic mean of precision and recall.</li>
+    <li><code>roc_auc</code> — area under the ROC curve (ranking-based computation).</li>
+  </ul>
+  <p>Metrics, parameters, and artifacts (NPZ model, PNG chart, CSV data) are registered to the local <code>ModelRegistry</code> and optionally to MLflow.</p>
+</section>
+
+<div class="related-links">
+  <h3>Related Apps</h3>
+  <ul>
+    <li><a href="../semi-supervised-email/README.md">semi-supervised-email</a></li>
+    <li><a href="../spam-classification/README.md">spam-classification</a></li>
+    <li><a href="../snn-image-classification/README.md">snn-image-classification</a></li>
+  </ul>
+</div>
+
+</main>
+<footer style="border-top:1px solid var(--border);padding:20px 40px;color:var(--muted);font-size:12px;">
+  Generated documentation for <strong>classification-email-spam</strong> · feedforward monorepo
+</footer>
+</body>
+</html>

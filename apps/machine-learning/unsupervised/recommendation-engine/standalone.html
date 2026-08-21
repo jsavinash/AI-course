@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>recommendation-engine — AI App Documentation</title>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMath()"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --text: #212529;
+    --muted: #6c757d;
+    --accent: #0d6efd;
+    --accent-2: #6610f2;
+    --border: #dee2e6;
+    --code-bg: #f1f3f5;
+    --pre-bg: #212529;
+    --pre-text: #f8f9fa;
+    --shadow: 0 2px 8px rgba(0,0,0,.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1115;
+      --surface: #1a1d23;
+      --text: #e9ecef;
+      --muted: #adb5bd;
+      --accent: #4dabf7;
+      --accent-2: #9775fa;
+      --border: #2c3038;
+      --code-bg: #1a1d23;
+      --pre-bg: #0d0f12;
+      --pre-text: #e9ecef;
+      --shadow: 0 2px 8px rgba(0,0,0,.3);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6;
+  }
+  header {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white; padding: 3rem 1rem; text-align: center;
+  }
+  header h1 { margin: 0; font-size: 2rem; }
+  header p { margin: .5rem 0 0; opacity: .9; }
+  main { max-width: 960px; margin: 0 auto; padding: 1.5rem; }
+  .section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;
+    box-shadow: var(--shadow);
+  }
+  .section h2 { margin-top: 0; font-size: 1.25rem; }
+  .section-subtitle { color: var(--muted); margin-top: -0.5rem; margin-bottom: 1rem; }
+  .math-block {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: .75rem 1rem; margin: .5rem 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    overflow-x: auto;
+  }
+  pre.code-block {
+    background: var(--pre-bg); color: var(--pre-text);
+    border-radius: 8px; padding: 1rem; overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: .9rem; line-height: 1.5;
+  }
+  code { font-family: inherit; }
+  .code-block-wrapper { position: relative; }
+  .copy-btn {
+    position: absolute; top: .5rem; right: .5rem;
+    background: rgba(255,255,255,.15); color: white; border: 1px solid rgba(255,255,255,.25);
+    border-radius: 6px; padding: .25rem .5rem; cursor: pointer; font-size: .8rem;
+  }
+  .copy-btn:hover { background: rgba(255,255,255,.25); }
+  table { width: 100%; border-collapse: collapse; margin-top: .5rem; }
+  th, td { text-align: left; padding: .5rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: .85rem; text-transform: uppercase; letter-spacing: .03em; }
+  .mermaid-wrapper { margin-top: 1rem; }
+  .related-links { margin-top: 1rem; }
+  .related-links ul { padding-left: 1.25rem; margin: .5rem 0 0; }
+  .related-links a { color: var(--accent); }
+  footer { text-align: center; padding: 2rem 1rem; color: var(--muted); font-size: .9rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>recommendation-engine</h1>
+  <p>Recommendation Engine — Association Rule Learning (Apriori) MLOps Example</p>
+</header>
+<main>
+
+<section id="overview" class="section">
+<h2>1. Overview &amp; Monorepo Context</h2>
+<p class="section-subtitle">Name, purpose, and role within the broader monorepo.</p>
+<p><strong>Package name:</strong> <code>recommendation-engine</code><br>
+<strong>Version:</strong> 0.1.0<br>
+<strong>Purpose:</strong> Mine association rules from transaction data using the Apriori algorithm and generate product recommendations. Given a user's basket, the model returns items likely to be purchased together, scored by lift, confidence, and support.</p>
+<p><strong>Monorepo role:</strong> Lives under <code>unsupervised/</code>. It depends on <code>ai-core</code> for logging, metrics, and model registry. Unlike the other unsupervised apps, it operates on discrete categorical transactions rather than continuous feature vectors. The API exposes <code>/recommend</code>, <code>/rules</code>, and <code>/rules/{item}</code> endpoints.</p>
+</section>
+
+<section id="math" class="section">
+<h2>2. The Mathematical Foundation</h2>
+<p class="section-subtitle">Support, confidence, lift, and the Apriori principle.</p>
+<div class="math-content">
+<div class="math-block">$$\text{support}(X) = \frac{|X|}{\text{total transactions}}$$</div>
+<div class="math-block">$$\text{confidence}(X \Rightarrow Y) = \frac{\text{support}(X \cup Y)}{\text{support}(X)}$$</div>
+<div class="math-block">$$\text{lift}(X \Rightarrow Y) = \frac{\text{confidence}(X \Rightarrow Y)}{\text{support}(Y)}$$</div>
+<div class="math-block">$$\text{cosine}(u,v) = \frac{u \cdot v}{\|u\| \|v\|}$$</div>
+</div>
+<p><strong>Why this math?</strong> Apriori leverages the <em>downward closure property</em>: all subsets of a frequent itemset must also be frequent. This allows aggressive pruning of candidate itemsets, making the algorithm tractable for moderate-sized catalogs. Lift measures how much more likely <code>Y</code> is given <code>X</code> compared to baseline; lift &gt; 1 indicates a genuine association. The recommendation score combines lift, confidence, and support: <code>score = lift * confidence * (1 + support)</code>.</p>
+</section>
+
+<section id="architecture" class="section">
+<h2>3. Core Logic &amp; Architecture</h2>
+<p class="section-subtitle">Data flow, design patterns, and lifecycle.</p>
+<pre class="mermaid">graph TD
+  A[Transactions CSV] --> B[Load / Generate synthetic data]
+  B --> C[Apriori.fit: find frequent itemsets]
+  C --> D[Generate association rules]
+  D --> E[Filter by min_confidence & min_lift]
+  E --> F[ModelRegistry.save]
+  F --> G[FastAPI lifespan load]
+  G --> H[/recommend /rules /rules/{item}]
+  H --> I[DriftDetector on one-hot matrix]</pre>
+<p><strong>Design patterns:</strong></p>
+<ul>
+  <li><strong>Immutable rule objects:</strong> <code>AssociationRule</code> is a <code>@dataclass(frozen=True)</code>, ensuring rules are hashable and safe to sort/filter.</li>
+  <li><strong>Two-phase training:</strong> <code>fit()</code> first mines frequent itemsets, then generates rules. This separation makes it easy to inspect intermediate results.</li>
+  <li><strong>Recommendation scoring:</strong> <code>recommend()</code> matches basket items against rule antecedents and ranks consequents by a composite score.</li>
+  <li><strong>Drift on one-hot matrix:</strong> Recent baskets are converted to one-hot vectors and compared against reference data via PSI.</li>
+</ul>
+<p><strong>Primary execution path:</strong> <code>train.py:main()</code> → loads transactions → fits Apriori → evaluates coverage and average metrics → saves model → registers to ModelRegistry.</p>
+</section>
+
+<section id="code-walkthrough" class="section">
+<h2>4. Detailed Code Walkthrough</h2>
+<p class="section-subtitle">Key files, classes, and functions.</p>
+
+<h3>model.py — Apriori &amp; AssociationRule</h3>
+<div class="code-block-wrapper">
+<button class="copy-btn" onclick="copyCode('code-rec-model')" title="Copy">Copy</button>
+<pre class="code-block" id="code-rec-model"><code class="language-python">@dataclass(frozen=True)
+class AssociationRule:
+    antecedent: frozenset[str]
+    consequent: frozenset[str]
+    support: float
+    confidence: float
+    lift: float
+    conviction: float
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "antecedent": sorted(self.antecedent),
+            "consequent": sorted(self.consequent),
+            "support": round(self.support, 4),
+            "confidence": round(self.confidence, 4),
+            "lift": round(self.lift, 4),
+            "conviction": round(self.conviction, 4),
+        }
+
+def _generate_candidates(self, frequent_itemsets: list[frozenset[str]], k: int) -> set[frozenset[str]]:
+    """Generate candidate itemsets of size k from frequent itemsets of size k-1."""
+    candidates: set[frozenset[str]] = set()
+    n = len(frequent_itemsets)
+    for i in range(n):
+        for j in range(i + 1, n):
+            itemset1 = frequent_itemsets[i]
+            itemset2 = frequent_itemsets[j]
+            list1 = sorted(itemset1)
+            list2 = sorted(itemset2)
+            if list1[:-1] == list2[:-1]:
+                new_itemset = itemset1 | itemset2
+                if len(new_itemset) == k and self._has_frequent_subsets(new_itemset, frequent_itemsets):
+                    candidates.add(new_itemset)
+    return candidates</code></pre>
+</div>
+
+<p><strong>Why this design:</strong></p>
+<ul>
+  <li><code>frozenset</code> is used for itemsets so they are immutable and hashable (can be dict keys).</li>
+  <li>The candidate generation step implements the Apriori join-and-prune strategy: only combine itemsets that share <code>k-2</code> prefix items and whose <code>k-1</code> subsets are all frequent.</li>
+  <li>Rules are sorted by <code>(lift, confidence)</code> descending so the most actionable rules appear first.</li>
+  <li><code>conviction</code> is included as an additional rule quality metric: <code>(1 - support(Y)) / (1 - confidence)</code>.</li>
+</ul>
+
+<h3>data.py — Synthetic Transaction Generation</h3>
+<div class="code-block-wrapper">
+<button class="copy-btn" onclick="copyCode('code-rec-data')" title="Copy">Copy</button>
+<pre class="code-block" id="code-rec-data"><code class="language-python">PRODUCT_GROUPS = [
+    ["Bread", "Milk", "Butter"],
+    ["Beer", "Diapers", "Chips"],
+    ["Coffee", "Sugar", "Cream"],
+    ["Pasta", "Sauce", "Cheese"],
+    ["Shampoo", "Soap", "Toothpaste"],
+]
+
+def _generate_transactions(n_transactions: int, random_seed: int) -> list[list[str]]:
+    rng = np.random.default_rng(random_seed)
+    for _ in range(n_transactions):
+        n_items = rng.integers(1, MAX_ITEMS_PER_TRANSACTION + 1)
+        if rng.random() < 0.7:
+            group = PRODUCT_GROUPS[rng.integers(0, len(PRODUCT_GROUPS))]
+            n_group_items = rng.integers(2, min(4, len(group) + 1))
+            items = list(rng.choice(group, size=n_group_items, replace=False))
+        # Fill remaining with random products...</code></pre>
+</div>
+</section>
+
+<section id="usage" class="section">
+<h2>5. Examples &amp; Usage</h2>
+<p class="section-subtitle">Training, serving, and consuming the API.</p>
+
+<h3>CLI Training</h3>
+<div class="code-block-wrapper">
+<button class="copy-btn" onclick="copyCode('code-rec-cli')" title="Copy">Copy</button>
+<pre class="code-block" id="code-rec-cli"><code class="language-bash">uv run python -m recommendation_engine.train --model-dir ./artifacts/models --min-support 0.05 --min-confidence 0.5 --min-lift 1.0</code></pre>
+</div>
+
+<h3>Python Usage</h3>
+<div class="code-block-wrapper">
+<button class="copy-btn" onclick="copyCode('code-rec-py')" title="Copy">Copy</button>
+<pre class="code-block" id="code-rec-py"><code class="language-python">from recommendation_engine.model import Apriori
+
+transactions = [
+    ["Bread", "Milk", "Butter"],
+    ["Beer", "Diapers", "Chips"],
+    ["Bread", "Milk"],
+    ["Beer", "Diapers"],
+]
+
+model = Apriori(min_support=0.05, min_confidence=0.5, min_lift=1.0, max_itemset_size=4)
+model.fit(transactions)
+
+recs = model.recommend(items=["Bread", "Milk"], top_k=5)
+for r in recs:
+    print(f"{r['item']}: score={r['score']}, lift={r['lift']}, confidence={r['confidence']}")</code></pre>
+</div>
+
+<h3>REST API Requests</h3>
+<div class="code-block-wrapper">
+<button class="copy-btn" onclick="copyCode('code-rec-rest')" title="Copy">Copy</button>
+<pre class="code-block" id="code-rec-rest"><code class="language-bash">curl -X POST http://localhost:8004/recommend \
+  -H "Content-Type: application/json" \
+  -d '{
+    "items": ["Bread", "Milk"],
+    "top_k": 5,
+    "exclude_purchased": true
+  }'</code></pre>
+</div>
+
+<h3>Expected Output</h3>
+<div class="code-block-wrapper">
+<pre class="code-block" id="code-rec-out"><code class="language-json">{
+  "recommendations": [
+    {
+      "item": "Butter",
+      "score": 3.45,
+      "lift": 2.1,
+      "confidence": 0.85,
+      "support": 0.12,
+      "rule": "['Bread', 'Milk'] -> Butter"
+    }
+  ],
+  "model_version": "1.0.0"
+}</code></pre>
+</div>
+</section>
+
+</main>
+<footer>
+  <p>Generated documentation for <strong>recommendation-engine</strong></p>
+</footer>
+<script>
+function copyCode(id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.innerText);
+}
+function renderMath() {
+  renderMathInElement(document.body, { delimiters: [{left: "$$", right: "$$", display: true}] });
+}
+</script>
+</body>
+</html>

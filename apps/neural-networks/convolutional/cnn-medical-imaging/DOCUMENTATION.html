@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cnn-medical-imaging — Technical Documentation</title>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMath()"></script>
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #222633;
+  --border: #2e3347;
+  --text: #e1e5f1;
+  --text-muted: #8b91a8;
+  --accent: #6c8cff;
+  --accent2: #4ecdc4;
+  --code-bg: #13151d;
+  --tag-bg: #2a2f42;
+  --warning: #f0a050;
+  --success: #5ddb8b;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  font-size: 15px;
+}
+header.doc-header {
+  background: linear-gradient(135deg, #1a1d27 0%, #222642 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 2.5rem 2rem 2rem;
+  position: sticky; top: 0; z-index: 100;
+}
+.header-inner { max-width: 960px; margin: 0 auto; display: flex; align-items: flex-start; gap: 1.5rem; }
+.app-icon {
+  width: 56px; height: 56px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent), #9b6cff);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem; flex-shrink: 0;
+}
+.header-meta h1 { font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 0.25rem; }
+.header-meta .subtitle { color: var(--text-muted); font-size: 0.9rem; }
+.badge-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
+.badge {
+  background: var(--tag-bg); color: var(--accent2);
+  border: 1px solid var(--border); border-radius: 20px;
+  padding: 0.15rem 0.65rem; font-size: 0.75rem; font-weight: 600;
+}
+main { max-width: 960px; margin: 0 auto; padding: 2rem; }
+section.section { margin-bottom: 3rem; }
+section.section > h2 {
+  font-size: 1.15rem; font-weight: 700; color: #fff;
+  border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;
+  margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;
+}
+.section-icon { font-size: 1.3rem; }
+.section-subtitle { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; margin-top: -0.5rem; }
+
+/* Overview */
+.overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.info-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 1rem 1.25rem;
+}
+.info-card h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.4rem; }
+.info-card p, .info-card li { font-size: 0.9rem; color: var(--text); }
+.info-card ul { list-style: disc; padding-left: 1.1rem; }
+.info-card li { margin-bottom: 0.2rem; }
+
+/* Math */
+.math-block {
+  background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 0.9rem 1.1rem; margin: 0.6rem 0; overflow-x: auto;
+  font-size: 0.95rem;
+}
+.equation-label {
+  display: inline-block; background: var(--accent); color: #fff;
+  border-radius: 4px; padding: 0.05rem 0.45rem; font-size: 0.7rem;
+  font-weight: 700; margin-right: 0.5rem; vertical-align: middle;
+}
+.derivation-box {
+  background: var(--surface); border-left: 3px solid var(--accent2);
+  border-radius: 0 6px 6px 0; padding: 1rem 1.25rem; margin: 1rem 0;
+}
+.derivation-box h3 { font-size: 0.9rem; color: var(--accent2); margin-bottom: 0.5rem; }
+.derivation-box p, .derivation-box li { font-size: 0.88rem; color: var(--text); }
+.derivation-box ul { padding-left: 1.2rem; }
+.tradeoff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.75rem; }
+.tradeoff-card {
+  background: var(--surface2); border-radius: 6px; padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+}
+.tradeoff-card h4 { font-size: 0.8rem; color: var(--accent); margin-bottom: 0.3rem; }
+.tradeoff-card p { font-size: 0.85rem; color: var(--text-muted); }
+
+/* Architecture */
+.arch-box {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 1.25rem; margin-bottom: 1rem;
+}
+.arch-box h3 { font-size: 0.85rem; color: var(--accent2); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.layer-list { display: flex; flex-direction: column; gap: 0.4rem; }
+.layer-item {
+  display: flex; align-items: center; gap: 0.75rem;
+  background: var(--surface2); border-radius: 5px; padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+}
+.layer-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.layer-name { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+.layer-detail { font-size: 0.78rem; color: var(--text-muted); margin-left: auto; white-space: nowrap; }
+.data-flow {
+  background: var(--code-bg); border-radius: 6px; padding: 1rem 1.25rem;
+  font-family: 'Courier New', monospace; font-size: 0.82rem;
+  color: var(--accent2); overflow-x: auto; white-space: pre;
+  border: 1px solid var(--border);
+}
+
+/* Code */
+.code-block-wrapper { position: relative; margin: 0.75rem 0; }
+.code-block-wrapper button.copy-btn {
+  position: absolute; top: 0.5rem; right: 0.5rem;
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text-muted); cursor: pointer; padding: 0.2rem 0.5rem; font-size: 0.75rem;
+}
+.code-block-wrapper button.copy-btn:hover { background: var(--border); color: var(--text); }
+pre.code-block {
+  background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 1rem 1.25rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.6;
+  font-family: 'Courier New', 'Fira Code', monospace; color: #c9d1d9;
+}
+code.language-python { color: #c9d1d9; }
+.hl-keyword { color: #ff7b72; }
+.hl-string  { color: #a5d6ff; }
+.hl-comment { color: #8b949e; font-style: italic; }
+.hl-func    { color: #d2a8ff; }
+.hl-number  { color: #79c0ff; }
+.hl-class   { color: #ffa657; }
+.hl-builtin { color: #ff7b72; }
+.hl-param   { color: #ffa657; }
+
+/* Tables */
+table.api-table {
+  width: 100%; border-collapse: collapse; font-size: 0.85rem;
+}
+table.api-table th {
+  background: var(--surface2); color: var(--accent);
+  text-align: left; padding: 0.6rem 0.85rem; border: 1px solid var(--border);
+}
+table.api-table td { padding: 0.5rem 0.85rem; border: 1px solid var(--border); color: var(--text); }
+table.api-table code { background: var(--code-bg); padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.8rem; color: var(--accent2); }
+
+/* Walkthrough */
+.walk-block {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 1rem 1.25rem; margin-bottom: 0.75rem;
+}
+.walk-block h4 { font-size: 0.85rem; color: var(--accent); margin-bottom: 0.4rem; }
+.walk-block p, .walk-block li { font-size: 0.87rem; color: var(--text); }
+.walk-block ul { padding-left: 1.2rem; }
+
+/* Usage */
+.usage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.usage-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 1rem 1.25rem;
+}
+.usage-card h3 { font-size: 0.85rem; color: var(--accent2); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.usage-card pre { background: var(--code-bg); border-radius: 5px; padding: 0.75rem; font-size: 0.8rem; overflow-x: auto; font-family: 'Courier New', monospace; color: #c9d1d9; }
+
+footer.doc-footer {
+  border-top: 1px solid var(--border); padding: 1.5rem 2rem;
+  text-align: center; color: var(--text-muted); font-size: 0.8rem;
+  background: var(--surface);
+}
+.toc { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 2rem; }
+.toc h3 { font-size: 0.85rem; color: var(--accent); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.toc ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
+.toc a { color: var(--accent2); text-decoration: none; font-size: 0.85rem; }
+.toc a:hover { text-decoration: underline; }
+@media (max-width: 700px) { .overview-grid, .tradeoff-grid, .usage-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header class="doc-header">
+  <div class="header-inner">
+    <div class="app-icon">&#x1F3E5;</div>
+    <div class="header-meta">
+      <h1>cnn-medical-imaging</h1>
+      <p class="subtitle">Medical Imaging Diagnosis — Convolutional Neural Network (CNN) &middot; MLOps Reference Implementation</p>
+      <div class="badge-row">
+        <span class="badge">CNN</span>
+        <span class="badge">Classification</span>
+        <span class="badge">3 Classes</span>
+        <span class="badge">numpy</span>
+        <span class="badge">FastAPI</span>
+        <span class="badge">MLflow</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- TABLE OF CONTENTS -->
+<nav class="toc">
+  <h3>Table of Contents</h3>
+  <ul>
+    <li><a href="#overview">1 &middot; Overview &amp; Monorepo Context</a></li>
+    <li><a href="#math">2 &middot; Mathematical Foundation</a></li>
+    <li><a href="#architecture">3 &middot; Core Logic &amp; Architecture</a></li>
+    <li><a href="#walkthrough">4 &middot; Detailed Code Walkthrough</a></li>
+    <li><a href="#usage">5 &middot; Examples &amp; Usage</a></li>
+  </ul>
+</nav>
+
+<!-- SECTION 1: OVERVIEW -->
+<section class="section" id="overview">
+  <h2><span class="section-icon">&#x1F4CB;</span> Overview &amp; Monorepo Context</h2>
+  <p class="section-subtitle">Name, purpose, role, and dependencies within the broader monorepo.</p>
+
+  <div class="overview-grid">
+    <div class="info-card">
+      <h3>Package Identity</h3>
+      <ul>
+        <li><strong>Package name:</strong> <code>medical-imaging</code></li>
+        <li><strong>Module:</strong> <code>cnn_medical_imaging</code></li>
+        <li><strong>Version:</strong> 0.1.0</li>
+        <li><strong>Description:</strong> Detects tumors or fractures in synthetic medical X-ray, MRI, and CT scan images using a CNN.</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>Monorepo Role</h3>
+      <p>This app is one of nine CNN-family MLOps reference implementations under <code>apps/neural-networks/convolutional/</code>. It demonstrates a complete supervised-classification pipeline — from synthetic 8&times;8 grayscale image generation through training, model-registry persistence, and a productionised FastAPI serving layer with Prometheus metrics and drift detection.</p>
+    </div>
+    <div class="info-card">
+      <h3>Key Dependencies</h3>
+      <ul>
+        <li><code>ai-core</code> — shared workspace library (logging, model registry, drift detection, validation schemas, metrics)</li>
+        <li><code>numpy &gt;= 1.26.0</code> — all numerical computation</li>
+        <li><code>fastapi + uvicorn</code> — HTTP serving</li>
+        <li><code>pydantic &gt;= 2.6.0</code> — request/response models</li>
+        <li><code>prometheus-client</code> — metrics exposition</li>
+        <li><code>matplotlib</code> — training-loss charting</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>Output Contract</h3>
+      <ul>
+        <li><strong>Task type:</strong> Multi-class classification (3 classes: <em>normal</em>, <em>benign</em>, <em>malignant</em>)</li>
+        <li><strong>Input shape:</strong> <code>(N, 1, 8, 8)</code> — 8&times;8 grayscale pixel arrays, flattened to 64 features</li>
+        <li><strong>Output:</strong> Class probability vector via softmax; argmax gives predicted condition label</li>
+        <li><strong>Loss:</strong> Categorical cross-entropy</li>
+        <li><strong>Framework:</strong> Pure NumPy (no PyTorch / TensorFlow)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 2: MATHEMATICAL FOUNDATION -->
+<section class="section" id="math">
+  <h2><span class="section-icon">&#x222B;</span> The Mathematical Foundation</h2>
+  <p class="section-subtitle">Rigorous breakdown of the CNN forward-pass equations, loss, and optimisation used in this app.</p>
+
+  <h3>&#x25B8; Core Equations</h3>
+
+  <div class="math-block">
+    <span class="equation-label">E1</span>
+    $$Z^{(l)} = W^{(l)} * X^{(l)} + b^{(l)}$$
+    <br><small style="color:var(--text-muted)">2-D convolution: valid padding, stride 1. <em>W</em>&nbsp;=&nbsp;(C<sub>out</sub>, C<sub>in</sub>, k, k), <em>X</em>&nbsp;=&nbsp;(N, C<sub>in</sub>, H, W).</small>
+  </div>
+
+  <div class="math-block">
+    <span class="equation-label">E2</span>
+    $$A^{(l)} = \text{ReLU}\!\left(Z^{(l)}\right) = \max(0, Z^{(l)})$$
+    <br><small style="color:var(--text-muted)">Element-wise non-linearity. Introduces the piecewise-linear non-linearity necessary for universal approximation.</small>
+  </div>
+
+  <div class="math-block">
+    <span class="equation-label">E3</span>
+    $$\text{MaxPool}_{2\times2}(X)_{i,j} = \max_{m\in\{2i,2i+1\},\;n\in\{2j,2j+1\}} X_{m,n}$$
+    <br><small style="color:var(--text-muted)">Halves H and W, providing translation invariance and reducing parameter count in subsequent layers.</small>
+  </div>
+
+  <div class="math-block">
+    <span class="equation-label">E4</span>
+    $$\text{Softmax}(z)_j = \frac{e^{z_j}}{\sum_{k=1}^{K} e^{z_k}}, \quad K=3$$
+    <br><small style="color:var(--text-muted)">Converts the final dense-layer logits into a valid categorical probability distribution.</small>
+  </div>
+
+  <div class="math-block">
+    <span class="equation-label">E5</span>
+    $$\mathcal{L}_{CE} = -\sum_{i=1}^{C} y_i \log(\hat{y}_i)$$
+    <br><small style="color:var(--text-muted)">Categorical cross-entropy. <em>y</em> is the one-hot ground-truth vector; <em>&#x0177;y</em> is the softmax output. Minimising this maximises the log-likelihood of the correct class.</small>
+  </div>
+
+  <div class="math-block">
+    <span class="equation-label">E6</span>
+    $$\theta \leftarrow \theta - \alpha\,\nabla_\theta\mathcal{L} - \alpha\lambda\theta$$
+    <br><small style="color:var(--text-muted)">Gradient-descent update with L2 weight decay (&#x03BB;&nbsp;=&nbsp;0.001). The weight-decay term <em>&#x03BB;&#x03B8;</em> penalises large weights, reducing overfitting on small 8&times;8 synthetic inputs.</small>
+  </div>
+
+  <h3>&#x25B8; Why This Architecture?</h3>
+  <div class="tradeoff-grid">
+    <div class="tradeoff-card">
+      <h4>Conv2D + ReLU</h4>
+      <p>Local connectivity drastically reduces parameters vs. a fully-connected first layer, while weight sharing enables translation-equivariant feature detection across the 8&times;8 spatial grid.</p>
+    </div>
+    <div class="tradeoff-card">
+      <h4>MaxPool 2&times;2</h4>
+      <p>Reduces spatial dimensions from 6&times;6 to 3&times;3 after two conv layers, providing mild translational invariance and cutting computation in the dense layer by ~75&nbsp;%.</p>
+    </div>
+    <div class="tradeoff-card">
+      <h4>He Initialisation</h4>
+      <p>Weights drawn from N(0, &radic;(2/fan_in)) preserve variance through ReLU layers, preventing vanishing gradients in the early epochs of this small dataset.</p>
+    </div>
+    <div class="tradeoff-card">
+      <h4>Gradient Clipping (clip=5.0)</h4>
+      <p>Norms are capped at 5.0 before each parameter update, stabilising training on synthetic data where high-frequency noise can produce sharp loss spikes.</p>
+    </div>
+  </div>
+
+  <div class="derivation-box">
+    <h3>Step-by-Step Derivation: Forward Pass</h3>
+    <ol style="padding-left:1.3rem; font-size:0.88rem;">
+      <li>Input <em>X</em> of shape (N, 1, 8, 8) is convolved with 8 filters of size 3&times;3: output spatial size = 8&nbsp;&minus;&nbsp;3&nbsp;+&nbsp;1&nbsp;=&nbsp;6. Shape: (N, 8, 6, 6).</li>
+      <li>ReLU is applied element-wise: negative pre-activations become zero, introducing non-linearity.</li>
+      <li>MaxPool 2&times;2 halves H and W: (N, 8, 3, 3).</li>
+      <li>Flatten to (N, 72).</li>
+      <li>Dense layer to 32 units + ReLU.</li>
+      <li>Dense layer to 3 units + Softmax.</li>
+      <li>Cross-entropy loss is computed against the one-hot label vector.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- SECTION 3: CORE LOGIC & ARCHITECTURE -->
+<section class="section" id="architecture">
+  <h2><span class="section-icon">&#x2699;&#xFE0F;</span> Core Logic &amp; Architecture</h2>
+  <p class="section-subtitle">Data flow, design patterns, lifecycle, and state management.</p>
+
+  <div class="arch-box">
+    <h3>Class Hierarchy</h3>
+    <pre style="font-family:'Courier New',monospace;font-size:0.85rem;color:var(--accent2);">MedicalImagingCNN   (src/cnn_medical_imaging/model.py)
+  └── wraps SimpleCNN   (ai_core.nn_utils.cnn — shared library)</pre>
+  </div>
+
+  <div class="arch-box">
+    <h3>Data Flow — Training &amp; Serving Lifecycle</h3>
+    <div class="data-flow">INPUT: 8x8 grayscale pixel vector (64 floats)
+  │
+  ▼
+data.py: generate_synthetic_data() or load_training_data()
+  └─ Creates (X, y) with N_CLASSES=3 distinct spatial templates + Gaussian noise
+  │
+  ▼
+train.py: train()
+  ├─ train_test_split()  →  X_train, X_test, y_train, y_test
+  ├─ MedicalImagingCNN.fit()
+  │    ├─ reshape_image()        → (N, 1, 8, 8)
+  │    ├─ one-hot encode y       → (N, 3)
+  │    ├─ SimpleCNN forward/backward loop (300 iters)
+  │    └─ loss_history appended each epoch
+  ├─ model.evaluate()  →  accuracy on train + test sets
+  ├─ ModelRegistry.save_model()  →  .npz artifact + metadata JSON
+  └─ (optional) registry.log_to_mlflow()
+  │
+  ▼
+SERVING: api.py FastAPI app
+  ├─ lifespan() startup
+  │    ├─ ModelRegistry loads latest model .npz
+  │    ├─ DriftDetector initialised (64 pixel features, PSI threshold=0.2)
+  │    └─ DataValidator created (medical imaging schema)
+  ├─ POST /predict   →  _compute_prediction()
+  │    ├─ validate input (pydantic + DataValidator)
+  │    ├─ model.predict_proba()  →  softmax probabilities
+  │    └─ return PredictResponse(condition, confidence, model_version)
+  ├─ GET  /stats     →  model metadata + loss history
+  ├─ GET  /drift     →  Population Stability Index vs reference data
+  ├─ POST /reload    →  hot-swap model without restart
+  └─ GET  /metrics   →  Prometheus exposition</pre>
+  </div>
+
+  <div class="arch-box">
+    <h3>Key Design Patterns</h3>
+    <div class="layer-list">
+      <div class="layer-item">
+        <div class="layer-dot" style="background:var(--accent);"></div>
+        <div><span class="layer-name">Dataclass Model Wrapper</span></div>
+        <div class="layer-detail">@dataclass pattern — all hyperparameters as typed fields with defaults</div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-dot" style="background:var(--accent2);"></div>
+        <div><span class="layer-name">Stateless Functional Data Layer</span></div>
+        <div class="layer-detail">Pure functions in data.py — no global state, deterministic with seed</div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-dot" style="background:var(--warning);"></div>
+        <div><span class="layer-name">Singleton Global State (API)</span></div>
+        <div class="layer-detail">_model, _metrics, _validator as module-level globals set at lifespan startup</div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-dot" style="background:var(--success);"></div>
+        <div><span class="layer-name">Graceful Fallback Loading</span></div>
+        <div class="layer-detail">_load_model() tries registry → legacy path → bundled baseline → synthetic init</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 4: DETAILED CODE WALKTHROUGH -->
+<section class="section" id="walkthrough">
+  <h2><span class="section-icon">&#x1F4DD;</span> Detailed Code Walkthrough</h2>
+  <p class="section-subtitle">Deep dive into the key files, classes, and functions — annotated with rationale.</p>
+
+  <div class="walk-block">
+    <h4>model.py — MedicalImagingCNN dataclass (lines 19–152)</h4>
+    <p>The public-facing model class is a thin <code>@dataclass</code> wrapper around <code>ai_core.nn_utils.cnn.SimpleCNN</code>. It exists to (a) provide a domain-specific name and docstrings, (b) inject task-specific defaults (IMG_SIZE=8, N_CHANNELS=1, output_dim=3), and (c) expose a uniform interface (<code>fit / predict / evaluate / save / load</code>) that mirrors the other CNN family apps.</p>
+    <pre class="code-block" style="margin-top:0.5rem;"><code><span class="hl-keyword">@dataclass</span>
+<span class="hl-keyword">class</span> <span class="hl-class">MedicalImagingCNN</span>:
+    IMG_SIZE: <span class="hl-builtin">int</span> = <span class="hl-number">8</span>          <span class="hl-comment"># Square input dimension</span>
+    N_CHANNELS: <span class="hl-builtin">int</span> = <span class="hl-number">1</span>       <span class="hl-comment"># Grayscale — single channel</span>
+    n_filters: <span class="hl-builtin">int</span> = <span class="hl-number">8</span>        <span class="hl-comment"># Conv2D output channels</span>
+    kernel_size: <span class="hl-builtin">int</span> = <span class="hl-number">3</span>    <span class="hl-comment"># 3×3 receptive field</span>
+    hidden_dim: <span class="hl-builtin">int</span> = <span class="hl-number">32</span>    <span class="hl-comment"># Dense hidden layer width</span>
+    output_dim: <span class="hl-builtin">int</span> = <span class="hl-number">3</span>     <span class="hl-comment"># 3 diagnostic classes</span>
+    learning_rate: <span class="hl-builtin">float</span> = <span class="hl-number">0.05</span>
+    n_iterations: <span class="hl-builtin">int</span> = <span class="hl-number">300</span>
+    weight_decay: <span class="hl-builtin">float</span> = <span class="hl-number">0.001</span>
+    clip_value: <span class="hl-builtin">float</span> = <span class="hl-number">5.0</span>   <span class="hl-comment"># Max gradient norm</span>
+    random_seed: <span class="hl-builtin">int</span> = <span class="hl-number">42</span>
+    model: SimpleCNN | <span class="hl-builtin">None</span> = <span class="hl-builtin">None</span>   <span class="hl-comment"># Populated after fit()</span>
+    loss_history: <span class="hl-builtin">list</span>[<span class="hl-builtin">float</span>] = <span class="hl-builtin">field</span>(<span class="hl-builtin">default_factory</span>=<span class="hl-builtin">list</span>)</code></pre>
+  </div>
+
+  <div class="walk-block">
+    <h4>model.py — fit() (lines 53–94)</h4>
+    <p><code>fit()</code> reshapes the flat <code>(N, 64)</code> input to <code>(N, 1, 8, 8)</code>, one-hot encodes labels, constructs the <code>SimpleCNN</code> with <code>output_activation="softmax"</code> and <code>output_loss="cross_entropy"</code>, then delegates training to <code>SimpleCNN.fit()</code>. It stores the resulting <code>loss_history</code> for charting and metric reporting.</p>
+    <pre class="code-block" style="margin-top:0.5rem;"><code><span class="hl-keyword">def</span> <span class="hl-func">fit</span>(<span class="hl-param">self, X, y, X_val=None, y_val=None</span>) -> <span class="hl-string">"MedicalImagingCNN"</span>:
+    X_img = reshape_image(X)                    <span class="hl-comment"># (N,64) → (N,1,8,8)</span>
+    y_arr = np.asarray(y, dtype=<span class="hl-builtin">float</span>)
+    <span class="hl-comment"># One-hot encode for 3-class cross-entropy</span>
+    onehot = np.zeros((<span class="hl-builtin">len</span>(y_arr), <span class="hl-keyword">self</span>.output_dim))
+    onehot[np.arange(<span class="hl-builtin">len</span>(y_arr)), y_arr.astype(<span class="hl-builtin">int</span>)] = <span class="hl-number">1.0</span>
+    y_arr = onehot
+
+    <span class="hl-keyword">self</span>.model = SimpleCNN(
+        input_shape=(<span class="hl-keyword">self</span>.N_CHANNELS, <span class="hl-keyword">self</span>.IMG_SIZE, <span class="hl-keyword">self</span>.IMG_SIZE),
+        n_filters=<span class="hl-keyword">self</span>.n_filters,
+        kernel_size=<span class="hl-keyword">self</span>.kernel_size,
+        hidden_dim=<span class="hl-keyword">self</span>.hidden_dim,
+        output_dim=<span class="hl-keyword">self</span>.output_dim,
+        output_activation=<span class="hl-string">"softmax"</span>,
+        output_loss=<span class="hl-string">"cross_entropy"</span>,
+        learning_rate=<span class="hl-keyword">self</span>.learning_rate,
+        weight_decay=<span class="hl-keyword">self</span>.weight_decay,
+        clip_value=<span class="hl-keyword">self</span>.clip_value,
+        random_seed=<span class="hl-keyword">self</span>.random_seed,
+    )
+    <span class="hl-keyword">self</span>.model.fit(X_img, y_arr, n_iterations=<span class="hl-keyword">self</span>.n_iterations)
+    <span class="hl-keyword">self</span>.loss_history = <span class="hl-keyword">self</span>.model.loss_history
+    <span class="hl-keyword">return</span> <span class="hl-keyword">self</span></code></pre>
+  </div>
+
+  <div class="walk-block">
+    <h4>data.py — Synthetic Data Generation (lines 1–103)</h4>
+    <p><code>generate_synthetic_data()</code> creates N_CLASSES=3 distinct spatial templates (centre-square, upper-half, diagonal-stripe) on an 8&times;8 grid. Gaussian noise (&#x3C3;&nbsp;=&nbsp;0.2) is added and the result is clipped to [0, 1]. The <code>_create_template()</code> function indexes into a list of 10 lambda pattern functions; only the first 3 are used (for the 3 classes). <code>train_test_split()</code> uses <code>np.random.default_rng</code> for permutation, ensuring reproducibility when a seed is provided.</p>
+    <pre class="code-block" style="margin-top:0.5rem;"><code><span class="hl-comment"># Three distinct spatial patterns for the 3 diagnostic classes:</span>
+patterns = [
+    <span class="hl-keyword">lambda</span> r, c: IMAGE_SIZE//<span class="hl-number">4</span> <= r <= <span class="hl-number">3</span>*IMAGE_SIZE//<span class="hl-number">4</span> <span class="hl-comment"># centre square → 'normal'</span>
+               <span class="hl-keyword">and</span> IMAGE_SIZE//<span class="hl-number">4</span> <= c <= <span class="hl-number">3</span>*IMAGE_SIZE//<span class="hl-number">4</span>,
+    <span class="hl-keyword">lambda</span> r, c: r < IMAGE_SIZE//<span class="hl-number">2</span>                   <span class="hl-comment"># upper half → 'benign'</span>
+    <span class="hl-keyword">lambda</span> r, c: (r + c) % <span class="hl-number">3</span> == <span class="hl-number">0</span>             <span class="hl-comment"># diagonal stripes → 'malignant'</span>
+]
+LABEL_NAMES = [<span class="hl-string">'normal'</span>, <span class="hl-string">'benign'</span>, <span class="hl-string">'malignant'</span>]</code></pre>
+  </div>
+
+  <div class="walk-block">
+    <h4>train.py — Orchestration Pipeline (lines 21–208)</h4>
+    <p>The <code>train()</code> function is the single entry-point for CI/CD and local runs. It chains: data loading &rarr; validation &rarr; train/test split &rarr; model construction &rarr; training &rarr; evaluation &rarr; model persistence &rarr; registry &rarr; (optional) MLflow logging. All hyperparameters are exposed as CLI arguments via <code>argparse</code> with environment-variable defaults, enabling containerised overrides without code changes.</p>
+    <pre class="code-block" style="margin-top:0.5rem;"><code><span class="hl-keyword">def</span> <span class="hl-func">train</span>(<span class="hl-param">model_dir, data_path=None, n_samples=500,
+        n_filters=8, kernel_size=3, hidden_dim=32,
+        learning_rate=0.05, n_iterations=300, weight_decay=0.001,
+        model_version="1.0.0", register_to_mlflow=False,
+        test_size=0.2, random_seed=42</span>) -> <span class="hl-builtin">dict</span>:
+    X, y = load_training_data(data_path, n_samples, random_seed)
+    <span class="hl-comment"># Validate against create_medical_imaging_schema() from ai-core</span>
+    validator = DataValidator(create_medical_imaging_schema())
+    validation = validator.validate(X.reshape(-<span class="hl-number">1</span>, <span class="hl-number">1</span>))
+    <span class="hl-comment"># Split → Train → Evaluate → Save → Register</span>
+    model = MedicalImagingCNN(IMG_SIZE=<span class="hl-number">8</span>, N_CHANNELS=<span class="hl-number">1</span>, ...)
+    model.fit(X_train, y_train, X_val=X_test, y_val=y_test)
+    registry = ModelRegistry(base_dir=model_dir)
+    registry.save_model(model_name=<span class="hl-string">"medical-imaging"</span>, ...)</code></pre>
+  </div>
+
+  <div class="walk-block">
+    <h4>api.py — FastAPI Serving Layer (lines 1–324)</h4>
+    <p>The serving layer uses a <code>@asynccontextmanager</code> lifespan to initialise all shared state (model, metrics collector, validator, drift detector) once at startup. The module-level <code>_model</code> singleton avoids repeated deserialisation. Key endpoints:</p>
+    <ul style="font-size:0.87rem; padding-left:1.2rem; margin-top:0.5rem;">
+      <li><code>POST /predict</code> — single-sample inference with input validation and metrics recording</li>
+      <li><code>POST /predict/bulk</code> — batch inference (1–50 samples), loop over <code>_compute_prediction()</code></li>
+      <li><code>GET /stats</code> — model metadata, epoch count, final loss</li>
+      <li><code>GET /drift</code> — PSI-based drift detection against reference data (requires &ge;10 predictions)</li>
+      <li><code>POST /reload</code> — hot-swap model version without container restart</li>
+      <li><code>GET /metrics</code> — Prometheus <code>generate_latest()</code> exposition</li>
+    </ul>
+  </div>
+</section>
+
+<!-- SECTION 5: EXAMPLES & USAGE -->
+<section class="section" id="usage">
+  <h2><span class="section-icon">&#x25B6;&#xFE0F;</span> Examples &amp; Usage</h2>
+  <p class="section-subtitle">Practical code examples for initialising, training, and serving the model.</p>
+
+  <div class="usage-grid">
+    <div class="usage-card">
+      <h3>Train via CLI</h3>
+      <pre>uv run python -m cnn_medical_imaging.train \
+  --model-dir ./artifacts/models \
+  --n-samples 1000 \
+  --n-filters 16 \
+  --n-iterations 500 \
+  --learning-rate 0.03 \
+  --register-mlflow</pre>
+    </div>
+    <div class="usage-card">
+      <h3>Train Programmatically</h3>
+      <pre>from pathlib import Path
+from cnn_medical_imaging.model import MedicalImagingCNN
+from cnn_medical_imaging.data import generate_synthetic_data, train_test_split
+
+X, y = generate_synthetic_data(n_samples=500, random_seed=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_seed=42)
+
+model = MedicalImagingCNN(
+    n_filters=16, kernel_size=3,
+    hidden_dim=64, learning_rate=0.03,
+    n_iterations=500, weight_decay=0.001,
+)
+model.fit(X_train, y_train, X_val=X_test, y_val=y_test)
+metrics = model.evaluate(X_test, y_test)
+print(f"Test accuracy: {metrics['accuracy']:.2%}")
+model.save("./artifacts/medical_imaging_v2.npz")</pre>
+    </div>
+    <div class="usage-card">
+      <h3>Predict Single Sample</h3>
+      <pre>import numpy as np
+from cnn_medical_imaging.model import MedicalImagingCNN
+
+model = MedicalImagingCNN.load("./artifacts/medical_imaging_v2.npz")
+
+# 64-pixel flat vector representing an 8x8 grayscale image
+sample = np.random.rand(64).astype(np.float32)
+probas = model.predict_proba(sample.reshape(1, -1))
+pred_class = int(np.argmax(probas))
+print(f"Predicted: {['normal','benign','malignant'][pred_class]}")
+print(f"Confidence: {probas[0][pred_class]:.4f}")</pre>
+    </div>
+    <div class="usage-card">
+      <h3>REST API — curl Examples</h3>
+      <pre># Health check
+curl http://localhost:8016/health
+
+# Single prediction (64 floats)
+curl -X POST http://localhost:8016/predict \
+  -H "Content-Type: application/json" \
+  -d '{"condition": [0.1, 0.2, ... 64 values ...]}'
+
+# Batch prediction (up to 50)
+curl -X POST http://localhost:8016/predict/bulk \
+  -H "Content-Type: application/json" \
+  -d '{"requests": [[...64f], [...64f]]}'
+
+# Model stats &amp; drift
+curl http://localhost:8016/stats
+curl http://localhost:8016/drift
+
+# Hot-reload model without restart
+curl -X POST http://localhost:8016/reload</pre>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="doc-footer">
+  <p>Generated technical documentation for <strong>cnn-medical-imaging</strong> &middot; monorepo: <code>apps/neural-networks/convolutional</code></p>
+</footer>
+
+<script>
+function copyCode(id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.innerText);
+}
+function renderMath() {
+  renderMathInElement(document.body, { delimiters: [{left: "$$", right: "$$", display: true}] });
+}
+</script>
+</body>
+</html>

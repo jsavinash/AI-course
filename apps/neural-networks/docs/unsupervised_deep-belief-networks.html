@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deep Belief Networks - AI App Documentation</title>
+  <style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  color: #e0e0e0;
+  background: #0f1115;
+}
+header {
+  background: linear-gradient(135deg, #1a1d23 0%, #252a33 100%);
+  border-bottom: 1px solid #333;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+header h1 { font-size: 1.75rem; color: #fff; margin-bottom: 0.25rem; }
+header p { color: #9aa; font-size: 0.95rem; }
+main { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
+.section {
+  background: #1a1d23;
+  border: 1px solid #2a2e36;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.section h2 {
+  font-size: 1.25rem;
+  color: #fff;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.section-subtitle { color: #9aa; font-size: 0.9rem; margin-bottom: 1rem; }
+.math-block {
+  background: #111;
+  border: 1px solid #2a2e36;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin: 0.5rem 0;
+  overflow-x: auto;
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 0.9rem;
+  color: #cdd6f4;
+}
+.derivation p { margin-top: 0.5rem; color: #bbc; }
+.code-block-wrapper { position: relative; margin: 0.75rem 0; }
+.code-block {
+  background: #111;
+  border: 1px solid #2a2e36;
+  border-radius: 6px;
+  padding: 1rem;
+  overflow-x: auto;
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #cdd6f4;
+}
+.copy-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: #333;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.copy-btn:hover { background: #444; }
+.api-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+.api-table th, .api-table td {
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid #2a2e36;
+  color: #cdd6f4;
+}
+.api-table th { color: #fff; font-weight: 600; }
+.muted { color: #9aa; font-size: 0.9rem; }
+footer {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #9aa;
+  font-size: 0.85rem;
+  border-top: 1px solid #2a2e36;
+}
+
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Deep Belief Networks</h1>
+    <p>Generative graphical models composed of multiple layers of latent variables</p>
+  </header>
+  <main>
+
+    <section class="section">
+      <h2><span>1</span> Overview &amp; Monorepo Context</h2>
+      <p class="section-subtitle">Name, purpose, and role within the broader monorepo</p>
+      <p><strong>Name:</strong> <code>deep-belief-networks</code> (package: <code>deep_belief_networks</code>)</p>
+      <p><strong>Purpose:</strong> Implements a Deep Belief Network (DBN) - a stack of Restricted Boltzmann Machines (RBMs) greedily pre-trained for unsupervised feature learning.</p>
+      <p><strong>Monorepo role:</strong> Lives under <code>unsupervised/</code>, sharing <code>ai-core</code> for MLOps.</p>
+    </section>
+
+    <section class="section">
+      <h2><span>2</span> The Mathematical Foundation</h2>
+      <p class="section-subtitle">RBM energy, contrastive divergence, and greedy pre-training</p>
+      <div class="math-block">$$E(v, h) = -\sum_i a_i v_i - \sum_j b_j h_j - \sum_{i,j} v_i h_j W_{ij}$$</div>
+      <div class="math-block">$$P(h_j=1|v) = \sigma(b_j + \sum_i W_{ij} v_i)$$</div>
+      <div class="math-block">$$\Delta W_{ij} = \epsilon (\langle v_i h_j \rangle_{data} - \langle v_i h_j \rangle_{recon})$$</div>
+      <div class="derivation">
+        <p><strong>Why DBN?</strong> Each RBM is trained greedily layer-by-layer. The hidden activations of one RBM become the visible inputs of the next. This pre-training initializes deep networks in a region of weight space conducive to further supervised fine-tuning.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2><span>3</span> Core Logic &amp; Architecture</h2>
+      <p class="section-subtitle">Stacked RBMs with Contrastive Divergence</p>
+      <ul>
+        <li><strong>RBM:</strong> Bipartite graph with binary visible and hidden units. No intra-layer connections.</li>
+        <li><strong>Training:</strong> Contrastive Divergence (CD-k). Sample h ~ P(h|v), then reconstruct v' ~ P(v|h), then h' ~ P(h|v'). Update weights with v*h - v'*h'.</li>
+        <li><strong>Stacking:</strong> After training RBM1, its hidden probabilities become the visible inputs of RBM2, and so on.</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2><span>4</span> Detailed Code Walkthrough</h2>
+      <p class="section-subtitle">Key files, classes, and critical logic</p>
+      <h3>model.py - RBM and DeepBeliefNetwork</h3>
+      <div class="code-block-wrapper">
+  <button class="copy-btn" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('code').innerText)">Copy</button>
+  <pre class="code-block"><code class="language-python">class RBM:
+    def fit(self, X: np.ndarray, n_epochs: int = 50) -&gt; "RBM":
+        for _epoch in range(n_epochs):
+            for i in range(n_samples):
+                v = X_shuffled[i:i + 1]
+                h_prob, h_sample = self._sample_h(v, rng)
+                for _ in range(self.n_cd_steps - 1):
+                    v_prob, v_sample = self._sample_v(h_sample, rng)
+                    h_prob, h_sample = self._sample_h(v_prob, rng)
+                v_k_prob, v_k_sample = self._sample_v(h_sample, rng)
+                h_k_prob, _ = self._sample_h(v_k_sample, rng)
+                self.dW = np.outer(v[0], h_prob[0]) - np.outer(v_k_prob[0], h_k_prob[0])
+                self.W -= self.learning_rate * (self.dW + self.weight_decay * self.W)
+
+class DeepBeliefNetwork:
+    def fit(self, X: np.ndarray, n_epochs: int | None = None) -&gt; "DeepBeliefNetwork":
+        data = X.copy()
+        for layer_idx, hidden_dim in enumerate(self.hidden_dims):
+            rbm = RBM(n_visible=data.shape[1], n_hidden=hidden_dim, ...)
+            rbm.fit(data, n_epochs=n_epochs)
+            self.layers.append(rbm)
+            data = rbm.transform(data)</code></pre>
+</div>
+    </section>
+
+    <section class="section">
+      <h2><span>5</span> Examples &amp; Usage</h2>
+      <p class="section-subtitle">Initialize, run, and consume the codebase</p>
+      <h3>Training</h3>
+      <div class="code-block-wrapper">
+  <button class="copy-btn" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('code').innerText)">Copy</button>
+  <pre class="code-block"><code class="language-python">from pathlib import Path
+from deep_belief_networks.train import train
+
+metrics = train(
+    model_dir=Path("./artifacts/models"),
+    n_samples=500,
+    hidden_dims=[16, 8],
+    learning_rate=0.05,
+    n_cd_steps=1,
+    n_epochs=100,
+)
+print(metrics)</code></pre>
+</div>
+      <h3>CLI</h3>
+      <div class="code-block-wrapper">
+  <button class="copy-btn" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('code').innerText)">Copy</button>
+  <pre class="code-block"><code class="language-bash">uv run python -m deep_belief_networks.train --model-dir ./artifacts/models</code></pre>
+</div>
+      <h3>Feature Extraction</h3>
+      <div class="code-block-wrapper">
+  <button class="copy-btn" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('code').innerText)">Copy</button>
+  <pre class="code-block"><code class="language-python">from deep_belief_networks.model import DeepBeliefNetwork
+model = DeepBeliefNetwork.load("dbn_model.npz")
+latent = model.transform(X)
+recon = model.reconstruct(X)</code></pre>
+</div>
+    </section>
+    
+  </main>
+  <footer>
+    <p>Generated documentation for <strong>deep-belief-networks</strong></p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ai-core — MLOps Utilities Package Documentation</title>
+<style>
+  :root {
+    --bg-primary: #0f1115;
+    --bg-secondary: #161a21;
+    --bg-tertiary: #1e2330;
+    --bg-code: #111520;
+    --text-primary: #e6e9ef;
+    --text-secondary: #a0a8b8;
+    --text-muted: #6b7280;
+    --accent: #4f8cff;
+    --accent-secondary: #7c5cff;
+    --accent-green: #34d399;
+    --accent-orange: #f59e0b;
+    --accent-red: #f87171;
+    --border: #252a38;
+    --border-light: #2f3545;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    --radius: 12px;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', 'Fira Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    line-height: 1.7;
+    font-size: 16px;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  header {
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 64px 24px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(79,140,255,0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  header h1 {
+    font-size: 2.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #e6e9ef 0%, #a0c4ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  header p {
+    color: var(--text-secondary);
+    margin-top: 12px;
+    font-size: 1.1rem;
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .badge-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+  .badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+  }
+  .badge.python { border-color: #3572A5; color: #3572A5; }
+  .badge.mlops { border-color: var(--accent-green); color: var(--accent-green); }
+  .badge.stats { border-color: var(--accent-orange); color: var(--accent-orange); }
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15,17,21,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+  }
+  nav ul {
+    list-style: none;
+    display: flex;
+    gap: 4px;
+    max-width: 1000px;
+    margin: 0 auto;
+    overflow-x: auto;
+  }
+  nav li a {
+    display: block;
+    padding: 14px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  nav li a:hover, nav li a.active {
+    color: var(--text-primary);
+    text-decoration: none;
+    border-bottom-color: var(--accent);
+  }
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+  section {
+    margin-bottom: 64px;
+    scroll-margin-top: 80px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 1rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .section-header h2 {
+    font-size: 1.7rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 28px 0 12px;
+    color: var(--text-primary);
+  }
+  h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 20px 0 8px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  p { margin-bottom: 14px; color: var(--text-secondary); }
+  ul, ol { margin: 0 0 16px 24px; color: var(--text-secondary); }
+  li { margin-bottom: 6px; }
+  strong { color: var(--text-primary); font-weight: 600; }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--border-light); }
+  .card .card-icon {
+    font-size: 1.6rem;
+    margin-bottom: 10px;
+  }
+  .card h4 {
+    margin: 0 0 6px;
+    font-size: 0.9rem;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--text-primary);
+  }
+  .card p { font-size: 0.85rem; margin: 0; }
+  .equation-block {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin: 18px 0;
+    font-family: var(--font-mono);
+    font-size: 0.92rem;
+    color: #c9d1d9;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .equation-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    display: block;
+  }
+  pre.code-block {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    overflow-x: auto;
+    position: relative;
+    margin: 18px 0;
+    box-shadow: var(--shadow);
+  }
+  pre.code-block code {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    line-height: 1.75;
+    color: #c9d1d9;
+  }
+  .code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-filename {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  .code-lang {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    background: var(--bg-tertiary);
+    color: var(--accent);
+    border: 1px solid var(--border-light);
+  }
+  .annotation {
+    color: #6a737d;
+    font-style: italic;
+  }
+  .keyword { color: #ff7b72; }
+  .string { color: #a5d6ff; }
+  .comment { color: #6a737d; font-style: italic; }
+  .function { color: #d2a8ff; }
+  .class { color: #ffa657; }
+  .number { color: #79c0ff; }
+  .decorator { color: #7ee787; }
+  .builtin { color: #ff7b72; }
+  .operator { color: #ff7b72; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 18px 0;
+    font-size: 0.9rem;
+  }
+  th {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-weight: 700;
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 2px solid var(--border-light);
+  }
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+  tr:hover td { background: var(--bg-secondary); }
+  .callout {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 18px 0;
+    color: var(--text-secondary);
+  }
+  .callout.warning {
+    border-left-color: var(--accent-orange);
+    background: rgba(245,158,11,0.05);
+  }
+  .callout.success {
+    border-left-color: var(--accent-green);
+    background: rgba(52,211,153,0.05);
+  }
+  footer {
+    text-align: center;
+    padding: 32px 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.82rem;
+  }
+  @media (max-width: 640px) {
+    header h1 { font-size: 1.8rem; }
+    .section-header h2 { font-size: 1.3rem; }
+    main { padding: 32px 16px 60px; }
+    pre.code-block { padding: 14px 16px; }
+    pre.code-block code { font-size: 0.78rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ai-core</h1>
+  <p>Shared MLOps utilities for the monorepo — configuration, logging, metrics, model lifecycle, data validation, drift detection, and neural-network primitives.</p>
+  <div class="badge-row">
+    <span class="badge python">Python 3.9+</span>
+    <span class="badge mlops">MLOps</span>
+    <span class="badge stats">Statistics</span>
+    <span class="badge">NumPy · Pandas · FastAPI · Prometheus</span>
+  </div>
+</header>
+
+<nav>
+  <ul>
+    <li><a href="#overview">1. Overview</a></li>
+    <li><a href="#math">2. Math Foundation</a></li>
+    <li><a href="#architecture">3. Architecture</a></li>
+    <li><a href="#walkthrough">4. Code Walkthrough</a></li>
+    <li><a href="#examples">5. Examples</a></li>
+  </ul>
+</nav>
+
+<main>
+
+<!-- ================================================================== -->
+<!-- SECTION 1 — Overview & Monorepo Context                            -->
+<!-- ================================================================== -->
+<section id="overview">
+  <div class="section-header">
+    <div class="section-number">1</div>
+    <h2>Overview &amp; Monorepo Context</h2>
+  </div>
+
+  <h3>Package Identity</h3>
+  <p><strong>Name:</strong> <code>ai-core</code> (importable as <code>ai_core</code>)<br>
+  <strong>Location:</strong> <code>packages/ai-core/</code> within a broader AI monorepo.<br>
+  <strong>Purpose:</strong> The foundational MLOps shared library — the single source of truth for cross-cutting concerns that every other package in the monorepo depends on.</p>
+
+  <h3>Role in the Monorepo</h3>
+  <p>Every production ML service in the repository consumes <code>ai-core</code> for:</p>
+  <ul>
+    <li><strong>Configuration</strong> — unified, hierarchical config with 12-factor-app env-var overrides, YAML files, nested dataclass sections, type coercion, and automatic secrets redaction.</li>
+    <li><strong>Structured Logging</strong> — <code>structlog</code>-based JSON logging with per-request correlation IDs (request ID &amp; trace ID via <code>ContextVar</code>), sensitive-key redaction, and optional rotating file handlers.</li>
+    <li><strong>Prometheus Metrics</strong> — singleton <code>MetricsCollector</code> that registers and exposes <code>Counter</code>, <code>Gauge</code>, and <code>Histogram</code> metrics on a configurable HTTP endpoint.</li>
+    <li><strong>Model Registry</strong> — filesystem-backed model artifact store with lifecycle stage management (<code>staging</code> → <code>production</code> → <code>archived</code>) and optional MLflow integration.</li>
+    <li><strong>Data Validation</strong> — schema-driven validation of NumPy arrays and Pandas DataFrames with range checks, type enforcement, NaN/Inf detection, and per-feature statistics.</li>
+    <li><strong>Drift Detection</strong> — statistical drift monitoring using Kolmogorov-Smirnov (continuous), Chi-Squared (categorical), and Population Stability Index (PSI) tests.</li>
+    <li><strong>FastAPI Middleware</strong> — plug-and-play observability middleware for request logging, latency measurement, and security headers.</li>
+    <li><strong>Neural-Net Primitives</strong> — minimal NumPy-based implementations of <code>Conv2D</code>, <code>MaxPool2D</code>, <code>Dense</code>, <code>Activation</code>, <code>SimpleCNN</code>, and <code>SimpleRNN</code> layer classes for educational and lightweight use cases.</li>
+  </ul>
+
+  <h3>Public API Surface</h3>
+  <p>The package exports <strong>136 symbols</strong> across 10 sub-modules. The core abstractions are:</p>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">⚙️</div>
+      <h4>Config</h4>
+      <p><code>Config</code>, <code>BaseConfig</code>, <code>load_config()</code> — hierarchical config with env/YAML/dict loading.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📋</div>
+      <h4>Logging</h4>
+      <p><code>setup_logging()</code>, <code>get_logger()</code>, <code>set_request_context()</code> — structured, redacted, correlated logging.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h4>Metrics</h4>
+      <p><code>MetricsCollector</code>, <code>PredictionMetrics</code> — Prometheus counters, gauges, histograms with singleton pattern.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🗂️</div>
+      <h4>Model Registry</h4>
+      <p><code>ModelRegistry</code>, <code>ModelInfo</code>, <code>MODEL_STAGES</code>, <code>TRANSITIONS</code> — versioned model artifact management.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">✅</div>
+      <h4>Validation</h4>
+      <p><code>DataSchema</code>, <code>DataValidator</code>, <code>ValidationResult</code> — schema-driven data quality checks.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📉</div>
+      <h4>Drift Detection</h4>
+      <p><code>DriftDetector</code>, <code>DriftResult</code> — KS test, chi-squared, and PSI-based drift monitoring.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌐</div>
+      <h4>FastAPI Middleware</h4>
+      <p><code>RequestLoggingMiddleware</code>, <code>SecurityHeadersMiddleware</code> — plug-and-play observability.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🧠</div>
+      <h4>NN Utils (CNN)</h4>
+      <p><code>Conv2D</code>, <code>MaxPool2D</code>, <code>Dense</code>, <code>SimpleCNN</code>, <code>Deconv2D</code> — NumPy CNN primitives.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔁</div>
+      <h4>NN Utils (RNN)</h4>
+      <p><code>SimpleRNN</code>, <code>softmax()</code> — minimal RNN with tanh hidden state and softmax output.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>Design Philosophy:</strong> Each module is independently importable but composed together via the top-level <code>ai_core/__init__.py</code> barrel file. Dependencies are kept minimal — <code>config.py</code> only needs <code>pyyaml</code>, <code>metrics.py</code> only needs <code>prometheus_client</code>, and so on. MLflow and FastAPI are optional, gracefully degraded when absent.
+  </div>
+</section>
+
+
+<!-- ================================================================== -->
+<!-- SECTION 2 — The Mathematical Foundation                           -->
+<!-- ================================================================== -->
+<section id="math">
+  <div class="section-header">
+    <div class="section-number">2</div>
+    <h2>The Mathematical Foundation</h2>
+  </div>
+
+  <h3>2.1 Configuration — Type Coercion</h3>
+  <p>No statistical model, but the coercion rules define a discrete type-transformation algebra over the set of environment-variable strings:</p>
+  <div class="equation-block"><span class="equation-label">Type Coercion Rules</span>
+bool   : s ∈ {"true","1","yes","on"}  →  True, else False
+int    : int(s)
+float  : float(s)
+Path   : Path(s)
+List   : [v.strip() for v in s.split(",") if v.strip()]
+Dict   : json.loads(s)</div>
+
+  <h3>2.2 Drift Detection — Kolmogorov-Smirnov Test</h3>
+  <p>The KS two-sample test compares the empirical cumulative distribution functions (ECDFs) of the reference and current samples for a continuous feature. The test statistic is the maximum distance between the two ECDFs:</p>
+  <div class="equation-block"><span class="equation-label">KS Test Statistic</span>
+D = sup_x | F_ref(x) − F_cur(x) |
+
+The p-value is computed from the Kolmogorov distribution:
+  p = Q_KS( √(n_ref · n_cur / (n_ref + n_cur)) · D )
+
+where Q_KS is the complementary CDF of the Kolmogorov distribution.
+Drift is flagged when p &lt; α (default α = 0.05).</div>
+  <p>The KS test is <em>non-parametric</em> — it makes no assumption about the underlying distribution shape, making it robust for general-purpose drift detection. It is sensitive to differences in both location (mean shift) and shape (variance change).</p>
+
+  <h3>2.3 Drift Detection — Chi-Squared Test (Categorical)</h3>
+  <p>For binary or categorical features, the chi-squared goodness-of-fit test compares observed category frequencies against the reference distribution:</p>
+  <div class="equation-block"><span class="equation-label">Chi-Squared Statistic</span>
+χ² = Σᵢ (Oᵢ − Eᵢ)² / Eᵢ
+
+where Oᵢ is the observed count in category i (current data)
+      Eᵢ is the expected count under the reference distribution
+
+p-value ~ χ²(k−1) where k = number of categories.</div>
+  <p>Drift is flagged when p &lt; α or when the PSI (see below) exceeds 0.2.</p>
+
+  <h3>2.4 Drift Detection — Population Stability Index (PSI)</h3>
+  <p>PSI quantifies the total divergence between two probability distributions and is widely used in credit-risk and MLOps monitoring. It is computed by binning the reference distribution and comparing bin proportions:</p>
+  <div class="equation-block"><span class="equation-label">Population Stability Index (Continuous)</span>
+PSI = Σⱼ ( (Cur_j − Ref_j) · ln(Cur_j / Ref_j) )
+
+where Ref_j and Cur_j are the proportions of samples in bin j
+      for the reference and current distributions respectively.
+
+Bins are defined as percentiles of the reference distribution:
+  bin_j = [ percentile(ref, (j−1)/n_bins·100) , percentile(ref, j/n_bins·100) ]
+
+with edge bins extended to (−∞, +∞) to avoid missing values.
+
+For categorical data:
+  PSI = Σₖ ( (cur_propsₖ − ref_propsₖ) · ln(cur_propsₖ / ref_propsₖ) )</div>
+  <p><strong>PSI Interpretation:</strong></p>
+  <ul>
+    <li>PSI &lt; 0.10 → No significant drift</li>
+    <li>0.10 ≤ PSI &lt; 0.20 → Moderate drift (investigation recommended)</li>
+    <li>PSI ≥ 0.20 → Significant drift (action required) — this is the <code>psi_threshold</code> default.</li>
+  </ul>
+  <p>PSI was chosen over KL divergence because it is symmetric in the limit and more interpretable in industry practice. Small proportion values are clipped to <code>1e-6</code> to prevent log(0) singularities.</p>
+
+  <h3>2.5 Metrics — Percentile Calculation</h3>
+  <p>Latency percentiles (P95, P99) are computed from an in-memory sorted list of recorded durations:</p>
+  <div class="equation-block"><span class="equation-label">Empirical Percentile</span>
+P_p = sorted_latencies[ floor( N · p/100 ) ]
+
+where N = len(sorted_latencies), clamped to [0, N−1].</div>
+  <p>This is the <strong>nearest-rank method</strong>, an O(N log N) exact computation suitable for the modest sample sizes typical of inference metrics. It is preferred over interpolation because it guarantees the returned value exists in the dataset.</p>
+
+  <h3>2.6 Neural Networks — He Initialization</h3>
+  <p><code>Conv2D</code> weights are initialized using He (Kaiming) initialization, which preserves variance through ReLU-activated layers:</p>
+  <div class="equation-block"><span class="equation-label">He Initialization</span>
+W ~ N(0, 2 / (n_in))
+
+where n_in = in_channels · kernel_size · kernel_size
+
+Applied as:
+  W = randn(out_channels, in_channels, k, k) · √(2 / n_in)</div>
+  <p><strong>Why He instead of Xavier?</strong> He initialization is designed for ReLU activations (which zero out ~50% of neurons). Xavier/Glorot initialization uses a variance of <code>1/n_in</code>, which is half of what He uses, and would cause signal attenuation through ReLU layers. He initialization doubles the variance to compensate, resulting in stable gradient flow during training.</p>
+
+  <h3>2.7 Neural Networks — ReLU, Sigmoid, and Tanh Activations</h3>
+  <div class="equation-block"><span class="equation-label">Activation Functions</span>
+ReLU:   f(x) = max(0, x)
+Sigmoid: f(x) = 1 / (1 + e^(−x))
+Tanh:   f(x) = (eˣ − e^(−x)) / (eˣ + e^(−x))
+
+Softmax (RNN output):
+  softmax(x)ᵢ = e^(xᵢ − max(x)) / Σⱼ e^(xⱼ − max(x))
+
+(The max-subtraction is a numerically stable trick that prevents overflow.)</div>
+
+  <h3>2.8 Neural Networks — Transposed Convolution (Deconv2D)</h3>
+  <p>The <code>Deconv2D.forward()</code> implements transposed convolution for upsampling:</p>
+  <div class="equation-block"><span class="equation-label">Output Spatial Dimensions</span>
+H_out = (H_in − 1) · stride + kernel_size
+W_out = (W_in − 1) · stride + kernel_size
+
+Each input pixel x[n,c_in,h,w] is multiplied by the filter kernel W[c_in,c_out]
+and added to the corresponding output region starting at (h·stride, w·stride).</div>
+  <p>This is the mathematical transpose of the standard convolution operation — instead of sliding a kernel over the input and summing, each input value spreads its contribution across a <code>kernel_size × kernel_size</code> region in the output. Used for decoder paths in autoencoders and generative models.</p>
+
+  <h3>2.9 Model Registry — Version Promotion Logic</h3>
+  <p>The promotion algorithm ensures at most one <code>production</code> model exists at any time, implemented as an atomic reclassify operation:</p>
+  <div class="equation-block"><span class="equation-label">Promote to Production</span>
+∀ m ∈ Registry:  if m.status == "production" → m.status = "archived"
+target.status = "production"
+
+Allowed transitions (state machine):
+  staging    → {production, archived}
+  production → {archived, staging}
+  archived   → {staging}
+  champion   → {candidate, archived}
+  candidate  → {champion, archived}</div>
+</section>
+
+
+<!-- ================================================================== -->
+<!-- SECTION 3 — Core Logic & Architecture                             -->
+<!-- ================================================================== -->
+<section id="architecture">
+  <div class="section-header">
+    <div class="section-number">3</div>
+    <h2>Core Logic &amp; Architecture</h2>
+  </div>
+
+  <h3>3.1 High-Level Data Flow</h3>
+  <p>An MLOps service bootstraps itself in this order:</p>
+  <div class="equation-block"><span class="equation-label">Bootstrap Sequence</span>
+1. load_config()       → Resolves Config from YAML + env vars
+2. setup_logging()     → Configures structlog with JSON output + redaction
+3. MetricsCollector()  → Creates singleton Prometheus metrics (or retrieves existing)
+4. start_metrics_server() → Exposes /metrics on configured port
+5. ModelRegistry()     → Initializes filesystem-backed model store (optionally connects MLflow)
+6. DriftDetector()     → Pre-loads reference statistics for drift comparison
+7. add_observability_middleware() → Wires FastAPI with logging + metrics + security headers</div>
+
+  <h3>3.2 Configuration Layer</h3>
+  <p>Uses a <strong>layered override pattern</strong>: defaults → YAML → env vars. Env vars take the highest priority. Nested config sections are loaded independently using a prefixed env-var namespace (e.g. <code>MLOPS_MONITORING_DRIFT_THRESHOLD</code> overrides <code>monitoring.drift_threshold</code>).</p>
+  <p><strong>Key design decisions:</strong></p>
+  <ul>
+    <li><code>BaseConfig</code> is a dataclass with <code>from_env</code>, <code>from_yaml</code>, <code>from_dict</code>, <code>to_dict</code>, <code>to_yaml</code>, <code>to_json</code>, and <code>validate</code> class/instance methods — a complete bidirectional serialization protocol.</li>
+    <li><code>SENSITIVE_KEYS</code> is a constant set used by <code>_redact()</code> to mask passwords, tokens, and API keys in all serialized output.</li>
+    <li><code>Config.load()</code> (class method) performs the three-stage merge atomically and re-loads nested sections from env to guarantee that env vars always win, even after YAML loading.</li>
+  </ul>
+
+  <h3>3.3 Logging Layer</h3>
+  <p>Built on <strong>structlog</strong> with a processor chain:</p>
+  <div class="equation-block"><span class="equation-label">structlog Processor Pipeline</span>
+merge_contextvars  →  add_log_level  →  StackInfoRenderer
+→  TimeStamper(iso, utc=True)  →  _add_context  →  _redact_event_dict
+→  JSONRenderer | ConsoleRenderer</div>
+  <p>Context propagation uses Python's <code>ContextVar</code> — this is <em>async-safe</em> and <em>thread-safe</em> without any explicit locking, because each asyncio task or OS thread gets its own independent copy of the variable.</p>
+
+  <h3>3.4 Metrics Layer</h3>
+  <p>The <code>MetricsCollector</code> implements the <strong>Flyweight / Singleton pattern</strong> per service name. Prometheus client libraries require that metric names be registered exactly once; the singleton ensures that even if multiple modules instantiate <code>MetricsCollector("my-service")</code>, only one set of underlying <code>Counter</code>/<code>Gauge</code>/<code>Histogram</code> objects is created.</p>
+
+  <h3>3.5 Model Registry</h3>
+  <p>The registry is a <strong>directory-tree-backed key-value store</strong> with a strict lifecycle state machine. Each model version lives at <code>{base_dir}/{model_name}/{model_version}/</code> with a <code>model_info.json</code> metadata file and arbitrary artifact files.</p>
+  <p><strong>Version retention policy:</strong> The <code>_enforce_max_versions()</code> method keeps only the N most recently modified versions (default N=5). Production models are <em>never</em> auto-archived, protecting the live serving artifact.</p>
+
+  <h3>3.6 Drift Detection</h3>
+  <p>The <code>DriftDetector</code> dispatches to a strategy based on feature type:</p>
+  <ul>
+    <li><strong>Continuous features</strong> → KS two-sample test + PSI on equal-frequency bins.</li>
+    <li><strong>Binary / Categorical features</strong> → Chi-squared goodness-of-fit test + categorical PSI.</li>
+  </ul>
+  <p>The combined <code>drift_score</code> takes the <strong>maximum</strong> of the normalized KS statistic and the PSI, ensuring that either test alone is sufficient to flag drift. This conservative strategy minimizes false negatives at the cost of slightly higher false-positive rate.</p>
+
+  <h3>3.7 FastAPI Middleware</h3>
+  <p>Two Starlette middleware classes wrap every request:</p>
+  <ul>
+    <li><code>RequestLoggingMiddleware</code> — generates/correlates request IDs, measures wall-clock latency, records Prometheus metrics, logs structured events, and injects <code>X-Request-ID</code> into the response header.</li>
+    <li><code>SecurityHeadersMiddleware</code> — adds OWASP-recommended security headers (<code>X-Content-Type-Options</code>, <code>X-Frame-Options</code>, <code>Strict-Transport-Security</code>, etc.) to every response.</li>
+  </ul>
+
+  <h3>3.8 Neural Network Utilities</h3>
+  <p>The <code>nn_utils</code> sub-package provides a <strong>layer-composition architecture</strong> inspired by Keras but implemented in pure NumPy. Each layer implements a uniform interface:</p>
+  <div class="equation-block"><span class="equation-label">Layer Interface</span>
+forward(x)        →  output tensor
+backward(grad)     →  input gradient (for chain rule)
+update_params(lr, weight_decay)  →  applies gradient descent step</div>
+  <p><code>SimpleCNN</code> and <code>SimpleRNN</code> orchestrate these layers in a list, running <code>forward()</code> in order and <code>backward()</code> in reverse (autodiff via manual chain rule).</p>
+
+  <h3>3.9 State Management Summary</h3>
+  <table>
+    <tr>
+      <th>Component</th>
+      <th>State Location</th>
+      <th>Lifetime</th>
+      <th>Concurrency</th>
+    </tr>
+    <tr>
+      <td><code>Config</code></td>
+      <td>Immutable dataclass</td>
+      <td>Process</td>
+      <td>Thread-safe (immutable)</td>
+    </tr>
+    <tr>
+      <td><code>request_id_var</code></td>
+      <td><code>ContextVar</code></td>
+      <td>Request / Task</td>
+      <td>Async-safe</td>
+    </tr>
+    <tr>
+      <td><code>MetricsCollector</code></td>
+      <td>Singleton dict</td>
+      <td>Process</td>
+      <td>Thread-safe (Prometheus client is GIL-protected)</td>
+    </tr>
+    <tr>
+      <td><code>ModelRegistry</code></td>
+      <td>Filesystem</td>
+      <td>Persistent</td>
+      <td>Requires external locking for concurrent writes</td>
+    </tr>
+    <tr>
+      <td><code>DriftDetector</code></td>
+      <td>Instance state</td>
+      <td>Detection run</td>
+      <td>Stateless per call</td>
+    </tr>
+  </table>
+</section>
+
+
+<!-- ================================================================== -->
+<!-- SECTION 4 — Detailed Code Walkthrough                             -->
+<!-- ================================================================== -->
+<section id="walkthrough">
+  <div class="section-header">
+    <div class="section-number">4</div>
+    <h2>Detailed Code Walkthrough</h2>
+  </div>
+
+  <h3>4.1 <code>config.py</code> — Production-Grade Configuration</h3>
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">src/ai_core/config.py</span><span class="code-lang">Python</span></span><span class="comment"># Secrets that should never be logged — used by _redact() throughout</span>
+SENSITIVE_KEYS = {<span class="string">"password"</span>, <span class="string">"secret"</span>, <span class="string">"token"</span>, <span class="string">"api_key"</span>, <span class="string">"apikey"</span>, <span class="string">"credential"</span>}
+
+<span class="keyword">def</span> <span class="function">_redact</span>(value: Any, key: str = <span class="string">""</span>) -> Any:
+    <span class="comment"># Recursively walk dicts/lists and mask any key containing a sensitive substring.</span>
+    <span class="comment"># This prevents credential leakage when config.to_dict() / .to_json() is logged.</span>
+    <span class="keyword">if</span> any(s <span class="keyword">in</span> key.lower() <span class="keyword">for</span> s <span class="keyword">in</span> SENSITIVE_KEYS):
+        <span class="keyword">return</span> <span class="string">"***REDACTED***"</span>
+    <span class="keyword">if</span> isinstance(value, dict):
+        <span class="keyword">return</span> {k: _redact(v, k) <span class="keyword">for</span> k, v <span class="keyword">in</span> value.items()}
+    <span class="keyword">if</span> isinstance(value, list):
+        <span class="keyword">return</span> [_redact(v) <span class="keyword">for</span> v <span class="keyword">in</span> value]
+    <span class="keyword">return</span> value</code></pre>
+
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">src/ai_core/config.py</span><span class="code-lang">Python</span></span><span class="decorator">@dataclass</span>
+<span class="keyword">class</span> <span class="class">BaseConfig</span>:
+    <span class="comment">"""Base configuration with env var support."""</span>
+
+    <span class="decorator">@classmethod</span>
+    <span class="keyword">def</span> <span class="function">from_env</span>(cls: type[T], prefix: str = <span class="string">""</span>) -> T:
+        <span class="comment"># Walk every dataclass field; look up PREFIX_FIELD_NAME in os.environ.</span>
+        <span class="comment"># If found, coerce the string value to the field's annotated type.</span>
+        type_hints = get_type_hints(cls)
+        kwargs: dict[str, Any] = {}
+        <span class="keyword">for</span> f <span class="keyword">in</span> fields(cls):
+            env_key = <span class="string">f"</span>{prefix}<span class="string">_</span>{f.name.upper()}<span class="string">"</span> <span class="keyword">if</span> prefix <span class="keyword">else</span> f.name.upper()
+            env_val = os.getenv(env_key)
+            <span class="keyword">if</span> env_val <span class="keyword">is not</span> <span class="builtin">None</span>:
+                kwargs[f.name] = _coerce_value(env_val, type_hints.get(f.name, f.type))
+        <span class="keyword">return</span> cls(**kwargs)</code></pre>
+
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">src/ai_core/config.py</span><span class="code-lang">Python</span></span><span class="decorator">@dataclass</span>
+<span class="keyword">class</span> <span class="class">Config</span>(BaseConfig):
+    <span class="comment">"""Top-level application configuration."""</span>
+    model_name: str = <span class="string">"default"</span>
+    model_version: str = <span class="string">"1.0.0"</span>
+    environment: str = <span class="string">"development"</span>
+    mlflow: MLflowConfig = field(default_factory=MLflowConfig)
+    registry: ModelRegistryConfig = field(default_factory=ModelRegistryConfig)
+    monitoring: MonitoringConfig = field(default_factory=MonitoringConfig)
+    data: DataConfig = field(default_factory=DataConfig)
+
+    <span class="decorator">@classmethod</span>
+    <span class="keyword">def</span> <span class="function">load</span>(cls, path: Path | None = <span class="builtin">None</span>, prefix: str = <span class="string">"MLOPS"</span>) -> Config:
+        <span class="comment"># Priority: env vars > YAML file > defaults</span>
+        config = cls()                                    <span class="comment"># start from defaults</span>
+        <span class="keyword">if</span> path <span class="keyword">and</span> path.exists():
+            config = cls.from_yaml(path)                   <span class="comment"># override with YAML</span>
+        env_config = cls.from_env(prefix)                  <span class="comment"># read env overrides</span>
+        <span class="keyword">for</span> f <span class="keyword">in</span> fields(cls):                               <span class="comment"># merge top-level fields</span>
+            env_val = getattr(env_config, f.name)
+            <span class="keyword">if</span> env_val <span class="keyword">is not</span> <span class="builtin">None</span> <span class="keyword">and</span> env_val != getattr(cls(), f.name):
+                setattr(config, f.name, env_val)
+        <span class="comment"># Re-load nested sections independently with their own env prefixes</span>
+        config.mlflow      = MLflowConfig.from_env(<span class="string">f"</span>{prefix}<span class="string">_MLFLOW"</span>)
+        config.registry    = ModelRegistryConfig.from_env(<span class="string">f"</span>{prefix}<span class="string">_REGISTRY"</span>)
+        config.monitoring  = MonitoringConfig.from_env(<span class="string">f"</span>{prefix}<span class="string">_MONITORING"</span>)
+        config.data        = DataConfig.from_env(<span class="string">f"</span>{prefix}<span class="string">_DATA"</span>)
+        <span class="keyword">return</span> config</code></pre>
+
+  <h3>4.2 <code>logging.py</code> — Structured, Redacted, Correlated Logging</h3>
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">src/ai_core/logging.py</span><span class="code-lang">Python</span></span><span class="comment"># ContextVar provides task-local (async-safe) storage for correlation IDs.</span>
+<span class="comment"># Each asyncio task or OS thread gets an independent copy — no locking needed.</span>
+request_id_var: ContextVar[str] = ContextVar(<span class="string">"request_id"</span>, default=<span class="string">"-"</span>)
+trace_id_var:   ContextVar[str] = ContextVar(<span class="string">"trace_id"</span>,   default=<span class="string">"-"</span>)
+
+<span class="keyword">def</span> <span class="function">_add_context</span>(_, __, event_dict: dict) -> dict:
+    <span class="comment"># structlog processor: injects request_id and trace_id into every log record.</span>
+    event_dict[<span class="string">"request_id"</span>] = request_id_var.get()
+    event_dict[<span class="string">"trace_id"</span>]   = trace_id_var.get()
+    <span class="keyword">return</span> event_dict
+
+<span class="keyword">def</span> <span class="function">_redact_event_dict</span>(_, __, event_dict: dict) -> dict:
+    <span class="comment"># structlog processor: masks sensitive keys in the event dict before rendering.</span>
+    <span class="keyword">for</span> key <span class="keyword">in</span> list(event_dict.keys()):
+        <span class="keyword">if</span> any(s <span class="keyword">in</span> key.lower() <span class="keyword">for</span> s <span class="keyword">in</span> SENSITIVE_KEYS):
+            event_dict[key] = <span class="string">"***REDACTED***"</span>
+    <span class="keyword">return</span> event_dict
+
+<span class="keyword">def</span> <span class="function">setup_logging</span>(level=<span class="string">"INFO"</span>, json_output=<span class="builtin">True</span>, log_file: Path | None = <span class="builtin">None</span>, ...):
+    <span class="comment"># 1. Clear existing handlers (idempotent setup)</span>
+    root_logger = logging.getLogger()
+    root_logger.setLevel(log_level)
+    <span class="keyword">for</span> handler <span class="keyword">in</span> root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+
+    <span class="comment"># 2. Always add console handler</span>
+    console_handler = logging.StreamHandler(sys.stdout)
+    root_logger.addHandler(console_handler)
+
+    <span class="comment"># 3. Optionally add rotating file handler</span>
+    <span class="keyword">if</span> log_file:
+        file_handler = logging.handlers.RotatingFileHandler(
+            log_file, maxBytes=max_bytes, backupCount=backup_count, encoding=<span class="string">"utf-8"</span>
+        )
+        root_logger.addHandler(file_handler)
+
+    <span class="comment"># 4. Wire the structlog processor chain</span>
+    processors = [
+        structlog.contextvars.merge_contextvars,   <span class="comment"># bring ContextVar values into event dict</span>
+        structlog.processors.add_log_level,
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.TimeStamper(fmt=<span class="string">"iso"</span>, utc=<span class="builtin">True</span>),
+        _add_context,                               <span class="comment"># inject request_id / trace_id</span>
+        _redact_event_dict,                          <span class="comment"># mask secrets</span>
+    ]
+    processors.append(
+        structlog.processors.JSONRenderer() <span class="keyword">if</span> json_output
+        <span class="keyword">else</span> structlog.dev.ConsoleRenderer()
+    )
+    structlog.configure(
+        processors=processors,
+        wrapper_class=structlog.make_filtering_bound_logger(log_level),
+        logger_factory=structlog.PrintLoggerFactory(),
+        cache_logger_on_first_use=<span class="builtin">True</span>,
+    )</code></pre>
+
+  <h3>4.3 <code>metrics.py</code> — Singleton Prometheus Collector</h3>
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">src/ai_core/metrics.py</span><span class="code-lang">Python</span></span><span class="keyword">class</span> <span class="class">MetricsCollector</span>:
+    <span class="comment">"""Singleton per service_name to avoid duplicate Prometheus metric registration."""</span>
+
+    <span class="keyword">def</span> <span class="function">__new__</span>(cls, service_name: str, port: int = <span class="number">8000</span>) -> MetricsCollector:
+        <span class="comment"># __new__ intercepts object creation BEFORE __init__ runs.</span>
+        <span class="comment"># If this service_name was already instantiated, return the cached object.</span>
+        <span class="keyword">if</span> service_name <span class="keyword">not in</span> _instances:
+            instance = super().__new__(cls)
+            _instances[service_name] = instance
+        <span class="keyword">return</span> _instances[service_name]
+
+    <span class="keyword">def</span> <span class="function">__init__</span>(self, service_name: str, port: int = <span class="number">8000</span>):
+        <span class="comment"># __init__ is called EVERY time, so guard with _initialized to skip re-registration.</span>
+        <span class="keyword">if not</span> hasattr(self, <span class="string">"_initialized"</span>):
+            self.service_name = service_name
+            self.prediction_counter = Counter(
+                <span class="string">f"</span>{service_name}<span class="string">_predictions_total"</span>,
+                <span class="string">f"Total number of predictions for </span>{service_name}<span class="string">"</span>,
+                [<span class="string">"model_version"</span>],
+            )
+            <span class="comment"># ... 8 more metrics registered here ...</span>
+            self._initialized = <span class="builtin">True</span></code></pre>
+
+  <p><strong>Why the dual guard (<code>__new__</code> + <code>__init__</code>)?</strong> Prometheus <code>Counter</code>/<code>Gauge</code> registration is global and raises <code>ValueError</code> on duplicate names. The <code>__new__</code> guard returns the same Python object across all callers, but Python still calls <code>__init__</code> on the returned object unless we intercept at <code>__new__</code> and skip it. The <code>hasattr(self, "_initialized")</code> pattern is the standard idiom for making <code>__init__</code> idempotent.</p>
+
+  <h3>4.4 <code>model_registry.py</code> — Lifecycle State Machine</h3>
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">src/ai_core/model_registry.py</span><span class="code-lang">Python</span></span><span class="comment"># State machine: source → {allowed targets}</span>
+MODEL_STAGES = (<span class="string">"staging"</span>, <span class="string">"production"</span>, <span class="string">"archived"</span>, <span class="string">"champion"</span>, <span class="string">"candidate"</span>)
+TRANSITIONS = {
+    <span class="string">"staging"</span>:    (<span class="string">"production"</span>, <span class="string">"archived"</span>),
+    <span class="string">"production"</span>: (<span class="string">"archived"</span>, <span class="string">"staging"</span>),
+    <span class="string">"archived"</span>:   (<span class="string">"staging"</span>,),
+    <span class="string">"champion"</span>:   (<span class="string">"candidate"</span>, <span class="string">"archived"</span>),
+    <span class="string">"candidate"</span>:  (<span class="string">"champion"</span>, <span class="string">"archived"</span>),
+}
+
+<span class="keyword">def</span> <span class="function">transition</span>(self, model_name, model_version, new_status):
+    <span class="comment"># Validate: target must be in MODEL_STAGES</span>
+    <span class="keyword">if</span> new_status <span class="keyword">not in</span> MODEL_STAGES:
+        <span class="keyword">raise</span> ValueError(...)
+    model_info = self.get_model(model_name, model_version)
+    current = model_info[<span class="string">"status"</span>]
+    <span class="comment"># Validate: transition must be allowed from current state</span>
+    <span class="keyword">if</span> new_status <span class="keyword">not in</span> TRANSITIONS.get(current, ()):
+        <span class="keyword">raise</span> ValueError(...)
+    model_info[<span class="string">"status"</span>] = new_status
+    model_info[<span class="string">"updated_at"</span>] = datetime.now(UTC).isoformat()
+    <span class="keyword">with</span> open(..., <span class="string">"w"</span>) <span class="keyword">as</span> f:
+        json.dump(model_info, f, indent=<span class="number">2</span>)</code></pre>
+
+  <p><strong>Note:</strong> <code>promote_to_production()</code> first archives any existing production model for the same name, then transitions the target to <code>production</code>. This guarantees the invariant "at most one production model per name."</p>
+
+  <h3>4.5 <code>drift.py</code> — Statistical Drift Detection Engine</h3>
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">src/ai_core/drift.py</span><span class="code-lang">Python</span></span><span class="keyword">def</span> <span class="function">_detect_continuous_drift</span>(self, name, ref, cur) -> DriftResult:
+    <span class="comment"># 1. Kolmogorov-Smirnov two-sample test (non-parametric)</span>
+    ks_stat, ks_pvalue = stats.ks_2samp(ref, cur)
+
+    <span class="comment"># 2. Population Stability Index (equal-frequency binning on reference)</span>
+    psi = self._compute_psi(ref, cur)
+
+    <span class="comment"># 3. Combined drift score = max(KS statistic, PSI)</span>
+    <span class="comment">#    Conservative: either metric exceeding its threshold flags drift.</span>
+    drift_score = max(ks_stat, psi)
+    is_drift = ks_pvalue < self.ks_threshold <span class="keyword">or</span> psi > self.psi_threshold
+
+    <span class="keyword">return</span> DriftResult(feature_name=name, drift_score=drift_score,
+                         p_value=ks_pvalue, is_drift=is_drift, ...)
+
+<span class="keyword">def</span> <span class="function">_compute_psi</span>(self, ref, cur, n_bins=<span class="number">10</span>) -> float:
+    <span class="comment"># Equal-frequency binning based on reference distribution percentiles</span>
+    bins = np.percentile(ref, np.linspace(<span class="number">0</span>, <span class="number">100</span>, n_bins + <span class="number">1</span>))
+    bins[<span class="number">0</span>] = -np.inf    <span class="comment"># catch values below min reference</span>
+    bins[<span class="number">-1</span>] = np.inf   <span class="comment"># catch values above max reference</span>
+
+    ref_hist, _ = np.histogram(ref, bins=bins)
+    cur_hist, _ = np.histogram(cur, bins=bins)
+    ref_props = ref_hist / len(ref)
+    cur_props = cur_hist / len(cur)
+    <span class="keyword">return</span> self._compute_psi_categorical(ref_props, cur_props)
+
+<span class="keyword">def</span> <span class="function">_compute_psi_categorical</span>(self, ref_props, cur_props) -> float:
+    <span class="comment"># Clip to avoid log(0); PSI is undefined at zero probability</span>
+    ref_props = np.clip(ref_props, <span class="number">1e-6</span>, <span class="number">1.0</span>)
+    cur_props = np.clip(cur_props, <span class="number">1e-6</span>, <span class="number">1.0</span>)
+    <span class="keyword">return</span> float(np.sum((cur_props - ref_props) * np.log(cur_props / ref_props)))</code></pre>
+
+  <h3>4.6 <code>fastapi_middleware.py</code> — Observability Middleware</h3>
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">src/ai_core/fastapi_middleware.py</span><span class="code-lang">Python</span></span><span class="keyword">class</span> <span class="class">RequestLoggingMiddleware</span>(BaseHTTPMiddleware):
+    <span class="keyword">def</span> <span class="function">__init__</span>(self, app, metrics: MetricsCollector | None = <span class="builtin">None</span>):
+        super().__init__(app)
+        self.metrics = metrics
+
+    <span class="keyword">async def</span> <span class="function">dispatch</span>(self, request: Request, call_next):
+        <span class="comment"># 1. Extract or generate correlation IDs</span>
+        request_id = request.headers.get(<span class="string">"X-Request-ID"</span>) <span class="keyword">or</span> generate_request_id()
+        trace_id   = request.headers.get(<span class="string">"X-Trace-ID"</span>)   <span class="keyword">or</span> request_id
+        set_request_context(request_id=request_id, trace_id=trace_id)
+
+        <span class="comment"># 2. Fall back to app.state.metrics if not passed explicitly</span>
+        metrics = self.metrics <span class="keyword">or</span> getattr(request.app.state, <span class="string">"metrics"</span>, <span class="builtin">None</span>)
+
+        start = time.time()
+        <span class="keyword">if</span> metrics: metrics.inc_active_requests()
+
+        <span class="keyword">try</span>:
+            response = <span class="keyword">await</span> call_next(request)
+            duration = time.time() - start
+            status = response.status_code
+
+            <span class="keyword">if</span> metrics:
+                metrics.record_request(method=request.method,
+                                       endpoint=request.url.path,
+                                       status=status, duration=duration)
+            logger.info(<span class="string">"request_completed"</span>, ...)
+            response.headers[<span class="string">"X-Request-ID"</span>] = request_id
+            <span class="keyword">return</span> response
+        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:
+            <span class="comment"># Record 500 error metrics</span>
+            <span class="keyword">if</span> metrics:
+                metrics.record_request(method=request.method,
+                                       endpoint=request.url.path, status=<span class="number">500</span>, ...)
+            logger.exception(<span class="string">"request_failed"</span>, ...)
+            <span class="keyword">return</span> JSONResponse(status_code=<span class="number">500</span>, content={<span class="string">"detail"</span>: <span class="string">"Internal server error"</span>})
+        <span class="keyword">finally</span>:
+            <span class="keyword">if</span> metrics: metrics.dec_active_requests()
+            clear_request_context()  <span class="comment"># always clean up ContextVar, even on error</span></code></pre>
+
+  <h3>4.7 <code>nn_utils/cnn.py</code> — CNN Layer Primitives</h3>
+  <p>The CNN module provides a layer-stack architecture where each layer implements <code>forward</code>, <code>backward</code>, and <code>update_params</code>. The <code>SimpleCNN</code> model chains them together.</p>
+
+  <h4>Conv2D — Weight Initialization (He)</h4>
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">src/ai_core/nn_utils/cnn.py (Conv2D)</span><span class="code-lang">Python</span></span><span class="keyword">class</span> <span class="class">Conv2D</span>:
+    <span class="keyword">def</span> <span class="function">__init__</span>(self, **kwargs):
+        self.in_channels  = kwargs.get(<span class="string">"in_channels"</span>, <span class="number">1</span>)
+        self.out_channels = kwargs.get(<span class="string">"out_channels"</span>, <span class="number">8</span>)
+        self.kernel_size  = kwargs.get(<span class="string">"kernel_size"</span>, <span class="number">3</span>)
+        self.stride       = kwargs.get(<span class="string">"stride"</span>, <span class="number">1</span>)
+        self.padding      = kwargs.get(<span class="string">"padding"</span>, <span class="number">0</span>)
+
+        <span class="comment"># He initialization: variance = 2 / (in_channels * k * k)</span>
+        <span class="comment"># This keeps the variance of activations stable through ReLU layers.</span>
+        self.weights = np.random.randn(
+            self.out_channels, self.in_channels,
+            self.kernel_size, self.kernel_size
+        ) * np.sqrt(<span class="number">2.0</span> / (self.in_channels * self.kernel_size * self.kernel_size))
+        self.bias = np.zeros(self.out_channels)</code></pre>
+
+  <h4>Deconv2D — Transposed Convolution Forward Pass</h4>
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">src/ai_core/nn_utils/cnn.py (Deconv2D)</span><span class="code-lang">Python</span></span><span class="keyword">class</span> <span class="class">Deconv2D</span>:
+    <span class="keyword">def</span> <span class="function">forward</span>(self, x: np.ndarray) -> np.ndarray:
+        N, C_in, H_in, W_in = x.shape
+        <span class="comment"># Output dimensions for transposed convolution with stride s and kernel k:</span>
+        H_out = (H_in - <span class="number">1</span>) * self.stride + self.kernel_size
+        W_out = (W_in - <span class="number">1</span>) * self.stride + self.kernel_size
+        out = np.zeros((N, self.out_channels, H_out, W_out))
+
+        <span class="comment"># Each input value spreads across a kernel-sized region in the output</span>
+        <span class="keyword">for</span> n <span class="keyword">in</span> range(N):
+            <span class="keyword">for</span> c_out <span class="keyword">in</span> range(self.out_channels):
+                <span class="keyword">for</span> c_in <span class="keyword">in</span> range(C_in):
+                    <span class="keyword">for</span> h_in <span class="keyword">in</span> range(H_in):
+                        <span class="keyword">for</span> w_in <span class="keyword">in</span> range(W_in):
+                            h_start = h_in * self.stride
+                            w_start = w_in * self.stride
+                            region = out[n, c_out, h_start:h_start+k, w_start:w_start+k]
+                            region += x[n, c_in, h_in, w_in] * self.W[c_in, c_out]
+        out += self.b.reshape(<span class="number">1</span>, -<span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>)
+        <span class="keyword">return</span> out</code></pre>
+
+  <h4>Activation — ReLU, Sigmoid, Tanh</h4>
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">src/ai_core/nn_utils/cnn.py (Activation)</span><span class="code-lang">Python</span></span><span class="keyword">class</span> <span class="class">Activation</span>:
+    <span class="keyword">def</span> <span class="function">__init__</span>(self, name: str = <span class="string">"relu"</span>, **kwargs):
+        self.name = name
+
+    <span class="keyword">def</span> <span class="function">forward</span>(self, x: np.ndarray) -> np.ndarray:
+        <span class="keyword">if</span> self.name == <span class="string">"relu"</span>:
+            <span class="keyword">return</span> np.maximum(<span class="number">0</span>, x)           <span class="comment"># f(x) = max(0, x)</span>
+        <span class="keyword">elif</span> self.name == <span class="string">"sigmoid"</span>:
+            <span class="keyword">return</span> <span class="number">1.0</span> / (<span class="number">1.0</span> + np.exp(-x))  <span class="comment"># f(x) = 1/(1+e^(-x))</span>
+        <span class="keyword">elif</span> self.name == <span class="string">"tanh"</span>:
+            <span class="keyword">return</span> np.tanh(x)                  <span class="comment"># f(x) = (e^x - e^(-x))/(e^x + e^(-x))</span>
+        <span class="keyword">return</span> x</code></pre>
+
+  <h3>4.8 <code>nn_utils/rnn.py</code> — Simple RNN</h3>
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">src/ai_core/nn_utils/rnn.py</span><span class="code-lang">Python</span></span><span class="keyword">def</span> <span class="function">softmax</span>(x: np.ndarray) -> np.ndarray:
+    <span class="comment"># Numerically stable softmax: subtract max before exponentiation to prevent overflow.</span>
+    e_x = np.exp(x - np.max(x, axis=-<span class="number">1</span>, keepdims=<span class="builtin">True</span>))
+    <span class="keyword">return</span> e_x / e_x.sum(axis=-<span class="number">1</span>, keepdims=<span class="builtin">True</span>)
+
+<span class="decorator">@dataclass</span>
+<span class="keyword">class</span> <span class="class">SimpleRNN</span>:
+    <span class="comment"># Weight matrices</span>
+    Wxh: np.ndarray   <span class="comment"># (hidden_size, input_size)  — input-to-hidden</span>
+    Whh: np.ndarray   <span class="comment"># (hidden_size, hidden_size) — hidden-to-hidden (recurrent)</span>
+    Why: np.ndarray   <span class="comment"># (output_size, hidden_size) — hidden-to-output</span>
+    bh: np.ndarray    <span class="comment"># (hidden_size, 1)  — hidden bias</span>
+    by: np.ndarray    <span class="comment"># (output_size, 1)  — output bias</span>
+
+    <span class="keyword">def</span> <span class="function">__post_init__</span>(self) -> None:
+        <span class="comment"># __post_init__ runs AFTER the dataclass-generated __init__.</span>
+        <span class="comment"># It allows us to initialize weight matrices with correct dimensions</span>
+        <span class="comment"># even though input_dim/hidden_dim/output_dim are aliased to</span>
+        <span class="comment"># input_size/hidden_size/output_size.</span>
+        <span class="keyword">if</span> self.input_size == <span class="number">0</span> <span class="keyword">and</span> self.input_dim != <span class="number">0</span>:
+            self.input_size = self.input_dim   <span class="comment"># alias: input_dim → input_size</span>
+        <span class="keyword">if</span> self.hidden_size == <span class="number">0</span> <span class="keyword">and</span> self.hidden_dim != <span class="number">0</span>:
+            self.hidden_size = self.hidden_dim
+        <span class="keyword">if</span> self.output_size == <span class="number">0</span> <span class="keyword">and</span> self.output_dim != <span class="number">0</span>:
+            self.output_size = self.output_dim
+        <span class="keyword">if</span> self.random_seed <span class="keyword">is not</span> <span class="builtin">None</span>:
+            np.random.seed(self.random_seed)
+        <span class="comment"># Xavier-like init: small random values to start training</span>
+        self.Wxh = np.random.randn(self.hidden_size, self.input_size) * <span class="number">0.01</span>
+        self.Whh = np.random.randn(self.hidden_size, self.hidden_size) * <span class="number">0.01</span>
+        self.Why = np.random.randn(self.output_size, self.hidden_size) * <span class="number">0.01</span>
+        self.bh  = np.zeros((self.hidden_size, <span class="number">1</span>))
+        self.by  = np.zeros((self.output_size, <span class="number">1</span>))
+
+    <span class="keyword">def</span> <span class="function">forward</span>(self, x: np.ndarray, h: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        <span class="comment"># Standard RNN recurrence: h_t = tanh(W_xh·x_t + W_hh·h_{t-1} + b_h)</span>
+        <span class="comment"># y_t = W_hy·h_t + b_y</span>
+        x = np.atleast_1d(x).flatten()
+        h = np.atleast_1d(h).flatten()
+        h = np.tanh(np.dot(self.Wxh, x) + np.dot(self.Whh, h) + self.bh.flatten())
+        y = np.dot(self.Why, h) + self.by.flatten()
+        <span class="keyword">return</span> y, h</code></pre>
+
+  <h3>4.9 <code>validation.py</code> — Schema-Driven Validation</h3>
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">src/ai_core/validation.py</span><span class="code-lang">Python</span></span><span class="decorator">@dataclass</span>
+<span class="keyword">class</span> <span class="class">DataSchema</span>:
+    feature_names: list[str]           <span class="comment"># ordered column names</span>
+    feature_types: dict[str, str]      <span class="comment"># {"col": "float"|"int"|"binary"}</span>
+    required_columns: list[str]        <span class="comment"># columns that must be present</span>
+    min_rows: int                      <span class="comment"># minimum sample count</span>
+    max_rows: int | None               <span class="comment"># optional maximum sample count</span>
+    value_ranges: dict[str, tuple]     <span class="comment"># {"col": (lo, hi)} — per-column bounds</span>
+    categorical_values: dict[str, list] <span class="comment"># {"col": [allowed_values]}</span>
+
+    <span class="keyword">def</span> <span class="function">__post_init__</span>(self):
+        <span class="comment"># Default: all feature_names are required if required_columns not explicitly set.</span>
+        <span class="keyword">if not</span> self.required_columns:
+            self.required_columns = self.feature_names
+
+<span class="keyword">class</span> <span class="class">DataValidator</span>:
+    <span class="keyword">def</span> <span class="function">validate</span>(self, X: np.ndarray, y: np.ndarray | None = <span class="builtin">None</span>) -> ValidationResult:
+        result = ValidationResult(valid=<span class="builtin">True</span>)
+
+        <span class="comment"># 1. Normalize shape: 1D → 2D</span>
+        <span class="keyword">if</span> X.ndim == <span class="number">1</span>: X = X.reshape(-<span class="number">1</span>, <span class="number">1</span>)
+        n_samples, n_features = X.shape
+
+        <span class="comment"># 2. Row count bounds</span>
+        <span class="keyword">if</span> n_samples &lt; self.schema.min_rows:   result.errors.append(...)
+        <span class="keyword">if</span> self.schema.max_rows <span class="keyword">and</span> n_samples &gt; self.schema.max_rows: result.errors.append(...)
+
+        <span class="comment"># 3. Feature count</span>
+        <span class="keyword">if</span> n_features != len(self.schema.feature_names): result.errors.append(...)
+
+        <span class="comment"># 4. NaN / Inf detection</span>
+        <span class="keyword">if</span> np.isnan(X).any():  result.errors.append(<span class="string">"Input data contains NaN values"</span>)
+        <span class="keyword">if</span> np.isinf(X).any(): result.errors.append(<span class="string">"Input data contains infinite values"</span>)
+
+        <span class="comment"># 5. Per-feature: value ranges, categorical values, binary constraints</span>
+        <span class="comment"># 6. Labels: length match, NaN check</span>
+        <span class="comment"># 7. Compute descriptive statistics (mean, std) for reporting</span>
+
+        result.valid = len(result.errors) == <span class="number">0</span>
+        <span class="keyword">return</span> result</code></pre>
+</section>
+
+
+<!-- ================================================================== -->
+<!-- SECTION 5 — Examples & Usage                                       -->
+<!-- ================================================================== -->
+<section id="examples">
+  <div class="section-header">
+    <div class="section-number">5</div>
+    <h2>Examples &amp; Usage</h2>
+  </div>
+
+  <h3>5.1 Loading Configuration</h3>
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">examples/01_config.py</span><span class="code-lang">Python</span></span><span class="keyword">from</span> pathlib <span class="keyword">import</span> Path
+<span class="keyword">from</span> ai_core <span class="keyword">import</span> Config, load_config
+
+<span class="comment"># Method 1: Load from YAML file</span>
+config = Config.load(path=Path(<span class="string">"./config/mlops.yml"</span>))
+
+<span class="comment"># Method 2: Load from environment (prefix "MLOPS")</span>
+<span class="comment"># Env vars like MLOPS_MODEL_NAME, MLOPS_MONITORING_DRIFT_THRESHOLD are picked up automatically.</span>
+config = load_config(prefix=<span class="string">"MLOPS"</span>)
+
+<span class="comment"># Access nested config</span>
+<span class="builtin">print</span>(config.model_name)           <span class="comment"># "my-classifier"</span>
+<span class="builtin">print</span>(config.monitoring.drift_threshold)  <span class="comment"># 0.2</span>
+<span class="builtin">print</span>(config.mlflow.tracking_uri)   <span class="comment"># "http://mlflow:5000"</span>
+
+<span class="comment"># Serialize (secrets are automatically redacted)</span>
+<span class="builtin">print</span>(config.to_json())
+<span class="comment"># {"model_name": "my-classifier", "mlflow": {"s3_secret_key": "***REDACTED***", ...}, ...}</span>
+
+<span class="comment"># Validate: check for missing required fields</span>
+errors = config.validate()
+<span class="keyword">if</span> errors:
+    <span class="keyword">raise</span> RuntimeError(<span class="string">f"Config errors: </span>{errors}<span class="string">"</span>)</code></pre>
+
+  <h3>5.2 Structured Logging with Correlation IDs</h3>
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">examples/02_logging.py</span><span class="code-lang">Python</span></span><span class="keyword">from</span> ai_core <span class="keyword">import</span> setup_logging, get_logger, set_request_context, generate_request_id
+
+<span class="comment"># Initialize once at application startup</span>
+setup_logging(
+    level=<span class="string">"INFO"</span>,
+    json_output=<span class="builtin">True</span>,
+    log_file=Path(<span class="string">"/var/log/mlops/app.log"</span>),
+    max_bytes=<span class="number">10</span> * <span class="number">1024</span> * <span class="number">1024</span>,   <span class="comment"># 10 MB rotation</span>
+    backup_count=<span class="number">5</span>,
+)
+
+logger = get_logger(<span class="string">"mlops.predictor"</span>)
+
+<span class="comment"># Per-request context (set in middleware or request handler)</span>
+request_id = generate_request_id()
+set_request_context(request_id=request_id, trace_id=<span class="builtin">None</span>)
+
+logger.info(<span class="string">"prediction_started"</span>,
+            model_name=<span class="string">"fraud-detector"</span>, model_version=<span class="string">"2.1.0"</span>)
+<span class="comment"># Output: {"event": "prediction_started", "request_id": "a1b2c3d4...", "level": "info", ...}</span>
+
+<span class="comment"># Clean up after request</span>
+<span class="keyword">from</span> ai_core <span class="keyword">import</span> clear_request_context
+clear_request_context()</code></pre>
+
+  <h3>5.3 Prometheus Metrics Collection</h3>
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">examples/03_metrics.py</span><span class="code-lang">Python</span></span><span class="keyword">from</span> ai_core <span class="keyword">import</span> MetricsCollector
+
+<span class="comment"># Singleton per service — calling again with same name returns same instance</span>
+metrics = MetricsCollector(service_name=<span class="string">"fraud-api"</span>, port=<span class="number">8000</span>)
+
+<span class="comment"># Start the /metrics HTTP endpoint</span>
+metrics.start_metrics_server()   <span class="comment"># Exposes Prometheus metrics at http://0.0.0.0:8000/metrics</span>
+
+<span class="comment"># Record a prediction event</span>
+metrics.record_prediction(model_version=<span class="string">"2.1.0"</span>, duration=<span class="number">0.023</span>)
+metrics.record_prediction(model_version=<span class="string">"2.1.0"</span>, duration=<span class="number">0.018</span>)
+
+<span class="comment"># Record an error</span>
+metrics.record_error(model_version=<span class="string">"2.1.0"</span>, error_type=<span class="string">"timeout"</span>)
+
+<span class="comment"># Track current model version (as a numeric gauge)</span>
+metrics.set_model_version(<span class="string">"2.1.0"</span>)
+
+<span class="comment"># Track model metadata</span>
+metrics.set_model_info(model_type=<span class="string">"classification"</span>, framework=<span class="string">"sklearn"</span>)
+
+<span class="comment"># Track data drift</span>
+metrics.set_drift_ratio(<span class="number">0.15</span>)
+
+<span class="comment"># Active request gauge (increment/decrement around request handling)</span>
+metrics.inc_active_requests()
+<span class="comment"># ... handle request ...</span>
+metrics.dec_active_requests()</code></pre>
+
+  <h3>5.4 Model Registry — Save, Load, Promote</h3>
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">examples/04_model_registry.py</span><span class="code-lang">Python</span></span><span class="keyword">from</span> pathlib <span class="keyword">import</span> Path
+<span class="keyword">from</span> ai_core <span class="keyword">import</span> ModelRegistry, ModelInfo
+
+registry = ModelRegistry(
+    base_dir=Path(<span class="string">"/models"</span>),
+    mlflow_uri=<span class="string">"http://mlflow:5000"</span>,
+    mlflow_experiment=<span class="string">"fraud-detection"</span>,
+)
+
+<span class="comment"># Save a trained model with its artifacts</span>
+info = registry.save_model(
+    model_name=<span class="string">"fraud-detector"</span>,
+    model_version=<span class="string">"2.1.0"</span>,
+    model_type=<span class="string">"classification"</span>,
+    metrics={<span class="string">"accuracy"</span>: <span class="number">0.97</span>, <span class="string">"f1"</span>: <span class="number">0.96</span>, <span class="string">"auc"</span>: <span class="number">0.99</span>},
+    parameters={<span class="string">"learning_rate"</span>: <span class="number">0.001</span>, <span class="string">"n_estimators"</span>: <span class="number">200</span>},
+    artifacts={<span class="string">"model.npz"</span>: Path(<span class="string">"./output/fraud-detector.npz"</span>)},
+    status=<span class="string">"staging"</span>,
+    created_by=<span class="string">"data-science-team"</span>,
+    tags={<span class="string">"team"</span>: <span class="string">"fraud"</span>, <span class="string">"quarter"</span>: <span class="string">"Q3-2024"</span>},
+)
+<span class="comment"># info is a ModelInfo dataclass instance</span>
+<span class="builtin">print</span>(info.artifact_path)  <span class="comment"># "/models/fraud-detector/2.1.0"</span>
+
+<span class="comment"># Promote to production (archives any existing production model)</span>
+registry.promote_to_production(<span class="string">"fraud-detector"</span>, <span class="string">"2.1.0"</span>)
+
+<span class="comment"># Load the model back</span>
+loaded = registry.load_model(<span class="string">"fraud-detector"</span>, <span class="string">"2.1.0"</span>)
+<span class="comment"># loaded = {"model_info": {...}, "weights": {"W": ...}, "model_dir": Path(...)}</span>
+
+<span class="comment"># List all models</span>
+all_models = registry.list_models()
+
+<span class="comment"># Log to MLflow (with retry resilience)</span>
+run_id = registry.log_to_mlflow(
+    model_name=<span class="string">"fraud-detector"</span>,
+    model_version=<span class="string">"2.1.0"</span>,
+    metrics={<span class="string">"accuracy"</span>: <span class="number">0.97</span>},
+    params={<span class="string">"lr"</span>: <span class="number">0.001</span>},
+    artifacts={<span class="string">"roc_curve.png"</span>: <span class="string">"./output/roc.png"</span>},
+    tags={<span class="string">"stage"</span>: <span class="string">"staging"</span>},
+    max_retries=<span class="number">3</span>,
+)</code></pre>
+
+  <h3>5.5 Data Validation</h3>
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">examples/05_validation.py</span><span class="code-lang">Python</span></span><span class="keyword">import</span> numpy <span class="keyword">as</span> np
+<span class="keyword">import</span> pandas <span class="keyword">as</span> pd
+<span class="keyword">from</span> ai_core <span class="keyword">import</span> DataValidator, DataSchema, create_fraud_detection_schema
+
+<span class="comment"># Use a pre-built schema</span>
+schema: DataSchema = create_fraud_detection_schema()
+validator = DataValidator(schema)
+
+<span class="comment"># Validate a NumPy array</span>
+X = np.random.rand(<span class="number">1000</span>, <span class="number">15</span>) * <span class="number">100</span>   <span class="comment"># shape: (1000, 15)</span>
+y = np.random.randint(<span class="number">0</span>, <span class="number">2</span>, size=<span class="number">1000</span>)
+result = validator.validate(X, y)
+
+<span class="keyword">if not</span> result.valid:
+    <span class="builtin">print</span>(<span class="string">"Validation FAILED:"</span>, result.errors)
+<span class="keyword">else</span>:
+    <span class="builtin">print</span>(<span class="string">"Validation passed."</span>)
+    <span class="builtin">print</span>(<span class="string">"Stats:"</span>, result.stats)
+    <span class="comment"># Stats: {"n_samples": 1000, "n_features": 15,</span>
+    <span class="comment">#        "feature_means": {"transaction_amount": 49.8, ...},</span>
+    <span class="comment">#        "feature_stds": {"transaction_amount": 28.9, ...}}</span>
+
+<span class="comment"># Validate a Pandas DataFrame</span>
+df = pd.DataFrame(X, columns=schema.feature_names)
+df_result = validator.validate_dataframe(df)</code></pre>
+
+  <h3>5.6 Drift Detection</h3>
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">examples/06_drift.py</span><span class="code-lang">Python</span></span><span class="keyword">import</span> numpy <span class="keyword">as</span> np
+<span class="keyword">from</span> ai_core <span class="keyword">import</span> DriftDetector, create_fraud_detection_schema
+
+schema = create_fraud_detection_schema()
+detector = DriftDetector(
+    feature_names=schema.feature_names,
+    feature_types=schema.feature_types,
+    ks_threshold=<span class="number">0.05</span>,
+    psi_threshold=<span class="number">0.2</span>,
+)
+
+<span class="comment"># Reference = training data; Current = production inference data</span>
+reference = np.random.rand(<span class="number">10000</span>, <span class="number">15</span>) * <span class="number">100</span>
+current   = np.random.rand(<span class="number">1000</span>, <span class="number">15</span>)  * <span class="number">100</span> + <span class="number">5</span>   <span class="comment"># slight shift to simulate drift</span>
+
+results = detector.detect_drift(reference, current)
+
+<span class="keyword">for</span> r <span class="keyword">in</span> results:
+    <span class="keyword">if</span> r.is_drift:
+        <span class="builtin">print</span>(<span class="string">f"DRIFT: </span>{r.feature_name}<span class="string"> — score=</span>{r.drift_score:<span class="number">.3</span>f}<span class="string">, p=</span>{r.p_value:<span class="number">.4</span>f}<span class="string">"</span>)
+        <span class="builtin">print</span>(<span class="string">f"  ref: μ=</span>{r.reference_mean:<span class="number">.2</span>f}<span class="string">, σ=</span>{r.reference_std:<span class="number">.2</span>f}"</span>)
+        <span class="builtin">print</span>(<span class="string">f"  cur: μ=</span>{r.current_mean:<span class="number">.2</span>f}<span class="string">, σ=</span>{r.current_std:<span class="number">.2</span>f}"</span>)
+
+summary = detector.summarize(results)
+<span class="builtin">print</span>(<span class="string">f"Drift ratio: </span>{summary[<span class="string">'drift_ratio'</span>]:<span class="number">.1</span>%}<span class="string">"</span>)</code></pre>
+
+  <h3>5.7 FastAPI Integration</h3>
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">examples/07_fastapi.py</span><span class="code-lang">Python</span></span><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI
+<span class="keyword">from</span> ai_core <span class="keyword">import</span> (
+    load_config, setup_logging, get_logger,
+    MetricsCollector, add_observability_middleware,
+)
+
+<span class="comment"># Bootstrap</span>
+config = load_config()
+setup_logging(level=config.monitoring.log_level, json_output=<span class="builtin">True</span>)
+logger = get_logger(<span class="string">"mlops.api"</span>)
+
+metrics = MetricsCollector(service_name=<span class="string">"fraud-api"</span>,
+                           port=config.monitoring.metrics_port)
+metrics.start_metrics_server()
+
+app = FastAPI(title=<span class="string">"Fraud Detection API"</span>)
+add_observability_middleware(app, metrics=metrics)
+
+<span class="comment"># Make metrics available via app.state (fallback for middleware)</span>
+app.state.metrics = metrics
+
+<span class="decorator">@app.post</span>(<span class="string">"/predict"</span>)
+<span class="keyword">def</span> <span class="function">predict</span>(features: list[float]):
+    <span class="comment"># X-Request-ID and X-Trace-ID are automatically injected by middleware</span>
+    logger.info(<span class="string">"predict_called"</span>, n_features=len(features))
+    prediction = <span class="comment"># ... model inference ...</span>
+    metrics.record_prediction(model_version=config.model_version, duration=<span class="number">0.012</span>)
+    <span class="keyword">return</span> {<span class="string">"prediction"</span>: prediction}</code></pre>
+
+  <h3>5.8 Neural Network — SimpleCNN</h3>
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">examples/08_cnn.py</span><span class="code-lang">Python</span></span><span class="keyword">import</span> numpy <span class="keyword">as</span> np
+<span class="keyword">from</span> ai_core.nn_utils.cnn <span class="keyword">import</span> (
+    Conv2D, MaxPool2D, Flatten, Dense, Activation, SimpleCNN
+)
+
+<span class="comment"># Build a simple CNN for 8×8 grayscale image classification</span>
+layers = [
+    Conv2D(in_channels=<span class="number">1</span>, out_channels=<span class="number">8</span>, kernel_size=<span class="number">3</span>, padding=<span class="number">1</span>),
+    Activation(name=<span class="string">"relu"</span>),
+    MaxPool2D(pool_size=<span class="number">2</span>),
+    Conv2D(in_channels=<span class="number">8</span>, out_channels=<span class="number">16</span>, kernel_size=<span class="number">3</span>, padding=<span class="number">1</span>),
+    Activation(name=<span class="string">"relu"</span>),
+    MaxPool2D(pool_size=<span class="number">2</span>),
+    Flatten(),
+    Dense(in_dim=<span class="number">16</span> * <span class="number">2</span> * <span class="number">2</span>, out_dim=<span class="number">10</span>),   <span class="comment"># 10 classes</span>
+    Activation(name=<span class="string">"softmax"</span>),
+]
+
+model = SimpleCNN(
+    layers=layers,
+    input_shape=(<span class="number">1</span>, <span class="number">8</span>, <span class="number">8</span>),
+    output_dim=<span class="number">10</span>,
+    output_activation=<span class="string">"softmax"</span>,
+    output_loss=<span class="string">"categorical_crossentropy"</span>,
+    learning_rate=<span class="number">0.01</span>,
+    random_seed=<span class="number">42</span>,
+)
+
+<span class="comment"># Forward pass</span>
+X = np.random.rand(<span class="number">4</span>, <span class="number">1</span>, <span class="number">8</span>, <span class="number">8</span>)   <span class="comment"># batch=4, 1 channel, 8×8</span>
+output = model.forward(X)
+<span class="builtin">print</span>(output.shape)  <span class="comment"># (4, 10)</span>
+
+<span class="comment"># Predict</span>
+preds = model.predict(X)
+
+<span class="comment"># Save / Load</span>
+model.save(<span class="string">"./cnn_model.npz"</span>)
+loaded = SimpleCNN.load(<span class="string">"./cnn_model.npz"</span>)</code></pre>
+
+  <h3>5.9 Neural Network — SimpleRNN</h3>
+  <pre class="code-block"><code><span class="code-header"><span class="code-filename">examples/09_rnn.py</span><span class="code-lang">Python</span></span><span class="keyword">import</span> numpy <span class="keyword">as</span> np
+<span class="keyword">from</span> ai_core.nn_utils.rnn <span class="keyword">import</span> SimpleRNN, softmax
+
+<span class="comment"># Build a character-level RNN for text generation</span>
+<span class="comment"># input_size = vocab_size (e.g., 80 unique characters)</span>
+<span class="comment"># hidden_size = 128 (LSTM-style hidden state dimension)</span>
+<span class="comment"># output_size = vocab_size (predict next character)</span>
+rnn = SimpleRNN(
+    input_size=<span class="number">80</span>,
+    hidden_size=<span class="number">128</span>,
+    output_size=<span class="number">80</span>,
+    learning_rate=<span class="number">0.01</span>,
+    random_seed=<span class="number">42</span>,
+)
+
+<span class="comment"># Single-step forward: given input token x_t and hidden state h_{t-1},</span>
+<span class="comment"># produce output y_t and new hidden state h_t</span>
+x_t = np.eye(<span class="number">80</span>)[<span class="number">5</span>]   <span class="comment"># one-hot encode character index 5</span>
+h_prev = np.zeros((<span class="number">128</span>,))
+y_t, h_t = rnn.forward(x_t, h_prev)
+<span class="builtin">print</span>(y_t.shape)  <span class="comment"># (80,) — logits over vocabulary</span>
+
+<span class="comment"># Predict probabilities over a sequence</span>
+sequence = np.array([<span class="number">5</span>, <span class="number">12</span>, <span class="number">30</span>, <span class="number">7</span>, <span class="number">1</span>])  <span class="comment"># token indices</span>
+probas = rnn.predict_proba(sequence)
+<span class="builtin">print</span>(probas.shape)  <span class="comment"># (1, 80) — softmax probabilities for last token</span>
+
+<span class="comment"># Many-to-many prediction (sequence output)</span>
+outputs = rnn.predict_many_to_many(sequence)
+<span class="builtin">print</span>(outputs.shape) <span class="comment"># (n_timesteps, 80)</span>
+
+<span class="comment"># Save / Load</span>
+rnn.save(<span class="string">"./rnn_model.npz"</span>)
+loaded_rnn = SimpleRNN.load(<span class="string">"./rnn_model.npz"</span>)</code></pre>
+
+  <h3>5.10 Expected Input/Output Summary</h3>
+  <table>
+    <tr>
+      <th>Module</th>
+      <th>Primary Input</th>
+      <th>Primary Output</th>
+    </tr>
+    <tr>
+      <td><code>Config.load()</code></td>
+      <td>YAML path + env vars</td>
+      <td>Typed <code>Config</code> dataclass</td>
+    </tr>
+    <tr>
+      <td><code>setup_logging()</code></td>
+      <td>Level, file path, JSON toggle</td>
+      <td>Configured structlog (side effect)</td>
+    </tr>
+    <tr>
+      <td><code>MetricsCollector</code></td>
+      <td>Service name, port</td>
+      <td>Prometheus metrics at <code>/metrics</code></td>
+    </tr>
+    <tr>
+      <td><code>ModelRegistry.save_model()</code></td>
+      <td>Model name, version, artifacts dict</td>
+      <td><code>ModelInfo</code> dataclass</td>
+    </tr>
+    <tr>
+      <td><code>DataValidator.validate()</code></td>
+      <td><code>np.ndarray</code> X, optional y</td>
+      <td><code>ValidationResult</code> (valid + errors + stats)</td>
+    </tr>
+    <tr>
+      <td><code>DriftDetector.detect_drift()</code></td>
+      <td>Reference + current <code>np.ndarray</code></td>
+      <td><code>list[DriftResult]</code> per feature</td>
+    </tr>
+    <tr>
+      <td><code>SimpleCNN.forward()</code></td>
+      <td><code>(N, C, H, W)</code> float array</td>
+      <td><code>(N, output_dim)</code> logits/probabilities</td>
+    </tr>
+    <tr>
+      <td><code>SimpleRNN.forward()</code></td>
+      <td>Input vector x_t, hidden state h_{t-1}</td>
+      <td>Output y_t, new hidden state h_t</td>
+    </tr>
+  </table>
+</section>
+
+</main>
+
+<footer>
+  Generated from source files in <code>packages/ai-core/src/ai_core/</code> · ai-core documentation
+</footer>
+
+</body>
+</html>

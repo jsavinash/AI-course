@@ -1,71 +1,64 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>semi-supervised-email - AI App Documentation</title>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMath()"></script>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-<style>
-/* CSS styles here */
-</style>
-</head>
-<body>
-<section id="math" class="section math-section">
-<h2><span class="section-icon">∫</span> Mathematics &amp; Theory</h2>
-<p class="section-subtitle">Semi-Supervised Learning — Underlying equations and derivations</p>
-<div class="math-content">
-<div class="equations"><div class="math-block">$$\mathcal{L} = \mathcal{L}_{sup} + \lambda_t \mathcal{L}_{unsup}$$</div>
-<div class="math-block">$$\mathcal{L}_{unsup} = \text{MSE}(f_\theta(x'), f_\theta(x)) \quad \text{(Mean Teacher)}$$</div>
-<div class="math-block">$$p_t = \min\left(1, \frac{T}{T_0}\right)$$</div></div>
-<div class="derivation">
-<h3>Step-by-Step Derivation</h3>
-<p>Semi-supervised learning leverages unlabeled data by enforcing consistency. Given an input $x$, augmented views $x'$ should produce similar predictions. The total loss combines supervised cross-entropy on labeled data and consistency regularization on all data. A time-dependent weight $\lambda_t$ ramps up the unsupervised loss.</p>
-</div>
-<div class="viz-desc">
-<h3>Interactive Visualization</h3>
-<p>Interactive pseudo-label confidence distribution; labeled vs unlabeled loss curves; decision boundary animation.</p>
-</div>
-</div>
-</section>
-<section id="architecture" class="section arch-section">
-<h2><span class="section-icon">⚙</span> Architecture</h2>
-<p class="section-subtitle">Model structure, data flow, and layer breakdown</p>
-<div class="arch-diagram">
-<h3>Class Hierarchy</h3>
-<pre class="ascii-diagram">  LogisticRegression
-  SelfTrainingClassifier</pre>
-</div>
-<div class="mermaid-wrapper">
-<h3>Data Flow</h3>
-<pre class="mermaid">graph TD
+# semi-supervised-email
+
+## ∫ Mathematics & Theory
+
+Semi-Supervised Learning — Underlying equations and derivations
+
+$$\mathcal{L} = \mathcal{L}_{sup} + \lambda_t \mathcal{L}_{unsup}$$
+
+$$\mathcal{L}_{unsup} = \text{MSE}(f_\theta(x'), f_\theta(x)) \quad \text{(Mean Teacher)}$$
+
+$$p_t = \min\left(1, \frac{T}{T_0}\right)$$
+
+### Step-by-Step Derivation
+
+Semi-supervised learning leverages unlabeled data by enforcing consistency. Given an input $x$, augmented views $x'$ should produce similar predictions. The total loss combines supervised cross-entropy on labeled data and consistency regularization on all data. A time-dependent weight $\lambda_t$ ramps up the unsupervised loss.
+
+### Interactive Visualization
+
+Interactive pseudo-label confidence distribution; labeled vs unlabeled loss curves; decision boundary animation.
+
+## ⚙ Architecture
+
+Model structure, data flow, and layer breakdown
+
+### Class Hierarchy
+
+```
+  LogisticRegression
+  SelfTrainingClassifier
+```
+
+### Data Flow
+
+```mermaid
+graph TD
   A[Input Data] --> B[Preprocessing]
   B --> C[Model Training]
   C --> D[Evaluation]
   D --> E[Model Registry]
-  E --> F[Serving API]</pre>
-</div>
-</section>
-<section id="api" class="section api-section">
-<h2><span class="section-icon">⚡</span> API Reference</h2>
-<p class="section-subtitle">FastAPI endpoints and model interfaces</p>
-<table class="api-table">
-<thead><tr><th>Method</th><th>Endpoint</th></tr></thead>
-<tbody><tr><td><code>GET</code></td><td><code>/</code></td></tr>
-<tr><td><code>GET</code></td><td><code>/health</code></td></tr>
-<tr><td><code>GET</code></td><td><code>/metrics</code></td></tr>
-<tr><td><code>POST</code></td><td><code>/reload</code></td></tr></tbody>
-</table>
-</section>
-<section id="usage" class="section usage-section">
-<h2><span class="section-icon">▶</span> Usage</h2>
-<p class="section-subtitle">Code examples and CLI commands</p>
-<h3>Training Script</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2159253117')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2159253117"><code class="language-python">&quot;&quot;&quot;Production training pipeline for semi-supervised email classification.&quot;&quot;&quot;
+  E --> F[Serving API]
+```
+
+## ⚡ API Reference
+
+FastAPI endpoints and model interfaces
+
+| Method | Endpoint |
+| --- | --- |
+| `GET` | `/` |
+| `GET` | `/health` |
+| `GET` | `/metrics` |
+| `POST` | `/reload` |
+
+## ▶ Usage
+
+Code examples and CLI commands
+
+### Training Script
+
+```python
+"""Production training pipeline for semi-supervised email classification."""
 
 import argparse
 import os
@@ -83,7 +76,6 @@ from semi_supervised_email.model import SelfTrainingClassifier
 
 logger = get_logger(__name__)
 
-
 def train(
     model_dir: Path,
     data_path: Path,
@@ -93,12 +85,12 @@ def train(
     model_version: str,
     register_to_mlflow: bool = False,
     random_seed: int = 42,
-) -&gt; dict:
-    &quot;&quot;&quot;Train the semi-supervised email classification model and save artifacts.
+) -> dict:
+    """Train the semi-supervised email classification model and save artifacts.
 
     Returns:
         Dictionary with training metrics
-    &quot;&quot;&quot;
+    """
     # Load semi-supervised training data
     X, y, is_labeled = load_training_data(
         data_path=data_path if data_path and data_path.exists() else None,
@@ -106,7 +98,7 @@ def train(
         random_seed=random_seed,
     )
     logger.info(
-        &quot;Loaded semi-supervised training data&quot;,
+        "Loaded semi-supervised training data",
         n_samples=len(X),
         n_features=X.shape[1],
         n_labeled=int(np.sum(is_labeled)),
@@ -115,7 +107,7 @@ def train(
     )
 
     # Save training data for reproducibility
-    save_training_data(X, y, is_labeled, model_dir / &quot;training_data.csv&quot;)
+    save_training_data(X, y, is_labeled, model_dir / "training_data.csv")
 
     # Train self-training model
     model = SelfTrainingClassifier(
@@ -130,7 +122,7 @@ def train(
     n_labeled_final = model.n_labeled_history[-1] if model.n_labeled_history else np.sum(is_labeled)
 
     logger.info(
-        &quot;Self-training complete&quot;,
+        "Self-training complete",
         training_mode=training_mode,
         n_iterations=n_iterations,
         n_labeled_initial=int(np.sum(is_labeled)),
@@ -145,19 +137,19 @@ def train(
     # Add semi-supervised specific metrics
     metrics.update(
         {
-            &quot;training_mode&quot;: float(training_mode == &quot;semi-supervised&quot;),
-            &quot;n_labeled_initial&quot;: float(np.sum(is_labeled)),
-            &quot;n_labeled_final&quot;: float(n_labeled_final),
-            &quot;n_pseudo_labeled&quot;: float(n_labeled_final - np.sum(is_labeled)),
-            &quot;n_unlabeled_initial&quot;: float(np.sum(~is_labeled)),
-            &quot;n_iterations&quot;: float(n_iterations),
-            &quot;confidence_threshold&quot;: confidence_threshold,
-            &quot;labeled_ratio&quot;: labeled_ratio,
+            "training_mode": float(training_mode == "semi-supervised"),
+            "n_labeled_initial": float(np.sum(is_labeled)),
+            "n_labeled_final": float(n_labeled_final),
+            "n_pseudo_labeled": float(n_labeled_final - np.sum(is_labeled)),
+            "n_unlabeled_initial": float(np.sum(~is_labeled)),
+            "n_iterations": float(n_iterations),
+            "confidence_threshold": confidence_threshold,
+            "labeled_ratio": labeled_ratio,
         }
     )
 
     # Save model
-    model_path = model_dir / f&quot;semi_supervised_email_model_v{model_version}.npz&quot;
+    model_path = model_dir / f"semi_supervised_email_model_v{model_version}.npz"
     model.save(str(model_path))
 
     # Save training chart
@@ -166,63 +158,61 @@ def train(
     # Register model
     registry = ModelRegistry(base_dir=model_dir)
     registry.save_model(
-        model_name=&quot;semi-supervised-email&quot;,
+        model_name="semi-supervised-email",
         model_version=model_version,
-        model_type=&quot;semi_supervised_classification&quot;,
+        model_type="semi_supervised_classification",
         metrics=metrics,
         parameters={
-            &quot;labeled_ratio&quot;: labeled_ratio,
-            &quot;confidence_threshold&quot;: confidence_threshold,
-            &quot;max_iterations&quot;: max_iterations,
-            &quot;random_seed&quot;: random_seed,
+            "labeled_ratio": labeled_ratio,
+            "confidence_threshold": confidence_threshold,
+            "max_iterations": max_iterations,
+            "random_seed": random_seed,
         },
         artifacts={
-            f&quot;semi_supervised_email_model_v{model_version}.npz&quot;: model_path,
-            &quot;training_data.csv&quot;: model_dir / &quot;training_data.csv&quot;,
+            f"semi_supervised_email_model_v{model_version}.npz": model_path,
+            "training_data.csv": model_dir / "training_data.csv",
         },
         tags={
-            &quot;framework&quot;: &quot;numpy&quot;,
-            &quot;task&quot;: &quot;semi_supervised_classification&quot;,
-            &quot;base_model&quot;: &quot;logistic_regression&quot;,
+            "framework": "numpy",
+            "task": "semi_supervised_classification",
+            "base_model": "logistic_regression",
         },
     )
 
     if register_to_mlflow:
         registry.log_to_mlflow(
-            model_name=&quot;semi-supervised-email&quot;,
+            model_name="semi-supervised-email",
             model_version=model_version,
             metrics=metrics,
             params={
-                &quot;labeled_ratio&quot;: labeled_ratio,
-                &quot;confidence_threshold&quot;: confidence_threshold,
-                &quot;max_iterations&quot;: max_iterations,
-                &quot;random_seed&quot;: random_seed,
+                "labeled_ratio": labeled_ratio,
+                "confidence_threshold": confidence_threshold,
+                "max_iterations": max_iterations,
+                "random_seed": random_seed,
             },
             artifacts={
-                &quot;model&quot;: str(model_path),
-                &quot;chart&quot;: str(model_dir / f&quot;semi_supervised_email_v{model_version}.png&quot;),
-                &quot;training_data&quot;: str(model_dir / &quot;training_data.csv&quot;),
+                "model": str(model_path),
+                "chart": str(model_dir / f"semi_supervised_email_v{model_version}.png"),
+                "training_data": str(model_dir / "training_data.csv"),
             },
-            tags={&quot;model_type&quot;: &quot;semi_supervised_classification&quot;, &quot;framework&quot;: &quot;numpy&quot;},
+            tags={"model_type": "semi_supervised_classification", "framework": "numpy"},
         )
         logger.info(
-            &quot;Registered model to MLflow&quot;, model=&quot;semi-supervised-email&quot;, version=model_version
+            "Registered model to MLflow", model="semi-supervised-email", version=model_version
         )
 
     return metrics
 
-
-def _get_labeled_data(X: np.ndarray, y: np.ndarray) -&gt; tuple[np.ndarray, np.ndarray]:
-    &quot;&quot;&quot;Extract only the labeled subset of the data.&quot;&quot;&quot;
+def _get_labeled_data(X: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Extract only the labeled subset of the data."""
     mask = y != -1
     return X[mask], y[mask]
 
-
-def _save_chart(model: SelfTrainingClassifier, output_dir: Path, version: str) -&gt; None:
-    &quot;&quot;&quot;Save the semi-supervised training chart.&quot;&quot;&quot;
+def _save_chart(model: SelfTrainingClassifier, output_dir: Path, version: str) -> None:
+    """Save the semi-supervised training chart."""
     import matplotlib
 
-    matplotlib.use(&quot;Agg&quot;)
+    matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
     if not model.n_labeled_history:
@@ -232,10 +222,10 @@ def _save_chart(model: SelfTrainingClassifier, output_dir: Path, version: str) -
 
     # Plot 1: Labeled samples over iterations
     iterations = list(range(len(model.n_labeled_history)))
-    ax1.plot(iterations, model.n_labeled_history, marker=&quot;o&quot;, color=&quot;steelblue&quot;, linewidth=2)
-    ax1.set_xlabel(&quot;Self-Training Iteration&quot;)
-    ax1.set_ylabel(&quot;Number of Labeled Samples&quot;)
-    ax1.set_title(&quot;Labeled Samples Growth&quot;)
+    ax1.plot(iterations, model.n_labeled_history, marker="o", color="steelblue", linewidth=2)
+    ax1.set_xlabel("Self-Training Iteration")
+    ax1.set_ylabel("Number of Labeled Samples")
+    ax1.set_title("Labeled Samples Growth")
     ax1.grid(True, alpha=0.3)
 
     # Plot 2: Accuracy over iterations (if available)
@@ -243,57 +233,56 @@ def _save_chart(model: SelfTrainingClassifier, output_dir: Path, version: str) -
         ax2.plot(
             iterations[: len(model.accuracy_history)],
             model.accuracy_history,
-            marker=&quot;s&quot;,
-            color=&quot;green&quot;,
+            marker="s",
+            color="green",
             linewidth=2,
         )
-        ax2.set_xlabel(&quot;Self-Training Iteration&quot;)
-        ax2.set_ylabel(&quot;Accuracy&quot;)
-        ax2.set_title(&quot;Model Accuracy During Self-Training&quot;)
+        ax2.set_xlabel("Self-Training Iteration")
+        ax2.set_ylabel("Accuracy")
+        ax2.set_title("Model Accuracy During Self-Training")
         ax2.set_ylim([0, 1.05])
         ax2.grid(True, alpha=0.3)
     else:
         ax2.text(
             0.5,
             0.5,
-            &quot;No accuracy data available&quot;,
-            ha=&quot;center&quot;,
-            va=&quot;center&quot;,
+            "No accuracy data available",
+            ha="center",
+            va="center",
             transform=ax2.transAxes,
         )
-        ax2.set_title(&quot;Model Accuracy During Self-Training&quot;)
+        ax2.set_title("Model Accuracy During Self-Training")
 
     plt.tight_layout()
 
-    chart_path = output_dir / f&quot;semi_supervised_email_v{version}.png&quot;
+    chart_path = output_dir / f"semi_supervised_email_v{version}.png"
     plt.savefig(str(chart_path), dpi=100)
     plt.close()
-    logger.info(&quot;Chart saved&quot;, path=str(chart_path))
-
+    logger.info("Chart saved", path=str(chart_path))
 
 def main():
-    parser = argparse.ArgumentParser(description=&quot;Train semi-supervised email classification model&quot;)
-    parser.add_argument(&quot;--model-dir&quot;, type=Path, default=Path(os.getenv(&quot;MODEL_DIR&quot;, &quot;/models&quot;)))
-    parser.add_argument(&quot;--data-path&quot;, type=Path, default=None)
+    parser = argparse.ArgumentParser(description="Train semi-supervised email classification model")
+    parser.add_argument("--model-dir", type=Path, default=Path(os.getenv("MODEL_DIR", "/models")))
+    parser.add_argument("--data-path", type=Path, default=None)
     parser.add_argument(
-        &quot;--labeled-ratio&quot;, type=float, default=float(os.getenv(&quot;LABELED_RATIO&quot;, &quot;0.1&quot;))
+        "--labeled-ratio", type=float, default=float(os.getenv("LABELED_RATIO", "0.1"))
     )
     parser.add_argument(
-        &quot;--confidence-threshold&quot;,
+        "--confidence-threshold",
         type=float,
-        default=float(os.getenv(&quot;CONFIDENCE_THRESHOLD&quot;, &quot;0.95&quot;)),
+        default=float(os.getenv("CONFIDENCE_THRESHOLD", "0.95")),
     )
     parser.add_argument(
-        &quot;--max-iterations&quot;, type=int, default=int(os.getenv(&quot;MAX_ITERATIONS&quot;, &quot;10&quot;))
+        "--max-iterations", type=int, default=int(os.getenv("MAX_ITERATIONS", "10"))
     )
-    parser.add_argument(&quot;--model-version&quot;, type=str, default=os.getenv(&quot;MODEL_VERSION&quot;, &quot;1.0.0&quot;))
-    parser.add_argument(&quot;--random-seed&quot;, type=int, default=int(os.getenv(&quot;RANDOM_SEED&quot;, &quot;42&quot;)))
+    parser.add_argument("--model-version", type=str, default=os.getenv("MODEL_VERSION", "1.0.0"))
+    parser.add_argument("--random-seed", type=int, default=int(os.getenv("RANDOM_SEED", "42")))
     parser.add_argument(
-        &quot;--register-mlflow&quot;,
-        action=&quot;store_true&quot;,
-        default=os.getenv(&quot;REGISTER_MLFLOW&quot;, &quot;false&quot;).lower() == &quot;true&quot;,
+        "--register-mlflow",
+        action="store_true",
+        default=os.getenv("REGISTER_MLFLOW", "false").lower() == "true",
     )
-    parser.add_argument(&quot;--log-level&quot;, type=str, default=os.getenv(&quot;LOG_LEVEL&quot;, &quot;INFO&quot;))
+    parser.add_argument("--log-level", type=str, default=os.getenv("LOG_LEVEL", "INFO"))
     args = parser.parse_args()
 
     setup_logging(args.log_level)
@@ -310,15 +299,16 @@ def main():
         random_seed=args.random_seed,
     )
 
-    logger.info(&quot;Training finished&quot;, metrics=metrics, model_dir=str(args.model_dir))
+    logger.info("Training finished", metrics=metrics, model_dir=str(args.model_dir))
 
+if __name__ == "__main__":
+    main()
+```
 
-if __name__ == &quot;__main__&quot;:
-    main()</code></pre>
-</div><h3>API Server</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3260418530')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3260418530"><code class="language-python">&quot;&quot;&quot;Production serving API for semi-supervised email classification.&quot;&quot;&quot;
+### API Server
+
+```python
+"""Production serving API for semi-supervised email classification."""
 
 import os
 import time
@@ -341,26 +331,24 @@ from semi_supervised_email.model import SelfTrainingClassifier
 logger = get_logger(__name__)
 
 # Configuration
-MODEL_DIR = Path(os.getenv(&quot;MODEL_DIR&quot;, &quot;/models&quot;))
-MODEL_VERSION = os.getenv(&quot;MODEL_VERSION&quot;, &quot;latest&quot;)
-METRICS_PORT = int(os.getenv(&quot;METRICS_PORT&quot;, os.getenv(&quot;SEMI_SUPERVISED_METRICS_PORT&quot;, &quot;8006&quot;)))
-DRIFT_THRESHOLD = float(os.getenv(&quot;DRIFT_THRESHOLD&quot;, &quot;0.2&quot;))
-
+MODEL_DIR = Path(os.getenv("MODEL_DIR", "/models"))
+MODEL_VERSION = os.getenv("MODEL_VERSION", "latest")
+METRICS_PORT = int(os.getenv("METRICS_PORT", os.getenv("SEMI_SUPERVISED_METRICS_PORT", "8006")))
+DRIFT_THRESHOLD = float(os.getenv("DRIFT_THRESHOLD", "0.2"))
 
 class PredictRequest(BaseModel):
-    &quot;&quot;&quot;Single email classification request.&quot;&quot;&quot;
+    """Single email classification request."""
 
-    has_free: int = Field(..., ge=0, le=1, description=&quot;Contains 'free' keyword&quot;)
-    has_win: int = Field(..., ge=0, le=1, description=&quot;Contains 'win' keyword&quot;)
-    has_link: int = Field(..., ge=0, le=1, description=&quot;Contains a link&quot;)
-    has_exclamation: int = Field(..., ge=0, le=1, description=&quot;Contains 3+ exclamation marks&quot;)
-    has_meeting: int = Field(..., ge=0, le=1, description=&quot;Contains 'meeting' keyword&quot;)
-    length_score: int = Field(..., ge=1, le=10, description=&quot;Email length score (1-10)&quot;)
-    has_caps: int = Field(..., ge=0, le=1, description=&quot;Contains excessive caps&quot;)
-
+    has_free: int = Field(..., ge=0, le=1, description="Contains 'free' keyword")
+    has_win: int = Field(..., ge=0, le=1, description="Contains 'win' keyword")
+    has_link: int = Field(..., ge=0, le=1, description="Contains a link")
+    has_exclamation: int = Field(..., ge=0, le=1, description="Contains 3+ exclamation marks")
+    has_meeting: int = Field(..., ge=0, le=1, description="Contains 'meeting' keyword")
+    length_score: int = Field(..., ge=1, le=10, description="Email length score (1-10)")
+    has_caps: int = Field(..., ge=0, le=1, description="Contains excessive caps")
 
 class PredictResponse(BaseModel):
-    &quot;&quot;&quot;Email classification response.&quot;&quot;&quot;
+    """Email classification response."""
 
     is_spam: bool
     spam_probability: float
@@ -368,16 +356,14 @@ class PredictResponse(BaseModel):
     model_version: str
     training_mode: str
 
-
 class BulkPredictResponse(BaseModel):
-    &quot;&quot;&quot;Bulk email classification response.&quot;&quot;&quot;
+    """Bulk email classification response."""
 
     predictions: list[PredictResponse]
     model_version: str
 
-
 class StatsResponse(BaseModel):
-    &quot;&quot;&quot;Model statistics response.&quot;&quot;&quot;
+    """Model statistics response."""
 
     n_features: int
     confidence_threshold: float
@@ -390,9 +376,8 @@ class StatsResponse(BaseModel):
     accuracy_history: list[float]
     model_version: str
 
-
 class DriftResponse(BaseModel):
-    &quot;&quot;&quot;Drift detection response.&quot;&quot;&quot;
+    """Drift detection response."""
 
     total_features: int
     drifted_features: int
@@ -400,115 +385,111 @@ class DriftResponse(BaseModel):
     drifted: list[dict]
     all_results: list[dict]
 
-
 # Global model state
 _model: SelfTrainingClassifier | None = None
-_model_version: str = &quot;unknown&quot;
+_model_version: str = "unknown"
 _metrics: MetricsCollector | None = None
 _validator: DataValidator | None = None
 _drift_detector: DriftDetector | None = None
 _reference_data: np.ndarray | None = None
 _recent_predictions: list[list[float]] = []
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    &quot;&quot;&quot;Load model at startup and clean up at shutdown.&quot;&quot;&quot;
+    """Load model at startup and clean up at shutdown."""
     global _model, _model_version, _metrics, _validator, _drift_detector, _reference_data
 
-    setup_logging(os.getenv(&quot;LOG_LEVEL&quot;, &quot;INFO&quot;))
-    _metrics = MetricsCollector(&quot;semi_supervised_email&quot;, port=METRICS_PORT)
+    setup_logging(os.getenv("LOG_LEVEL", "INFO"))
+    _metrics = MetricsCollector("semi_supervised_email", port=METRICS_PORT)
     app.state.metrics = _metrics
 
     _validator = DataValidator(create_semi_supervised_email_schema())
     _drift_detector = DriftDetector(
         feature_names=FEATURE_NAMES,
-        feature_types={f: &quot;float&quot; for f in FEATURE_NAMES},
+        feature_types={f: "float" for f in FEATURE_NAMES},
         psi_threshold=DRIFT_THRESHOLD,
     )
 
     _model, _model_version = _load_model()
     _metrics.set_model_version(_model_version)
     _metrics.set_model_info(
-        model_name=&quot;semi-supervised-email&quot;,
+        model_name="semi-supervised-email",
         model_version=_model_version,
-        model_type=&quot;semi_supervised_classification&quot;,
+        model_type="semi_supervised_classification",
     )
 
     # Load reference data for drift detection
     _reference_data = _load_reference_data()
-    logger.info(&quot;Model loaded&quot;, model=&quot;semi-supervised-email&quot;, version=_model_version)
+    logger.info("Model loaded", model="semi-supervised-email", version=_model_version)
 
     yield
 
-    logger.info(&quot;Shutting down semi-supervised-email API&quot;)
+    logger.info("Shutting down semi-supervised-email API")
 
-
-def _load_model() -&gt; tuple[SelfTrainingClassifier, str]:
-    &quot;&quot;&quot;Load the latest model from the registry or model directory with resilient fallback.&quot;&quot;&quot;
+def _load_model() -> tuple[SelfTrainingClassifier, str]:
+    """Load the latest model from the registry or model directory with resilient fallback."""
     # 1. Try model registry
     registry = ModelRegistry(base_dir=MODEL_DIR)
     try:
-        if MODEL_VERSION == &quot;latest&quot;:
+        if MODEL_VERSION == "latest":
             models = registry.list_models()
-            ss_models = [m for m in models if m.get(&quot;model_name&quot;) == &quot;semi-supervised-email&quot;]
+            ss_models = [m for m in models if m.get("model_name") == "semi-supervised-email"]
             if ss_models:
-                ss_models.sort(key=lambda m: m[&quot;model_version&quot;], reverse=True)
+                ss_models.sort(key=lambda m: m["model_version"], reverse=True)
                 latest = ss_models[0]
-                model_dir = Path(latest[&quot;artifact_path&quot;])
-                npz_files = list(model_dir.glob(&quot;semi_supervised_email_model_*.npz&quot;)) + list(
-                    model_dir.glob(&quot;*.npz&quot;)
+                model_dir = Path(latest["artifact_path"])
+                npz_files = list(model_dir.glob("semi_supervised_email_model_*.npz")) + list(
+                    model_dir.glob("*.npz")
                 )
                 if npz_files:
-                    return SelfTrainingClassifier.load(str(npz_files[0])), latest[&quot;model_version&quot;]
+                    return SelfTrainingClassifier.load(str(npz_files[0])), latest["model_version"]
         else:
-            model_dir = MODEL_DIR / &quot;semi-supervised-email&quot; / MODEL_VERSION
+            model_dir = MODEL_DIR / "semi-supervised-email" / MODEL_VERSION
             if model_dir.exists():
-                npz_files = list(model_dir.glob(&quot;semi_supervised_email_model_*.npz&quot;)) + list(
-                    model_dir.glob(&quot;*.npz&quot;)
+                npz_files = list(model_dir.glob("semi_supervised_email_model_*.npz")) + list(
+                    model_dir.glob("*.npz")
                 )
                 if npz_files:
                     return SelfTrainingClassifier.load(str(npz_files[0])), MODEL_VERSION
     except Exception as e:
-        logger.warning(f&quot;Registry lookup failed: {e}&quot;)
+        logger.warning(f"Registry lookup failed: {e}")
 
     # 2. Try direct model in MODEL_DIR
-    npz_path = MODEL_DIR / &quot;semi_supervised_email_model.npz&quot;
+    npz_path = MODEL_DIR / "semi_supervised_email_model.npz"
     if npz_path.exists():
-        return SelfTrainingClassifier.load(str(npz_path)), &quot;legacy&quot;
+        return SelfTrainingClassifier.load(str(npz_path)), "legacy"
 
     # 3. Try bundled artifacts directory
     candidate_paths = [
-        Path(&quot;/app/artifacts/models/semi_supervised_email_model_v1.0.0.npz&quot;),
+        Path("/app/artifacts/models/semi_supervised_email_model_v1.0.0.npz"),
         Path(__file__).resolve().parents[3]
-        / &quot;artifacts&quot;
-        / &quot;models&quot;
-        / &quot;semi_supervised_email_model_v1.0.0.npz&quot;,
+        / "artifacts"
+        / "models"
+        / "semi_supervised_email_model_v1.0.0.npz",
     ]
     for p in candidate_paths:
         if p.exists():
-            logger.info(&quot;Loading bundled baseline model&quot;, path=str(p))
-            return SelfTrainingClassifier.load(str(p)), &quot;1.0.0-bundled&quot;
+            logger.info("Loading bundled baseline model", path=str(p))
+            return SelfTrainingClassifier.load(str(p)), "1.0.0-bundled"
 
     # 4. In-memory baseline fallback (never crash cold start)
     logger.warning(
-        &quot;No pre-existing model found on disk. Initializing baseline self-training model.&quot;
+        "No pre-existing model found on disk. Initializing baseline self-training model."
     )
     from semi_supervised_email.data import load_training_data
 
     X_base, y_base, _ = load_training_data(None, labeled_ratio=0.1, random_seed=42)
     model = SelfTrainingClassifier(confidence_threshold=0.95, max_iterations=10, random_seed=42)
     model.fit(X_base, y_base)
-    return model, &quot;1.0.0-baseline&quot;
+    return model, "1.0.0-baseline"
 
-
-def _load_reference_data() -&gt; np.ndarray | None:
-    &quot;&quot;&quot;Load reference training data for drift detection.&quot;&quot;&quot;
+def _load_reference_data() -> np.ndarray | None:
+    """Load reference training data for drift detection."""
     candidate_csvs = [
-        MODEL_DIR / &quot;semi-supervised-email&quot; / _model_version / &quot;training_data.csv&quot;,
-        MODEL_DIR / &quot;training_data.csv&quot;,
-        Path(&quot;/app/artifacts/models/training_data.csv&quot;),
-        Path(__file__).resolve().parents[3] / &quot;artifacts&quot; / &quot;models&quot; / &quot;training_data.csv&quot;,
+        MODEL_DIR / "semi-supervised-email" / _model_version / "training_data.csv",
+        MODEL_DIR / "training_data.csv",
+        Path("/app/artifacts/models/training_data.csv"),
+        Path(__file__).resolve().parents[3] / "artifacts" / "models" / "training_data.csv",
     ]
     for csv_path in candidate_csvs:
         if csv_path.exists():
@@ -519,97 +500,91 @@ def _load_reference_data() -&gt; np.ndarray | None:
                 if all(f in df.columns for f in FEATURE_NAMES):
                     return df[FEATURE_NAMES].values
             except Exception as e:
-                logger.warning(&quot;Could not read reference csv&quot;, path=str(csv_path), error=str(e))
+                logger.warning("Could not read reference csv", path=str(csv_path), error=str(e))
 
     from semi_supervised_email.data import load_training_data
 
     X_base, _, _ = load_training_data(None, labeled_ratio=0.1, random_seed=42)
     return X_base
 
-
 # Create FastAPI app
 app = FastAPI(
-    title=&quot;Semi-Supervised Email Classification API&quot;,
-    description=&quot;Self-training semi-supervised learning for email spam classification&quot;,
-    version=&quot;1.0.0&quot;,
+    title="Semi-Supervised Email Classification API",
+    description="Self-training semi-supervised learning for email spam classification",
+    version="1.0.0",
     lifespan=lifespan,
 )
 
 # Add observability middleware
 add_observability_middleware(app)
 
-
-@app.get(&quot;/&quot;)
+@app.get("/")
 def read_root():
-    &quot;&quot;&quot;Service information.&quot;&quot;&quot;
+    """Service information."""
     return {
-        &quot;service&quot;: &quot;semi-supervised-email-api&quot;,
-        &quot;version&quot;: &quot;1.0.0&quot;,
-        &quot;model_version&quot;: _model_version,
-        &quot;training_mode&quot;: _model.training_mode if _model else &quot;unknown&quot;,
-        &quot;features&quot;: FEATURE_NAMES,
-        &quot;endpoints&quot;: {
-            &quot;health&quot;: &quot;/health&quot;,
-            &quot;predict&quot;: &quot;POST /predict&quot;,
-            &quot;predict/bulk&quot;: &quot;POST /predict/bulk&quot;,
-            &quot;stats&quot;: &quot;GET /stats&quot;,
-            &quot;drift&quot;: &quot;GET /drift&quot;,
-            &quot;metrics&quot;: &quot;/metrics&quot;,
+        "service": "semi-supervised-email-api",
+        "version": "1.0.0",
+        "model_version": _model_version,
+        "training_mode": _model.training_mode if _model else "unknown",
+        "features": FEATURE_NAMES,
+        "endpoints": {
+            "health": "/health",
+            "predict": "POST /predict",
+            "predict/bulk": "POST /predict/bulk",
+            "stats": "GET /stats",
+            "drift": "GET /drift",
+            "metrics": "/metrics",
         },
     }
 
-
-@app.get(&quot;/health&quot;)
+@app.get("/health")
 def health_check():
-    &quot;&quot;&quot;Kubernetes liveness/readiness probe.&quot;&quot;&quot;
+    """Kubernetes liveness/readiness probe."""
     if _model is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
     return {
-        &quot;status&quot;: &quot;healthy&quot;,
-        &quot;model_loaded&quot;: True,
-        &quot;model_version&quot;: _model_version,
-        &quot;training_mode&quot;: _model.training_mode,
+        "status": "healthy",
+        "model_loaded": True,
+        "model_version": _model_version,
+        "training_mode": _model.training_mode,
     }
 
-
-@app.get(&quot;/metrics&quot;)
+@app.get("/metrics")
 def metrics():
-    &quot;&quot;&quot;Prometheus metrics endpoint.&quot;&quot;&quot;
+    """Prometheus metrics endpoint."""
     from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
-
-@app.post(&quot;/reload&quot;)
+@app.post("/reload")
 def reload_model():
-    &quot;&quot;&quot;Dynamically reload the model from disk/registry.&quot;&quot;&quot;
+    """Dynamically reload the model from disk/registry."""
     global _model, _model_version, _reference_data
     try:
         _model, _model_version = _load_model()
         if _metrics:
             _metrics.set_model_version(_model_version)
             _metrics.set_model_info(
-                model_name=&quot;semi-supervised-email&quot;,
+                model_name="semi-supervised-email",
                 model_version=_model_version,
-                model_type=&quot;semi_supervised_classification&quot;,
+                model_type="semi_supervised_classification",
             )
         _reference_data = _load_reference_data()
         logger.info(
-            &quot;Model reloaded dynamically&quot;, model=&quot;semi-supervised-email&quot;, version=_model_version
+            "Model reloaded dynamically", model="semi-supervised-email", version=_model_version
         )
-        return {&quot;status&quot;: &quot;reloaded&quot;, &quot;model_version&quot;: _model_version}
+        return {"status": "reloaded", "model_version": _model_version}
     except Exception as e:
-        logger.exception(&quot;Model reload failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=f&quot;Reload failed: {e}&quot;) from e
+        logger.exception("Model reload failed", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Reload failed: {e}") from e
 
-
-@app.get(&quot;/drift&quot;, response_model=DriftResponse)
+@app.get("/drift", response_model=DriftResponse)
 def drift_check():
-    &quot;&quot;&quot;Check for data drift between reference and recent predictions.&quot;&quot;&quot;
+    """Check for data drift between reference and recent predictions."""
     if _drift_detector is None or _reference_data is None:
-        raise HTTPException(status_code=503, detail=&quot;Drift detection not available&quot;)
+        raise HTTPException(status_code=503, detail="Drift detection not available")
 
-    if len(_recent_predictions) &lt; 10:
+    if len(_recent_predictions) < 10:
         return DriftResponse(
             total_features=len(FEATURE_NAMES),
             drifted_features=0,
@@ -623,16 +598,15 @@ def drift_check():
     summary = _drift_detector.summarize(results)
 
     if _metrics:
-        _metrics.set_drift_ratio(summary[&quot;drift_ratio&quot;])
+        _metrics.set_drift_ratio(summary["drift_ratio"])
 
     return DriftResponse(**summary)
 
-
-@app.get(&quot;/stats&quot;, response_model=StatsResponse)
+@app.get("/stats", response_model=StatsResponse)
 def get_stats():
-    &quot;&quot;&quot;Return model statistics.&quot;&quot;&quot;
+    """Return model statistics."""
     if _model is None or _model.model is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     return StatsResponse(
         n_features=_model.n_features,
@@ -649,11 +623,10 @@ def get_stats():
         model_version=_model_version,
     )
 
-
-def _compute_prediction(features: PredictRequest) -&gt; PredictResponse:
-    &quot;&quot;&quot;Core classification logic shared by all prediction endpoints.&quot;&quot;&quot;
+def _compute_prediction(features: PredictRequest) -> PredictResponse:
+    """Core classification logic shared by all prediction endpoints."""
     if _model is None or _metrics is None or _validator is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     # Validate input
     X = np.array(
@@ -692,37 +665,35 @@ def _compute_prediction(features: PredictRequest) -&gt; PredictResponse:
                 features.has_caps,
             ]
         )
-        if len(_recent_predictions) &gt; 1000:
+        if len(_recent_predictions) > 1000:
             _recent_predictions.pop(0)
 
         return PredictResponse(
             is_spam=is_spam,
             spam_probability=round(proba, 4),
-            label=&quot;SPAM&quot; if is_spam else &quot;NOT spam&quot;,
+            label="SPAM" if is_spam else "NOT spam",
             model_version=_model_version,
-            training_mode=_model.training_mode if _model else &quot;unknown&quot;,
+            training_mode=_model.training_mode if _model else "unknown",
         )
     except Exception as e:
-        _metrics.record_error(model_version=_model_version, error_type=&quot;prediction&quot;)
-        logger.exception(&quot;Classification failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=&quot;Classification failed&quot;) from e
+        _metrics.record_error(model_version=_model_version, error_type="prediction")
+        logger.exception("Classification failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Classification failed") from e
 
-
-@app.post(&quot;/predict&quot;, response_model=PredictResponse)
+@app.post("/predict", response_model=PredictResponse)
 def predict_single(body: PredictRequest):
-    &quot;&quot;&quot;Classify a single email.&quot;&quot;&quot;
+    """Classify a single email."""
     return _compute_prediction(body)
 
-
-@app.post(&quot;/predict/bulk&quot;, response_model=BulkPredictResponse)
+@app.post("/predict/bulk", response_model=BulkPredictResponse)
 def predict_bulk(body: list[PredictRequest]):
-    &quot;&quot;&quot;Classify multiple emails (1 to 100).&quot;&quot;&quot;
+    """Classify multiple emails (1 to 100)."""
     global _recent_predictions
     if _model is None or _metrics is None or _validator is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
-    if len(body) &lt; 1 or len(body) &gt; 100:
-        raise HTTPException(status_code=422, detail=&quot;Batch size must be between 1 and 100&quot;)
+    if len(body) < 1 or len(body) > 100:
+        raise HTTPException(status_code=422, detail="Batch size must be between 1 and 100")
 
     X = np.array(
         [
@@ -752,53 +723,42 @@ def predict_bulk(body: list[PredictRequest]):
 
         # Track for drift detection
         _recent_predictions.extend(X.tolist())
-        if len(_recent_predictions) &gt; 1000:
+        if len(_recent_predictions) > 1000:
             _recent_predictions = _recent_predictions[-1000:]
 
         responses = [
             PredictResponse(
                 is_spam=bool(pred),
                 spam_probability=round(float(prob), 4),
-                label=&quot;SPAM&quot; if pred else &quot;NOT spam&quot;,
+                label="SPAM" if pred else "NOT spam",
                 model_version=_model_version,
-                training_mode=_model.training_mode if _model else &quot;unknown&quot;,
+                training_mode=_model.training_mode if _model else "unknown",
             )
             for pred, prob in zip(predictions, probas, strict=False)
         ]
         return BulkPredictResponse(predictions=responses, model_version=_model_version)
     except Exception as e:
-        _metrics.record_error(model_version=_model_version, error_type=&quot;prediction&quot;)
-        logger.exception(&quot;Bulk classification failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=&quot;Bulk classification failed&quot;) from e</code></pre>
-</div>
-<h3>CLI Commands</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-623907439')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-623907439"><code class="language-bash">uv run python -m semi_supervised_email.train --model-dir ./artifacts/models</code></pre>
-</div>
-</section>
-<section id="benchmarks" class="section bench-section">
-<h2><span class="section-icon">📊</span> Benchmarks</h2>
-<p class="section-subtitle">Test results and performance metrics</p>
-<p class="muted">Run <code>pytest tests/test_models.py</code> and <code>pytest tests/test_apis.py</code> for detailed metrics.</p>
-</section>
-<div class="related-links">
-<h3>Related Apps</h3>
-<ul><li><a href="../self-supervised-monitoring/README.md">self-supervised-monitoring</a></li>
-<li><a href="../classification-email-spam/README.md">classification-email-spam</a></li></ul>
-</div>
-</main>
-<footer class="app-footer">
-<p>Generated documentation for <strong>semi-supervised-email</strong></p>
-</footer>
-<script>
-function copyCode(id) {
-  const el = document.getElementById(id);
-  navigator.clipboard.writeText(el.innerText);
-}
-function renderMath() {
-  renderMathInElement(document.body, { delimiters: [{left: "$$", right: "$$", display: true}] });
-}
-</script>
-</body>
-</html>
+        _metrics.record_error(model_version=_model_version, error_type="prediction")
+        logger.exception("Bulk classification failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Bulk classification failed") from e
+```
+
+### CLI Commands
+
+```bash
+uv run python -m semi_supervised_email.train --model-dir ./artifacts/models
+```
+
+## 📊 Benchmarks
+
+Test results and performance metrics
+
+Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+
+### Related Apps
+
+- [self-supervised-monitoring](../self-supervised-monitoring/README.md)
+
+- [classification-email-spam](../classification-email-spam/README.md)
+
+Generated documentation for **semi-supervised-email**

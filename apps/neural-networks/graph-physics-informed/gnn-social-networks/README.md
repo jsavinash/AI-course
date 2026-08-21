@@ -1,71 +1,64 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>gnn-social-networks - AI App Documentation</title>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMath()"></script>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-<style>
-/* CSS styles here */
-</style>
-</head>
-<body>
-<section id="math" class="section math-section">
-<h2><span class="section-icon">∫</span> Mathematics &amp; Theory</h2>
-<p class="section-subtitle">Machine Learning Fundamentals — Underlying equations and derivations</p>
-<div class="math-content">
-<div class="equations"><div class="math-block">$$\hat{y} = f(x; \theta)$$</div>
-<div class="math-block">$$\mathcal{L}(\theta) = \frac{1}{n} \sum_{i=1}^{n} \ell(y_i, \hat{y}_i)$$</div>
-<div class="math-block">$$\theta \leftarrow \theta - \alpha \nabla_\theta \mathcal{L}(\theta)$$</div></div>
-<div class="derivation">
-<h3>Step-by-Step Derivation</h3>
-<p>Machine learning models learn parameters $\theta$ by minimizing a loss function $\mathcal{L}$. Gradient descent iteratively updates parameters in the direction of steepest descent. The learning rate $\alpha$ controls step size. Stochastic gradient descent (SGD) uses mini-batches for computational efficiency.</p>
-</div>
-<div class="viz-desc">
-<h3>Interactive Visualization</h3>
-<p>Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.</p>
-</div>
-</div>
-</section>
-<section id="architecture" class="section arch-section">
-<h2><span class="section-icon">⚙</span> Architecture</h2>
-<p class="section-subtitle">Model structure, data flow, and layer breakdown</p>
-<div class="arch-diagram">
-<h3>Class Hierarchy</h3>
-<pre class="ascii-diagram">  GCNLayer
-  GNNSocialNetworks</pre>
-</div>
-<div class="mermaid-wrapper">
-<h3>Data Flow</h3>
-<pre class="mermaid">graph TD
+# gnn-social-networks
+
+## ∫ Mathematics & Theory
+
+Machine Learning Fundamentals — Underlying equations and derivations
+
+$$\hat{y} = f(x; \theta)$$
+
+$$\mathcal{L}(\theta) = \frac{1}{n} \sum_{i=1}^{n} \ell(y_i, \hat{y}_i)$$
+
+$$\theta \leftarrow \theta - \alpha \nabla_\theta \mathcal{L}(\theta)$$
+
+### Step-by-Step Derivation
+
+Machine learning models learn parameters $\theta$ by minimizing a loss function $\mathcal{L}$. Gradient descent iteratively updates parameters in the direction of steepest descent. The learning rate $\alpha$ controls step size. Stochastic gradient descent (SGD) uses mini-batches for computational efficiency.
+
+### Interactive Visualization
+
+Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
+
+## ⚙ Architecture
+
+Model structure, data flow, and layer breakdown
+
+### Class Hierarchy
+
+```
+  GCNLayer
+  GNNSocialNetworks
+```
+
+### Data Flow
+
+```mermaid
+graph TD
   A[Input Data] --> B[Preprocessing]
   B --> C[Model Training]
   C --> D[Evaluation]
   D --> E[Model Registry]
-  E --> F[Serving API]</pre>
-</div>
-</section>
-<section id="api" class="section api-section">
-<h2><span class="section-icon">⚡</span> API Reference</h2>
-<p class="section-subtitle">FastAPI endpoints and model interfaces</p>
-<table class="api-table">
-<thead><tr><th>Method</th><th>Endpoint</th></tr></thead>
-<tbody><tr><td><code>GET</code></td><td><code>/</code></td></tr>
-<tr><td><code>GET</code></td><td><code>/health</code></td></tr>
-<tr><td><code>GET</code></td><td><code>/metrics</code></td></tr>
-<tr><td><code>POST</code></td><td><code>/reload</code></td></tr></tbody>
-</table>
-</section>
-<section id="usage" class="section usage-section">
-<h2><span class="section-icon">▶</span> Usage</h2>
-<p class="section-subtitle">Code examples and CLI commands</p>
-<h3>Training Script</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-723076996')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-723076996"><code class="language-python">&quot;&quot;&quot;Training pipeline for GNN Social Network Analysis.&quot;&quot;&quot;
+  E --> F[Serving API]
+```
+
+## ⚡ API Reference
+
+FastAPI endpoints and model interfaces
+
+| Method | Endpoint |
+| --- | --- |
+| `GET` | `/` |
+| `GET` | `/health` |
+| `GET` | `/metrics` |
+| `POST` | `/reload` |
+
+## ▶ Usage
+
+Code examples and CLI commands
+
+### Training Script
+
+```python
+"""Training pipeline for GNN Social Network Analysis."""
 
 import argparse
 import os
@@ -86,7 +79,6 @@ from gnn_social_networks.model import GNNSocialNetworks
 
 logger = get_logger(__name__)
 
-
 def train(
     model_dir: Path,
     data_path: Path | None = None,
@@ -95,23 +87,23 @@ def train(
     learning_rate: float = 0.05,
     n_iterations: int = 200,
     weight_decay: float = 0.001,
-    model_version: str = &quot;1.0.0&quot;,
+    model_version: str = "1.0.0",
     register_to_mlflow: bool = False,
     random_seed: int = 42,
-) -&gt; dict:
+) -> dict:
     X, A, y = generate_synthetic_data(
         n_samples=n_nodes, n_nodes=n_nodes, n_features=N_FEATURES, random_seed=random_seed
     )
-    logger.info(&quot;Generated graph data&quot;, n_nodes=n_nodes, data_path=str(data_path))
+    logger.info("Generated graph data", n_nodes=n_nodes, data_path=str(data_path))
 
     validator = DataValidator(create_gnn_social_networks_schema())
     validation = validator.validate(X.reshape(-1, 1))
     if not validation.valid:
-        logger.error(&quot;Training data validation failed&quot;, errors=validation.errors)
-        raise ValueError(f&quot;Training data validation failed: {validation.errors}&quot;)
+        logger.error("Training data validation failed", errors=validation.errors)
+        raise ValueError(f"Training data validation failed: {validation.errors}")
 
     model_dir.mkdir(parents=True, exist_ok=True)
-    save_training_data(X, A, y, model_dir / &quot;training_data.npz&quot;)
+    save_training_data(X, A, y, model_dir / "training_data.npz")
 
     model = GNNSocialNetworks(
         n_features=N_FEATURES,
@@ -125,71 +117,70 @@ def train(
     model.fit(X, A, y)
 
     metrics = model.evaluate(X, A, y)
-    logger.info(&quot;Training complete&quot;, training_mode=model.training_mode, final_loss=model.loss_history[-1])
+    logger.info("Training complete", training_mode=model.training_mode, final_loss=model.loss_history[-1])
 
-    model_path = model_dir / f&quot;gnn_model_v{model_version}.npz&quot;
+    model_path = model_dir / f"gnn_model_v{model_version}.npz"
     model.save(str(model_path))
-    np.savez(model_dir / &quot;adjacency_matrix.npz&quot;, A=A)
+    np.savez(model_dir / "adjacency_matrix.npz", A=A)
 
     metrics_summary = {
         **metrics,
-        &quot;training_mode&quot;: &quot;supervised&quot;,
-        &quot;n_epochs_run&quot;: float(len(model.loss_history)),
-        &quot;final_loss&quot;: model.loss_history[-1] if model.loss_history else 0.0,
-        &quot;n_nodes&quot;: float(n_nodes),
-        &quot;hidden_dim&quot;: float(hidden_dim),
+        "training_mode": "supervised",
+        "n_epochs_run": float(len(model.loss_history)),
+        "final_loss": model.loss_history[-1] if model.loss_history else 0.0,
+        "n_nodes": float(n_nodes),
+        "hidden_dim": float(hidden_dim),
     }
 
     registry = ModelRegistry(base_dir=model_dir)
     registry.save_model(
-        model_name=&quot;gnn-social-networks&quot;,
+        model_name="gnn-social-networks",
         model_version=model_version,
-        model_type=&quot;classification&quot;,
+        model_type="classification",
         metrics=metrics_summary,
         parameters={
-            &quot;n_features&quot;: N_FEATURES,
-            &quot;n_classes&quot;: N_CLASSES,
-            &quot;hidden_dim&quot;: hidden_dim,
-            &quot;learning_rate&quot;: learning_rate,
-            &quot;n_iterations&quot;: n_iterations,
-            &quot;weight_decay&quot;: weight_decay,
-            &quot;n_nodes&quot;: n_nodes,
-            &quot;random_seed&quot;: random_seed,
+            "n_features": N_FEATURES,
+            "n_classes": N_CLASSES,
+            "hidden_dim": hidden_dim,
+            "learning_rate": learning_rate,
+            "n_iterations": n_iterations,
+            "weight_decay": weight_decay,
+            "n_nodes": n_nodes,
+            "random_seed": random_seed,
         },
         artifacts={
-            f&quot;gnn_model_v{model_version}.npz&quot;: model_path,
-            &quot;training_data.npz&quot;: model_dir / &quot;training_data.npz&quot;,
-            &quot;adjacency_matrix.npz&quot;: model_dir / &quot;adjacency_matrix.npz&quot;,
+            f"gnn_model_v{model_version}.npz": model_path,
+            "training_data.npz": model_dir / "training_data.npz",
+            "adjacency_matrix.npz": model_dir / "adjacency_matrix.npz",
         },
-        tags={&quot;framework&quot;: &quot;numpy&quot;, &quot;task&quot;: &quot;gnn_social_networks&quot;, &quot;model_type&quot;: &quot;GNN&quot;},
+        tags={"framework": "numpy", "task": "gnn_social_networks", "model_type": "GNN"},
     )
 
     if register_to_mlflow:
         registry.log_to_mlflow(
-            model_name=&quot;gnn-social-networks&quot;,
+            model_name="gnn-social-networks",
             model_version=model_version,
             metrics=metrics_summary,
-            params={&quot;n_features&quot;: N_FEATURES, &quot;n_classes&quot;: N_CLASSES, &quot;hidden_dim&quot;: hidden_dim, &quot;learning_rate&quot;: learning_rate, &quot;n_iterations&quot;: n_iterations},
-            artifacts={&quot;model&quot;: str(model_path)},
-            tags={&quot;model_type&quot;: &quot;gnn&quot;, &quot;framework&quot;: &quot;numpy&quot;},
+            params={"n_features": N_FEATURES, "n_classes": N_CLASSES, "hidden_dim": hidden_dim, "learning_rate": learning_rate, "n_iterations": n_iterations},
+            artifacts={"model": str(model_path)},
+            tags={"model_type": "gnn", "framework": "numpy"},
         )
 
     return metrics_summary
 
-
 def main():
-    parser = argparse.ArgumentParser(description=&quot;Train GNN Social Network model&quot;)
-    parser.add_argument(&quot;--model-dir&quot;, type=Path, default=Path(os.getenv(&quot;MODEL_DIR&quot;, &quot;/models&quot;)))
-    parser.add_argument(&quot;--data-path&quot;, type=Path, default=None)
-    parser.add_argument(&quot;--n-nodes&quot;, type=int, default=int(os.getenv(&quot;N_NODES&quot;, &quot;20&quot;)))
-    parser.add_argument(&quot;--hidden-dim&quot;, type=int, default=int(os.getenv(&quot;HIDDEN_DIM&quot;, &quot;16&quot;)))
-    parser.add_argument(&quot;--learning-rate&quot;, type=float, default=float(os.getenv(&quot;LEARNING_RATE&quot;, &quot;0.05&quot;)))
-    parser.add_argument(&quot;--n-iterations&quot;, type=int, default=int(os.getenv(&quot;N_ITERATIONS&quot;, &quot;200&quot;)))
-    parser.add_argument(&quot;--weight-decay&quot;, type=float, default=float(os.getenv(&quot;WEIGHT_DECAY&quot;, &quot;0.001&quot;)))
-    parser.add_argument(&quot;--model-version&quot;, type=str, default=os.getenv(&quot;MODEL_VERSION&quot;, &quot;1.0.0&quot;))
-    parser.add_argument(&quot;--random-seed&quot;, type=int, default=int(os.getenv(&quot;RANDOM_SEED&quot;, &quot;42&quot;)))
-    parser.add_argument(&quot;--register-mlflow&quot;, action=&quot;store_true&quot;, default=os.getenv(&quot;REGISTER_MLFLOW&quot;, &quot;false&quot;).lower() == &quot;true&quot;)
-    parser.add_argument(&quot;--log-level&quot;, type=str, default=os.getenv(&quot;LOG_LEVEL&quot;, &quot;INFO&quot;))
+    parser = argparse.ArgumentParser(description="Train GNN Social Network model")
+    parser.add_argument("--model-dir", type=Path, default=Path(os.getenv("MODEL_DIR", "/models")))
+    parser.add_argument("--data-path", type=Path, default=None)
+    parser.add_argument("--n-nodes", type=int, default=int(os.getenv("N_NODES", "20")))
+    parser.add_argument("--hidden-dim", type=int, default=int(os.getenv("HIDDEN_DIM", "16")))
+    parser.add_argument("--learning-rate", type=float, default=float(os.getenv("LEARNING_RATE", "0.05")))
+    parser.add_argument("--n-iterations", type=int, default=int(os.getenv("N_ITERATIONS", "200")))
+    parser.add_argument("--weight-decay", type=float, default=float(os.getenv("WEIGHT_DECAY", "0.001")))
+    parser.add_argument("--model-version", type=str, default=os.getenv("MODEL_VERSION", "1.0.0"))
+    parser.add_argument("--random-seed", type=int, default=int(os.getenv("RANDOM_SEED", "42")))
+    parser.add_argument("--register-mlflow", action="store_true", default=os.getenv("REGISTER_MLFLOW", "false").lower() == "true")
+    parser.add_argument("--log-level", type=str, default=os.getenv("LOG_LEVEL", "INFO"))
     args = parser.parse_args()
 
     setup_logging(args.log_level)
@@ -207,15 +198,16 @@ def main():
         register_to_mlflow=args.register_mlflow,
         random_seed=args.random_seed,
     )
-    logger.info(&quot;Training finished&quot;, metrics=metrics, model_dir=str(args.model_dir))
+    logger.info("Training finished", metrics=metrics, model_dir=str(args.model_dir))
 
+if __name__ == "__main__":
+    main()
+```
 
-if __name__ == &quot;__main__&quot;:
-    main()</code></pre>
-</div><h3>API Server</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3059223074')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3059223074"><code class="language-python">&quot;&quot;&quot;Serving API for GNN Social Network Analysis.&quot;&quot;&quot;
+### API Server
+
+```python
+"""Serving API for GNN Social Network Analysis."""
 
 import os
 import time
@@ -237,16 +229,14 @@ from gnn_social_networks.model import GNNSocialNetworks
 
 logger = get_logger(__name__)
 
-MODEL_DIR = Path(os.getenv(&quot;MODEL_DIR&quot;, &quot;/models&quot;))
-MODEL_VERSION = os.getenv(&quot;MODEL_VERSION&quot;, &quot;latest&quot;)
-METRICS_PORT = int(os.getenv(&quot;GNN_METRICS_PORT&quot;, &quot;8029&quot;))
-DRIFT_THRESHOLD = float(os.getenv(&quot;DRIFT_THRESHOLD&quot;, &quot;0.2&quot;))
-
+MODEL_DIR = Path(os.getenv("MODEL_DIR", "/models"))
+MODEL_VERSION = os.getenv("MODEL_VERSION", "latest")
+METRICS_PORT = int(os.getenv("GNN_METRICS_PORT", "8029"))
+DRIFT_THRESHOLD = float(os.getenv("DRIFT_THRESHOLD", "0.2"))
 
 class PredictRequest(BaseModel):
     features: list[float] = Field(..., min_length=N_FEATURES, max_length=N_FEATURES)
     adjacency_row: list[float] = Field(..., min_length=20, max_length=20)
-
 
 class PredictResponse(BaseModel):
     predicted_class: int
@@ -255,14 +245,12 @@ class PredictResponse(BaseModel):
     model_version: str
     training_mode: str
 
-
 class DriftResponse(BaseModel):
     total_features: int
     drifted_features: int
     drift_ratio: float
     drifted: list[dict]
     all_results: list[dict]
-
 
 class StatsResponse(BaseModel):
     n_features: int
@@ -273,9 +261,8 @@ class StatsResponse(BaseModel):
     final_loss: float
     model_version: str
 
-
 _model: GNNSocialNetworks | None = None
-_model_version: str = &quot;unknown&quot;
+_model_version: str = "unknown"
 _metrics: MetricsCollector | None = None
 _validator: DataValidator | None = None
 _drift_detector: DriftDetector | None = None
@@ -283,85 +270,83 @@ _reference_data: np.ndarray | None = None
 _recent_predictions: list[list[float]] = []
 _adjacency: np.ndarray | None = None
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _model, _model_version, _metrics, _validator, _drift_detector, _reference_data, _adjacency
 
-    setup_logging(os.getenv(&quot;LOG_LEVEL&quot;, &quot;INFO&quot;))
-    _metrics = MetricsCollector(&quot;gnn_social_networks&quot;, port=METRICS_PORT)
+    setup_logging(os.getenv("LOG_LEVEL", "INFO"))
+    _metrics = MetricsCollector("gnn_social_networks", port=METRICS_PORT)
     app.state.metrics = _metrics
 
     _validator = DataValidator(create_gnn_social_networks_schema())
-    feature_names = [f&quot;node_{i}&quot; for i in range(N_FEATURES)]
+    feature_names = [f"node_{i}" for i in range(N_FEATURES)]
     _drift_detector = DriftDetector(
         feature_names=feature_names,
-        feature_types={f: &quot;float&quot; for f in feature_names},
+        feature_types={f: "float" for f in feature_names},
         psi_threshold=DRIFT_THRESHOLD,
     )
 
     _model, _model_version, _adjacency = _load_model()
     _metrics.set_model_version(_model_version)
     _metrics.set_model_info(
-        model_name=&quot;gnn-social-networks&quot;,
+        model_name="gnn-social-networks",
         model_version=_model_version,
-        model_type=&quot;classification&quot;,
+        model_type="classification",
     )
 
     _reference_data = _load_reference_data()
-    logger.info(&quot;Model loaded&quot;, model=&quot;gnn-social-networks&quot;, version=_model_version)
+    logger.info("Model loaded", model="gnn-social-networks", version=_model_version)
 
     yield
-    logger.info(&quot;Shutting down gnn-social-networks API&quot;)
+    logger.info("Shutting down gnn-social-networks API")
 
-
-def _load_model() -&gt; tuple[GNNSocialNetworks, str, np.ndarray | None]:
+def _load_model() -> tuple[GNNSocialNetworks, str, np.ndarray | None]:
     registry = ModelRegistry(base_dir=MODEL_DIR)
     try:
-        if MODEL_VERSION == &quot;latest&quot;:
+        if MODEL_VERSION == "latest":
             models = registry.list_models()
-            nn_models = [m for m in models if m.get(&quot;model_name&quot;) == &quot;gnn-social-networks&quot;]
+            nn_models = [m for m in models if m.get("model_name") == "gnn-social-networks"]
             if nn_models:
-                nn_models.sort(key=lambda m: m[&quot;model_version&quot;], reverse=True)
+                nn_models.sort(key=lambda m: m["model_version"], reverse=True)
                 latest = nn_models[0]
-                model_dir = Path(latest[&quot;artifact_path&quot;])
-                npz_files = list(model_dir.glob(&quot;gnn_model_*.npz&quot;)) + list(model_dir.glob(&quot;*.npz&quot;))
+                model_dir = Path(latest["artifact_path"])
+                npz_files = list(model_dir.glob("gnn_model_*.npz")) + list(model_dir.glob("*.npz"))
                 if npz_files:
-                    adj_path = model_dir / &quot;adjacency_matrix.npz&quot;
+                    adj_path = model_dir / "adjacency_matrix.npz"
                     adj = None
                     if adj_path.exists():
                         adj_data = np.load(adj_path)
-                        adj = adj_data[&quot;A&quot;]
-                    return GNNSocialNetworks.load(str(npz_files[0])), latest[&quot;model_version&quot;], adj
+                        adj = adj_data["A"]
+                    return GNNSocialNetworks.load(str(npz_files[0])), latest["model_version"], adj
         else:
-            model_dir = MODEL_DIR / &quot;gnn-social-networks&quot; / MODEL_VERSION
+            model_dir = MODEL_DIR / "gnn-social-networks" / MODEL_VERSION
             if model_dir.exists():
-                npz_files = list(model_dir.glob(&quot;gnn_model_*.npz&quot;)) + list(model_dir.glob(&quot;*.npz&quot;))
+                npz_files = list(model_dir.glob("gnn_model_*.npz")) + list(model_dir.glob("*.npz"))
                 if npz_files:
-                    adj_path = model_dir / &quot;adjacency_matrix.npz&quot;
+                    adj_path = model_dir / "adjacency_matrix.npz"
                     adj = None
                     if adj_path.exists():
                         adj_data = np.load(adj_path)
-                        adj = adj_data[&quot;A&quot;]
+                        adj = adj_data["A"]
                     return GNNSocialNetworks.load(str(npz_files[0])), MODEL_VERSION, adj
     except Exception as e:
-        logger.warning(f&quot;Registry lookup failed: {e}&quot;)
+        logger.warning(f"Registry lookup failed: {e}")
 
-    npz_path = MODEL_DIR / &quot;gnn_model.npz&quot;
+    npz_path = MODEL_DIR / "gnn_model.npz"
     if npz_path.exists():
-        return GNNSocialNetworks.load(str(npz_path)), &quot;legacy&quot;, None
+        return GNNSocialNetworks.load(str(npz_path)), "legacy", None
 
     candidate_paths = [
-        Path(&quot;/app/artifacts/models/gnn_model_v1.0.0.npz&quot;),
-        Path(__file__).resolve().parents[3] / &quot;artifacts&quot; / &quot;models&quot; / &quot;gnn_model_v1.0.0.npz&quot;,
+        Path("/app/artifacts/models/gnn_model_v1.0.0.npz"),
+        Path(__file__).resolve().parents[3] / "artifacts" / "models" / "gnn_model_v1.0.0.npz",
     ]
     for p in candidate_paths:
         if p.exists():
-            logger.info(&quot;Loading bundled baseline model&quot;, path=str(p))
+            logger.info("Loading bundled baseline model", path=str(p))
             X_base, A_base, _ = generate_synthetic_data(n_samples=100, n_nodes=20, random_seed=42)
-            return GNNSocialNetworks.load(str(p)), &quot;1.0.0-bundled&quot;, A_base
+            return GNNSocialNetworks.load(str(p)), "1.0.0-bundled", A_base
 
-    logger.warning(&quot;No pre-existing model found. Initializing baseline model.&quot;)
+    logger.warning("No pre-existing model found. Initializing baseline model.")
     X_base, A_base, y_base = generate_synthetic_data(n_samples=100, n_nodes=20, random_seed=42)
     model = GNNSocialNetworks(
         n_features=N_FEATURES,
@@ -372,61 +357,55 @@ def _load_model() -&gt; tuple[GNNSocialNetworks, str, np.ndarray | None]:
         random_seed=42,
     )
     model.fit(X_base, A_base, y_base)
-    return model, &quot;1.0.0-baseline&quot;, A_base
+    return model, "1.0.0-baseline", A_base
 
-
-def _load_reference_data() -&gt; np.ndarray | None:
+def _load_reference_data() -> np.ndarray | None:
     X_base, _, _ = generate_synthetic_data(n_samples=100, n_nodes=20, random_seed=42)
     return X_base
 
-
 app = FastAPI(
-    title=&quot;GNN Social Network Analysis API&quot;,
-    description=&quot;Processes graph-structured data using Graph Convolution to optimize directly on network topology&quot;,
-    version=&quot;1.0.0&quot;,
+    title="GNN Social Network Analysis API",
+    description="Processes graph-structured data using Graph Convolution to optimize directly on network topology",
+    version="1.0.0",
     lifespan=lifespan,
 )
 
 add_observability_middleware(app)
 
-
-@app.get(&quot;/&quot;)
+@app.get("/")
 def read_root():
     return {
-        &quot;service&quot;: &quot;gnn_social_networks-api&quot;,
-        &quot;version&quot;: &quot;1.0.0&quot;,
-        &quot;model_version&quot;: _model_version,
-        &quot;training_mode&quot;: _model.training_mode if _model else &quot;unknown&quot;,
-        &quot;n_features&quot;: N_FEATURES,
-        &quot;endpoints&quot;: {
-            &quot;health&quot;: &quot;/health&quot;,
-            &quot;predict&quot;: &quot;POST /predict&quot;,
-            &quot;stats&quot;: &quot;GET /stats&quot;,
-            &quot;drift&quot;: &quot;GET /drift&quot;,
-            &quot;metrics&quot;: &quot;/metrics&quot;,
+        "service": "gnn_social_networks-api",
+        "version": "1.0.0",
+        "model_version": _model_version,
+        "training_mode": _model.training_mode if _model else "unknown",
+        "n_features": N_FEATURES,
+        "endpoints": {
+            "health": "/health",
+            "predict": "POST /predict",
+            "stats": "GET /stats",
+            "drift": "GET /drift",
+            "metrics": "/metrics",
         },
     }
 
-
-@app.get(&quot;/health&quot;)
+@app.get("/health")
 def health_check():
     if _model is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
     return {
-        &quot;status&quot;: &quot;healthy&quot;,
-        &quot;model_loaded&quot;: True,
-        &quot;model_version&quot;: _model_version,
-        &quot;training_mode&quot;: _model.training_mode if _model else &quot;unknown&quot;,
+        "status": "healthy",
+        "model_loaded": True,
+        "model_version": _model_version,
+        "training_mode": _model.training_mode if _model else "unknown",
     }
 
-
-@app.get(&quot;/metrics&quot;)
+@app.get("/metrics")
 def metrics():
     from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
-
-@app.post(&quot;/reload&quot;)
+@app.post("/reload")
 def reload_model():
     global _model, _model_version, _reference_data, _adjacency
     try:
@@ -434,36 +413,34 @@ def reload_model():
         if _metrics:
             _metrics.set_model_version(_model_version)
             _metrics.set_model_info(
-                model_name=&quot;gnn-social-networks&quot;,
+                model_name="gnn-social-networks",
                 model_version=_model_version,
-                model_type=&quot;classification&quot;,
+                model_type="classification",
             )
         _reference_data = _load_reference_data()
-        logger.info(&quot;Model reloaded&quot;, model=&quot;gnn-social-networks&quot;, version=_model_version)
-        return {&quot;status&quot;: &quot;reloaded&quot;, &quot;model_version&quot;: _model_version}
+        logger.info("Model reloaded", model="gnn-social-networks", version=_model_version)
+        return {"status": "reloaded", "model_version": _model_version}
     except Exception as e:
-        logger.exception(&quot;Model reload failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=f&quot;Reload failed: {e}&quot;) from e
+        logger.exception("Model reload failed", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Reload failed: {e}") from e
 
-
-@app.get(&quot;/drift&quot;, response_model=DriftResponse)
+@app.get("/drift", response_model=DriftResponse)
 def drift_check():
     if _drift_detector is None or _reference_data is None:
-        raise HTTPException(status_code=503, detail=&quot;Drift detection not available&quot;)
-    if len(_recent_predictions) &lt; 10:
-        return {&quot;total_features&quot;: N_FEATURES, &quot;drifted_features&quot;: 0, &quot;drift_ratio&quot;: 0.0, &quot;drifted&quot;: [], &quot;all_results&quot;: []}
+        raise HTTPException(status_code=503, detail="Drift detection not available")
+    if len(_recent_predictions) < 10:
+        return {"total_features": N_FEATURES, "drifted_features": 0, "drift_ratio": 0.0, "drifted": [], "all_results": []}
     current = np.array(_recent_predictions[-100:])
     results = _drift_detector.detect_drift(_reference_data, current)
     summary = _drift_detector.summarize(results)
     if _metrics:
-        _metrics.set_drift_ratio(summary[&quot;drift_ratio&quot;])
+        _metrics.set_drift_ratio(summary["drift_ratio"])
     return summary
 
-
-@app.get(&quot;/stats&quot;, response_model=StatsResponse)
+@app.get("/stats", response_model=StatsResponse)
 def get_stats():
     if _model is None or not _model.layers:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
     return StatsResponse(
         n_features=_model.n_features,
         n_classes=_model.n_classes,
@@ -474,12 +451,11 @@ def get_stats():
         model_version=_model_version,
     )
 
-
-@app.post(&quot;/predict&quot;, response_model=PredictResponse)
+@app.post("/predict", response_model=PredictResponse)
 def predict(body: PredictRequest):
-    &quot;&quot;&quot;Classify a node using GNN with graph structure.&quot;&quot;&quot;
+    """Classify a node using GNN with graph structure."""
     if _model is None or _metrics is None or _validator is None:
-        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     X = np.array([body.features]).reshape(1, -1)
     validation = _validator.validate(X)
@@ -505,42 +481,30 @@ def predict(body: PredictRequest):
         _metrics.record_prediction(model_version=_model_version, duration=duration)
 
         _recent_predictions.append(body.features)
-        if len(_recent_predictions) &gt; 1000:
+        if len(_recent_predictions) > 1000:
             _recent_predictions.pop(0)
 
         return response
     except Exception as e:
-        _metrics.record_error(model_version=_model_version, error_type=&quot;prediction&quot;)
-        logger.exception(&quot;Prediction failed&quot;, error=str(e))
-        raise HTTPException(status_code=500, detail=&quot;Prediction failed&quot;) from e</code></pre>
-</div>
-<h3>CLI Commands</h3>
-<div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-4049405169')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-4049405169"><code class="language-bash">uv run python -m gnn_social_networks.train --model-dir ./artifacts/models</code></pre>
-</div>
-</section>
-<section id="benchmarks" class="section bench-section">
-<h2><span class="section-icon">📊</span> Benchmarks</h2>
-<p class="section-subtitle">Test results and performance metrics</p>
-<p class="muted">Run <code>pytest tests/test_models.py</code> and <code>pytest tests/test_apis.py</code> for detailed metrics.</p>
-</section>
-<div class="related-links">
-<h3>Related Apps</h3>
-<ul><li><a href="../deep-belief-networks/README.md">deep-belief-networks</a></li></ul>
-</div>
-</main>
-<footer class="app-footer">
-<p>Generated documentation for <strong>gnn-social-networks</strong></p>
-</footer>
-<script>
-function copyCode(id) {
-  const el = document.getElementById(id);
-  navigator.clipboard.writeText(el.innerText);
-}
-function renderMath() {
-  renderMathInElement(document.body, { delimiters: [{left: "$$", right: "$$", display: true}] });
-}
-</script>
-</body>
-</html>
+        _metrics.record_error(model_version=_model_version, error_type="prediction")
+        logger.exception("Prediction failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Prediction failed") from e
+```
+
+### CLI Commands
+
+```bash
+uv run python -m gnn_social_networks.train --model-dir ./artifacts/models
+```
+
+## 📊 Benchmarks
+
+Test results and performance metrics
+
+Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+
+### Related Apps
+
+- [deep-belief-networks](../deep-belief-networks/README.md)
+
+Generated documentation for **gnn-social-networks**

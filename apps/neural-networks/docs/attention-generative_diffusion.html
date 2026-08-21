@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diffusion Image Generation - AI App Documentation</title>
+  <style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  color: #e0e0e0;
+  background: #0f1115;
+}
+header {
+  background: linear-gradient(135deg, #1a1d23 0%, #252a33 100%);
+  border-bottom: 1px solid #333;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+header h1 { font-size: 1.75rem; color: #fff; margin-bottom: 0.25rem; }
+header p { color: #9aa; font-size: 0.95rem; }
+main { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
+.section {
+  background: #1a1d23;
+  border: 1px solid #2a2e36;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.section h2 {
+  font-size: 1.25rem;
+  color: #fff;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.section-subtitle { color: #9aa; font-size: 0.9rem; margin-bottom: 1rem; }
+.math-block {
+  background: #111;
+  border: 1px solid #2a2e36;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin: 0.5rem 0;
+  overflow-x: auto;
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 0.9rem;
+  color: #cdd6f4;
+}
+.derivation p { margin-top: 0.5rem; color: #bbc; }
+.code-block-wrapper { position: relative; margin: 0.75rem 0; }
+.code-block {
+  background: #111;
+  border: 1px solid #2a2e36;
+  border-radius: 6px;
+  padding: 1rem;
+  overflow-x: auto;
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #cdd6f4;
+}
+.copy-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: #333;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.copy-btn:hover { background: #444; }
+.api-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+.api-table th, .api-table td {
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid #2a2e36;
+  color: #cdd6f4;
+}
+.api-table th { color: #fff; font-weight: 600; }
+.muted { color: #9aa; font-size: 0.9rem; }
+footer {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #9aa;
+  font-size: 0.85rem;
+  border-top: 1px solid #2a2e36;
+}
+
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Diffusion Image Generation</h1>
+    <p>Generates images by systematically removing noise from a random starting state</p>
+  </header>
+  <main>
+
+    <section class="section">
+      <h2><span>1</span> Overview &amp; Monorepo Context</h2>
+      <p class="section-subtitle">Name, purpose, and role within the broader monorepo</p>
+      <p><strong>Name:</strong> <code>diffusion</code> (package: <code>diffusion_image_generation</code>)</p>
+      <p><strong>Purpose:</strong> Implements a Denoising Diffusion Probabilistic Model (DDPM) for synthetic image generation. The model learns to reverse a Gaussian noising process, iteratively denoising random noise into structured 8x8 grayscale images.</p>
+      <p><strong>Monorepo role:</strong> Lives under <code>attention-generative/</code>, depending on the shared <code>ai-core</code> workspace package for logging, validation, metrics, model registry, and FastAPI observability middleware.</p>
+      <p><strong>Key dependencies:</strong> <code>ai-core</code>, <code>numpy</code>, <code>fastapi</code>, <code>pydantic</code>, <code>prometheus-client</code>, <code>matplotlib</code>.</p>
+    </section>
+
+    <section class="section">
+      <h2><span>2</span> The Mathematical Foundation</h2>
+      <p class="section-subtitle">DDPM equations, forward/reverse processes, and training objective</p>
+      <div class="math-block">$$q(x_t | x_{t-1}) = \mathcal{N}(x_t; \sqrt{1 - \beta_t}x_{t-1}, \beta_t I)$$</div>
+      <div class="math-block">$$p_\theta(x_{t-1} | x_t) = \mathcal{N}(x_{t-1}; \mu_\theta(x_t, t), \Sigma_\theta(x_t, t))$$</div>
+      <div class="math-block">$$\mathcal{L}_{simple} = \mathbb{E}_{t, x_0, \epsilon} \left[ \| \epsilon - \epsilon_\theta(\sqrt{\bar{\alpha}_t}x_0 + \sqrt{1-\bar{\alpha}_t}\epsilon, t) \|^2 \right]$$</div>
+      <div class="math-block">$$\bar{\alpha}_t = \prod_{s=1}^{t} (1 - \beta_s)$$</div>
+      <div class="derivation">
+        <p><strong>Why DDPM?</strong> The forward process is a fixed Markov chain that gradually adds noise. The reverse process is learned by a neural network (SimpleCNN) that predicts the noise added at each step. Training minimizes the MSE between actual and predicted noise. This formulation is stable, requires no adversarial training, and produces high-fidelity samples with a simple training objective.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2><span>3</span> Core Logic &amp; Architecture</h2>
+      <p class="section-subtitle">Data flow, state management, and execution lifecycle</p>
+      <p>The app follows a standard MLOps lifecycle: synthetic data generation -> validation -> training -> evaluation -> model registry -> FastAPI serving.</p>
+      <ul>
+        <li><strong>Data flow:</strong> <code>data.py</code> generates 8x8 grayscale synthetic images with additive Gaussian noise.</li>
+        <li><strong>Model:</strong> <code>DiffusionModel</code> (dataclass) encapsulates the noise schedule, forward/reverse sampling, and a <code>SimpleCNN</code> denoiser from <code>ai-core</code>.</li>
+        <li><strong>State:</strong> Managed via module-level globals in <code>api.py</code> loaded during FastAPI <code>lifespan</code>.</li>
+        <li><strong>Training path:</strong> <code>train.py:train()</code> loads data, validates, instantiates <code>DiffusionModel</code>, calls <code>fit()</code>, evaluates, saves artifacts, and registers with <code>ModelRegistry</code> (optionally MLflow).</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2><span>4</span> Detailed Code Walkthrough</h2>
+      <p class="section-subtitle">Key files, classes, and critical logic</p>
+
+      <h3>model.py - DiffusionModel</h3>
+      <p>The core model. Key methods:</p>
+      <div class="code-block-wrapper">
+  <button class="copy-btn" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('code').innerText)">Copy</button>
+  <pre class="code-block"><code class="language-python">@dataclass
+class DiffusionModel:
+    def _init_noise_schedule(self) -&gt; None:
+        """Initialize linear noise schedule betas, alphas, and cumulative products."""
+        self.betas = np.linspace(self.beta_start, self.beta_end, self.timesteps)
+        self.alphas = 1.0 - self.betas
+        self.alphas_cumprod = np.cumprod(self.alphas)
+        self.sqrt_alphas_cumprod = np.sqrt(self.alphas_cumprod)
+        self.sqrt_one_minus_alphas_cumprod = np.sqrt(1.0 - self.alphas_cumprod)
+
+    def _q_sample(self, x_0: np.ndarray, t: int, noise: np.ndarray | None = None) -&gt; np.ndarray:
+        """Sample from q(x_t | x_0): add noise to data at timestep t."""
+        sqrt_alpha_t = self.sqrt_alphas_cumprod[t]
+        sqrt_one_minus_t = self.sqrt_one_minus_alphas_cumprod[t]
+        return sqrt_alpha_t * x_0 + sqrt_one_minus_t * noise
+
+    def fit(self, X: np.ndarray, n_iterations: int | None = None) -&gt; "DiffusionModel":
+        """Train: for each sample, sample a random t, add noise, predict noise with SimpleCNN."""
+        self.model = SimpleCNN(...)
+        for _epoch in range(n_iterations):
+            for i in range(n_samples):
+                x_0 = X_img[i:i + 1]
+                t = rng.integers(0, self.timesteps)
+                noise = rng.normal(0, 1, size=x_0.shape)
+                x_t = self._q_sample(x_0, t, noise)
+                pred = self.model.predict_proba(x_t)
+                loss = np.mean((noise - pred) ** 2)
+            self.loss_history.append(total_loss / n_samples)</code></pre>
+</div>
+
+      <h3>api.py - FastAPI lifespan and endpoints</h3>
+      <p>The API initializes model, metrics, validator, and drift detector in an async context manager. Key pattern: lazy model loading with fallback to baseline training if no persisted model exists.</p>
+      <div class="code-block-wrapper">
+  <button class="copy-btn" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('code').innerText)">Copy</button>
+  <pre class="code-block"><code class="language-python">@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global _model, _model_version, _metrics, _validator, _drift_detector, _reference_data
+    setup_logging(os.getenv("LOG_LEVEL", "INFO"))
+    _metrics = MetricsCollector("diffusion_image_generation", port=METRICS_PORT)
+    app.state.metrics = _metrics
+    _validator = DataValidator(create_diffusion_image_generation_schema())
+    _drift_detector = DriftDetector(feature_names=..., psi_threshold=DRIFT_THRESHOLD)
+    _model, _model_version = _load_model()
+    _reference_data = _load_reference_data()
+    yield
+    logger.info("Shutting down diffusion-image-generation API")</code></pre>
+</div>
+    </section>
+
+    <section class="section">
+      <h2><span>5</span> Examples &amp; Usage</h2>
+      <p class="section-subtitle">Initialize, run, and consume the codebase</p>
+      <h3>Training</h3>
+      <div class="code-block-wrapper">
+  <button class="copy-btn" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('code').innerText)">Copy</button>
+  <pre class="code-block"><code class="language-python">from pathlib import Path
+from diffusion_image_generation.train import train
+
+metrics = train(
+    model_dir=Path("./artifacts/models"),
+    n_samples=500,
+    n_filters=8,
+    timesteps=100,
+    learning_rate=0.01,
+    n_iterations=200,
+)
+print(metrics)</code></pre>
+</div>
+      <h3>CLI</h3>
+      <div class="code-block-wrapper">
+  <button class="copy-btn" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('code').innerText)">Copy</button>
+  <pre class="code-block"><code class="language-bash">uv run python -m diffusion.train --model-dir ./artifacts/models</code></pre>
+</div>
+      <h3>API</h3>
+      <div class="code-block-wrapper">
+  <button class="copy-btn" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('code').innerText)">Copy</button>
+  <pre class="code-block"><code class="language-python">import requests
+response = requests.post("http://localhost:8000/predict", json={"timesteps_to_run": 100})
+print(response.json())</code></pre>
+</div>
+    </section>
+    
+  </main>
+  <footer>
+    <p>Generated documentation for <strong>diffusion</strong></p>
+  </footer>
+</body>
+</html>
