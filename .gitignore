@@ -137,6 +137,11 @@ training_data.csv
 *.jpg
 *.jpeg
 
+# Allow documentation/diagram images committed alongside example READMEs
+!apps/**/assets/*.png
+!apps/**/assets/*.jpg
+!apps/**/assets/*.jpeg
+
 # MLflow
 mlruns/
 mlartifacts/
