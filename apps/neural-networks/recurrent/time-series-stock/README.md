@@ -28,18 +28,42 @@ RNN hidden-state update (one timestep).
   pre = 0.5*0.30 + 0.5*0.50 = 0.40
   h_t = tanh(0.40) = 0.380
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: A sequence model with memory: each step mixes the new input
+with the previous hidden state, like reading a sentence word by word.
+CONCRETE DATA: h_{t-1}=0.30, x_t=0.50, W's=0.5, b=0.
+STEP-BY-STEP:
+  pre = 0.5*0.30 + 0.5*0.50 = 0.40
+  h_t = tanh(0.40) = 0.380
+INTERPRETATION: h_t encodes everything seen so far; tanh keeps it in
+[-1,1] (vanishing-gradient mitigated by LSTMs/GRUs).
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+h_prev, x_t, Whh, Wxh, b = 0.3, 0.5, 0.5, 0.5, 0.0  # prev hidden, input, weights, bias
+pre = Whh*h_prev + Wxh*x_t + b                 # affine combine of last state and input
+print("pre =", pre, " h_t =", round(np.tanh(pre), 3))  # tanh nonlinearity -> new hidden state
+```
 
 ![Machine Learning Fundamentals diagram](./assets/time-series-stock.png)
 
-Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

@@ -76,17 +76,29 @@ drive every forward and backward pass in the implementation.</p>
 <p class="muted">Concrete forward-pass / update evaluation using the algorithm's own equations:</p>
 <div class="ascii">Image synthesis objective (diffusion/VAE/GAN blend).
   L_simple = E||epsilon - epsilon_theta(x_t,t)||^2 (diffusion term).</div>
+<h3>Detailed Walkthrough</h3>
+<p class="muted">A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:</p>
+<div class="ascii">INTUITION: Image synthesis blends GAN/VAE/Diffusion objectives to map a
+latent code (or noise) to pixels.
+CONCRETE DATA: diffusion term L_simple = E||epsilon - epsilon_theta||^2.
+INTERPRETATION: Lower L_simple -&gt; the model better predicts the noise to
+remove at each step.</div>
+<h3>Runnable Step-by-Step (execute me)</h3>
+<p class="muted">Run this self-contained snippet in a Python shell to watch every step execute and print its value:</p>
+<pre><code class="language-python">import numpy as np
+eps = np.array([0.3, 0.1]); epshat = np.array([0.25, 0.15])  # true &amp; predicted noise
+print("L_simple =", float(np.mean((eps - epshat)**2)))      # simple diffusion loss (MSE on noise)</code></pre>
+<img src="./assets/image-generation.png" width="680" alt="Image Generation (GAN/VAE/Diffusion) diagram">
+<p class="muted">Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive latent space explorer; denoising trajectory viewer; FID score vs training steps.</p>
 <h3>Conceptual Diagram</h3>
 
-<div class="ascii">        Math concept (placeholder)
-   [ Input x ] --&gt; ( w · x + b ) --&gt; [ Output z ]
-                       |
-                  [ activation ]
-                       |
+<div class="ascii">   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
                   [ prediction ]</div>
 
-<img src="./assets/image-generation.png" width="520" alt="Image Generation (GAN/VAE/Diffusion) diagram">
-<p class="muted">Interactive latent space explorer; denoising trajectory viewer; FID score vs training steps.</p>
 
 <h2>2. Core Logic &amp; Architecture</h2>
 <p>The example follows a consistent <strong>data &rarr; train &rarr; evaluate &rarr; serve</strong>

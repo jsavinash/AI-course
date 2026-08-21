@@ -27,18 +27,37 @@ Semi-supervised consistency loss.
   L = L_sup + lambda_t * MSE(f(x'), f(x))
   Augmented view x' should match f(x); ramp lambda_t over training.
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Labelled data is scarce/expensive, so we also learn from the
+unlabelled majority by consistency regularization.
+CONCRETE DATA: lambda_t ramps 0 -> 1 across epochs.
+STEP-BY-STEP: L = L_sup + lambda_t * MSE(f(x'), f(x)).
+INTERPRETATION: Pseudo-labels + consistency shape a smoother boundary.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+lam = 1.0                                       # full weight on unlabeled loss
+print("total L =", 0.4 + lam*0.3)               # L = supervised + lambda * unsupervised
+```
 
 ![Semi-Supervised Learning diagram](./assets/semi-supervised-email.png)
 
-Interactive pseudo-label confidence distribution; labeled vs unlabeled loss curves; decision boundary animation.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive pseudo-label confidence distribution; labeled vs unlabeled loss curves; decision boundary animation.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

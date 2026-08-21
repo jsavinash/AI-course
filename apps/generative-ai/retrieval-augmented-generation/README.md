@@ -27,18 +27,40 @@ RAG retrieval + generation.
   sim(q,d) = q.d/(||q|| ||d||); top-k = argmax_{d} sim(q,d)
   P(y|x) = sum_z P(y|x,z) P(z|x) over retrieved docs z.
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Before answering, fetch the k most relevant documents, then
+generate using that evidence (reduces hallucination).
+CONCRETE DATA: query q, docs d1..d3 with sims 0.9, 0.3, 0.5.
+STEP-BY-STEP:
+  top-k=2 -> {d1, d3}; P(y|x) = sum_z P(y|x,z) P(z|x).
+INTERPRETATION: Grounding in retrieved text makes answers verifiable.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+q = np.array([1.,1.]); docs = np.array([[0.9,1.1],[0.2,0.3],[0.4,0.5]])  # query & candidate docs
+sims = docs @ q / (np.linalg.norm(docs, axis=1)*np.linalg.norm(q))  # cosine similarity
+print("sims =", np.round(sims, 3), " top-2 =", np.argsort(-sims)[:2])  # most similar first
+```
 
 ![Retrieval-Augmented Generation (RAG) diagram](./assets/retrieval-augmented-generation.png)
 
-Interactive retrieval pipeline; relevance score distribution; context vs generation attention alignment.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive retrieval pipeline; relevance score distribution; context vs generation attention alignment.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

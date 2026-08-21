@@ -31,18 +31,42 @@ Q-learning update (robot maze, state s, action a).
   Q <- 0.50 + 0.1*(1.0 + 0.9*0.80 - 0.50)
       = 0.50 + 0.1*(1.72-0.50) = 0.622
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: The agent keeps a table Q(s,a) = 'expected future reward if I
+do a in state s'. It learns by trial: good moves raise Q, bad lower it.
+CONCRETE DATA: alpha=0.1, gamma=0.9, Q(s,a)=0.50, r=1.0, max_a'Q=0.80.
+STEP-BY-STEP:
+  target = r + gamma*max_a'Q = 1.0 + 0.9*0.80 = 1.72
+  Q <- 0.50 + 0.1*(1.72 - 0.50) = 0.622
+INTERPRETATION: This state-action pair became more attractive because it
+led to a reward; gamma<1 makes far-future rewards worth less.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+alpha, gamma, Q, r, maxQ = 0.1, 0.9, 0.5, 1.0, 0.8   # lr, discount, Q(s,a), reward, max next Q
+print("target =", r + gamma*maxQ)                # Bellman target value
+Q = Q + alpha*(r + gamma*maxQ - Q)               # move Q toward the target by lr
+print("updated Q =", round(Q, 3))
+```
 
 ![Reinforcement Learning (Q-Learning) diagram](./assets/robot-maze-navigation.png)
 
-Interactive grid world with agent path; Q-value heatmap; episode reward curves; epsilon-greedy action distribution.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive grid world with agent path; Q-value heatmap; episode reward curves; epsilon-greedy action distribution.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

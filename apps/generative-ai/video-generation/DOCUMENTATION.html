@@ -76,17 +76,28 @@ drive every forward and backward pass in the implementation.</p>
 <p class="muted">Concrete forward-pass / update evaluation using the algorithm's own equations:</p>
 <div class="ascii">Video generation likelihood + perceptual quality.
   P(x_1..T)=prod_t P(x_t|x_&lt;t); SSIM measures frame fidelity.</div>
+<h3>Detailed Walkthrough</h3>
+<p class="muted">A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:</p>
+<div class="ascii">INTUITION: Extend sequence modeling to space+time; frames are predicted
+conditioned on past frames.
+CONCRETE DATA: P(x_1..T)=prod_t P(x_t|x_&lt;t); SSIM measures frame fidelity.
+INTERPRETATION: Temporal consistency (warp/flow) keeps motion smooth.</div>
+<h3>Runnable Step-by-Step (execute me)</h3>
+<p class="muted">Run this self-contained snippet in a Python shell to watch every step execute and print its value:</p>
+<pre><code class="language-python">import numpy as np
+eps = np.array([0.3, 0.1]); epshat = np.array([0.25, 0.15])  # true &amp; predicted noise per frame
+print("frame loss =", float(np.mean((eps - epshat)**2)))    # simple diffusion loss (MSE on noise)</code></pre>
+<img src="./assets/video-generation.png" width="680" alt="Video Generation diagram">
+<p class="muted">Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive frame-by-frame playback with generated vs real overlay; optical flow visualization; temporal consistency score.</p>
 <h3>Conceptual Diagram</h3>
 
-<div class="ascii">        Math concept (placeholder)
-   [ Input x ] --&gt; ( w · x + b ) --&gt; [ Output z ]
-                       |
-                  [ activation ]
-                       |
+<div class="ascii">   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
                   [ prediction ]</div>
 
-<img src="./assets/video-generation.png" width="520" alt="Video Generation diagram">
-<p class="muted">Interactive frame-by-frame playback with generated vs real overlay; optical flow visualization; temporal consistency score.</p>
 
 <h2>2. Core Logic &amp; Architecture</h2>
 <p>The example follows a consistent <strong>data &rarr; train &rarr; evaluate &rarr; serve</strong>

@@ -25,18 +25,38 @@ Autoregressive code generation.
   P(c|p) = prod_t P(c_t | p, c_<t)
   L = -sum_t log P(c_t | p, c_<t); beam search decodes.
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Source code is just a sequence; the model autoregressively
+predicts the next token given the docstring/context.
+CONCRETE DATA: prompt p; tokens c_1..c_T.
+STEP-BY-STEP: L = -sum_t log P(c_t | p, c_<t); decode via beam search.
+INTERPRETATION: Low perplexity = high confidence in the generated code.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+probs = np.array([0.62, 0.12, 0.26])              # next-token probabilities
+print("next token idx =", int(np.argmax(probs)))  # greedy decode = highest prob
+```
 
 ![Code Generation diagram](./assets/code-generation.png)
 
-Interactive code completion demo; token probability heatmap; beam search tree explorer.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive code completion demo; token probability heatmap; beam search tree explorer.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

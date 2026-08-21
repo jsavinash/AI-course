@@ -33,18 +33,48 @@ PCA projection + reconstruction (anomaly detection).
   Reduced x' = X.v = [1.41,-1.41,0,-0]  (1-D)
   Recon error ||X - X_recon||^2 = 0 for inliers; large for anomalies.
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Find the directions of greatest spread (principal components)
+and measure how 'unusual' a point is by its reconstruction error.
+CONCRETE DATA: centered X=[[1,1],[-1,-1],[1,-1],[-1,1]].
+STEP-BY-STEP:
+  Cov Sigma = X^T X/(n-1) = [[1,0],[0,1]]; top PC v=[0.707,0.707].
+  Project x=[1,1] -> 1.41 (1-D coordinate on PC1).
+  Reconstruct and compute ||X - X_recon||^2: ~0 for inliers.
+INTERPRETATION: A new point far from the PC subspace has large error ->
+flagged anomalous (see api /drift).
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+X = np.array([[1,1],[-1,-1],[1,-1],[-1,1]], float)   # 4 example points
+Xc = X - X.mean(0)                              # center each feature
+cov = Xc.T @ Xc / (len(X)-1)                    # covariance matrix
+w, v = np.linalg.eigh(cov)                      # eigenvalues & eigenvectors
+pc = v[:, np.argmax(w)]                         # principal component = top eigenvector
+print("eigvals =", np.round(w, 3))
+print("PC1     =", np.round(pc, 3))             # direction of maximum variance
+print("1D coords =", np.round(Xc @ pc, 3))      # project the points down to 1D
+```
 
 ![Anomaly Detection / PCA diagram](./assets/anomaly-detection-pca.png)
 
-Interactive 2D/3D PCA projection; explained variance scree plot; anomaly score distribution.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive 2D/3D PCA projection; explained variance scree plot; anomaly score distribution.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

@@ -77,17 +77,26 @@ drive every forward and backward pass in the implementation.</p>
 <p class="muted">Concrete forward-pass / update evaluation using the algorithm's own equations:</p>
 <div class="ascii">Autoencoder anomaly scoring (see autoencoder example).
   score = ||x - x_hat||^2; threshold e.g. 0.01 flags fraud.</div>
+<h3>Detailed Walkthrough</h3>
+<p class="muted">A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:</p>
+<div class="ascii">INTUITION: Autoencoder anomaly scoring (see 'autoencoder' example).
+score = ||x - x_hat||^2; high reconstruction error -&gt; likely fraud.</div>
+<h3>Runnable Step-by-Step (execute me)</h3>
+<p class="muted">Run this self-contained snippet in a Python shell to watch every step execute and print its value:</p>
+<pre><code class="language-python">import numpy as np
+x = np.array([0.2, 0.8]); xh = np.array([0.25, 0.75])  # transaction &amp; its reconstruction
+print("anomaly score =", float(np.sum((x - xh)**2)))   # high error =&gt; likely fraud</code></pre>
+<img src="./assets/anomaly-detection-fraud.png" width="680" alt="Anomaly Detection / Autoencoder diagram">
+<p class="muted">Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive latent space traversal; reconstruction error vs latent dimension; bottleneck visualization.</p>
 <h3>Conceptual Diagram</h3>
 
-<div class="ascii">        Math concept (placeholder)
-   [ Input x ] --&gt; ( w · x + b ) --&gt; [ Output z ]
-                       |
-                  [ activation ]
-                       |
+<div class="ascii">   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
                   [ prediction ]</div>
 
-<img src="./assets/anomaly-detection-fraud.png" width="520" alt="Anomaly Detection / Autoencoder diagram">
-<p class="muted">Interactive latent space traversal; reconstruction error vs latent dimension; bottleneck visualization.</p>
 
 <h2>2. Core Logic &amp; Architecture</h2>
 <p>The example follows a consistent <strong>data &rarr; train &rarr; evaluate &rarr; serve</strong>

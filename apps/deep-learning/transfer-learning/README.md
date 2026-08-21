@@ -27,18 +27,41 @@ Transfer learning / distillation.
   L = L_task + lambda * KL(p_teacher || p_student)
   Soft targets p_i = exp(z_i/T)/sum exp(z_j/T) (T=2) transfer knowledge.
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Reuse a model pre-trained on a huge dataset, then tweak the
+last layers for your small task — standing on giants' shoulders.
+CONCRETE DATA: teacher logits z=[2,1] (T=2) -> soft p=[0.62,0.38].
+STEP-BY-STEP:
+  L = L_task + lambda * KL(p_teacher || p_student)
+INTERPRETATION: Soft targets (p) carry 'dark knowledge' beyond the 0/1
+label, improving the small student.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+z = np.array([2.,1.]); T = 2                        # teacher logits & temperature
+p = np.exp(z/T); p = p/p.sum()                     # soften into soft probability targets
+print("soft targets =", np.round(p, 3))
+```
 
 ![Transfer Learning diagram](./assets/transfer-learning.png)
 
-Interactive feature reuse heatmap; layer freezing/unfreezing timeline; teacher vs student probability comparison.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive feature reuse heatmap; layer freezing/unfreezing timeline; teacher vs student probability comparison.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

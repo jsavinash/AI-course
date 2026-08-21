@@ -80,17 +80,33 @@ drive every forward and backward pass in the implementation.</p>
   max_a' Q(s',a') = 0.80
   Q &lt;- 0.50 + 0.1*(1.0 + 0.9*0.80 - 0.50)
       = 0.50 + 0.1*(1.72-0.50) = 0.622</div>
+<h3>Detailed Walkthrough</h3>
+<p class="muted">A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:</p>
+<div class="ascii">INTUITION: The agent keeps a table Q(s,a) = 'expected future reward if I
+do a in state s'. It learns by trial: good moves raise Q, bad lower it.
+CONCRETE DATA: alpha=0.1, gamma=0.9, Q(s,a)=0.50, r=1.0, max_a'Q=0.80.
+STEP-BY-STEP:
+  target = r + gamma*max_a'Q = 1.0 + 0.9*0.80 = 1.72
+  Q &lt;- 0.50 + 0.1*(1.72 - 0.50) = 0.622
+INTERPRETATION: This state-action pair became more attractive because it
+led to a reward; gamma&lt;1 makes far-future rewards worth less.</div>
+<h3>Runnable Step-by-Step (execute me)</h3>
+<p class="muted">Run this self-contained snippet in a Python shell to watch every step execute and print its value:</p>
+<pre><code class="language-python">alpha, gamma, Q, r, maxQ = 0.1, 0.9, 0.5, 1.0, 0.8   # lr, discount, Q(s,a), reward, max next Q
+print("target =", r + gamma*maxQ)                # Bellman target value
+Q = Q + alpha*(r + gamma*maxQ - Q)               # move Q toward the target by lr
+print("updated Q =", round(Q, 3))</code></pre>
+<img src="./assets/robot-maze-navigation.png" width="680" alt="Reinforcement Learning (Q-Learning) diagram">
+<p class="muted">Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive grid world with agent path; Q-value heatmap; episode reward curves; epsilon-greedy action distribution.</p>
 <h3>Conceptual Diagram</h3>
 
-<div class="ascii">        Math concept (placeholder)
-   [ Input x ] --&gt; ( w · x + b ) --&gt; [ Output z ]
-                       |
-                  [ activation ]
-                       |
+<div class="ascii">   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
                   [ prediction ]</div>
 
-<img src="./assets/robot-maze-navigation.png" width="520" alt="Reinforcement Learning (Q-Learning) diagram">
-<p class="muted">Interactive grid world with agent path; Q-value heatmap; episode reward curves; epsilon-greedy action distribution.</p>
 
 <h2>2. Core Logic &amp; Architecture</h2>
 <p>The example follows a consistent <strong>data &rarr; train &rarr; evaluate &rarr; serve</strong>

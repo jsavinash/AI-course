@@ -33,18 +33,43 @@ Concrete forward-pass / update evaluation using the algorithm's own equations:
   out = 2*1 + 0*1 + (-1)*0 = 2   (right)
   ReLU(2)=2 activates strong edges.
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: A small filter slides over the image, multiplying and summing
+to detect local patterns (edges, corners) at each position.
+CONCRETE DATA: row=[1,2,1,0], edge kernel=[1,0,-1].
+STEP-BY-STEP (valid positions):
+  pos1: 1*1 + 0*2 + (-1)*1 = 0
+  pos2: 2*1 + 0*1 + (-1)*0 = 2
+  ReLU(2)=2 highlights the right edge.
+INTERPRETATION: Different kernels = different detectors; stacking layers
+builds edges -> shapes -> objects.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+row = np.array([1.,2.,1.,0.]); k = np.array([1.,0.,-1.])  # 1D signal and an edge-detection kernel
+for i in range(len(row)-len(k)+1):              # slide the kernel across the signal
+    print("pos", i, "->", float(row[i:i+3] @ k))  # dot product = convolution output
+```
 
 ![Convolutional Neural Network diagram](./assets/cnn-facial-recognition.png)
 
-Interactive filter visualization; feature map heatmap; receptive field calculator; Grad-CAM overlay.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive filter visualization; feature map heatmap; receptive field calculator; Grad-CAM overlay.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

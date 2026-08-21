@@ -77,17 +77,28 @@ drive every forward and backward pass in the implementation.</p>
 <div class="ascii">Semi-supervised consistency loss.
   L = L_sup + lambda_t * MSE(f(x'), f(x))
   Augmented view x' should match f(x); ramp lambda_t over training.</div>
+<h3>Detailed Walkthrough</h3>
+<p class="muted">A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:</p>
+<div class="ascii">INTUITION: Labelled data is scarce/expensive, so we also learn from the
+unlabelled majority by consistency regularization.
+CONCRETE DATA: lambda_t ramps 0 -&gt; 1 across epochs.
+STEP-BY-STEP: L = L_sup + lambda_t * MSE(f(x'), f(x)).
+INTERPRETATION: Pseudo-labels + consistency shape a smoother boundary.</div>
+<h3>Runnable Step-by-Step (execute me)</h3>
+<p class="muted">Run this self-contained snippet in a Python shell to watch every step execute and print its value:</p>
+<pre><code class="language-python">lam = 1.0                                       # full weight on unlabeled loss
+print("total L =", 0.4 + lam*0.3)               # L = supervised + lambda * unsupervised</code></pre>
+<img src="./assets/semi-supervised-email.png" width="680" alt="Semi-Supervised Learning diagram">
+<p class="muted">Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive pseudo-label confidence distribution; labeled vs unlabeled loss curves; decision boundary animation.</p>
 <h3>Conceptual Diagram</h3>
 
-<div class="ascii">        Math concept (placeholder)
-   [ Input x ] --&gt; ( w · x + b ) --&gt; [ Output z ]
-                       |
-                  [ activation ]
-                       |
+<div class="ascii">   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
                   [ prediction ]</div>
 
-<img src="./assets/semi-supervised-email.png" width="520" alt="Semi-Supervised Learning diagram">
-<p class="muted">Interactive pseudo-label confidence distribution; labeled vs unlabeled loss curves; decision boundary animation.</p>
 
 <h2>2. Core Logic &amp; Architecture</h2>
 <p>The example follows a consistent <strong>data &rarr; train &rarr; evaluate &rarr; serve</strong>

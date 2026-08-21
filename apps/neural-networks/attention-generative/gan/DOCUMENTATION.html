@@ -80,17 +80,32 @@ drive every forward and backward pass in the implementation.</p>
   L_D = -[log 0.90 + log(1-0.20)]
        = -[(-0.105) + (-0.223)] = 0.328
   Generator minimises -log D(G(z)).</div>
+<h3>Detailed Walkthrough</h3>
+<p class="muted">A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:</p>
+<div class="ascii">INTUITION: A forger (generator) and a detective (discriminator) compete:
+the forger improves until fakes are indistinguishable from real.
+CONCRETE DATA: D(real)=0.90, D(fake)=0.20.
+STEP-BY-STEP (discriminator loss):
+  L_D = -[log 0.90 + log(1-0.20)] = -[(-0.105)+(-0.223)] = 0.328
+  Generator minimizes -log D(G(z)).
+INTERPRETATION: At equilibrium D=0.5 (guessing) and G fakes the data.</div>
+<h3>Runnable Step-by-Step (execute me)</h3>
+<p class="muted">Run this self-contained snippet in a Python shell to watch every step execute and print its value:</p>
+<pre><code class="language-python">import numpy as np
+D_real, D_fake = 0.9, 0.2                        # discriminator outputs for real &amp; fake samples
+L_D = -(np.log(D_real) + np.log(1 - D_fake))    # discriminator loss: maximize both correct calls
+print("L_D =", round(L_D, 3))</code></pre>
+<img src="./assets/gan.png" width="680" alt="Generative Adversarial Network (GAN) diagram">
+<p class="muted">Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive GAN training dashboard: generator/discriminator loss curves, sample evolution grid, decision boundary.</p>
 <h3>Conceptual Diagram</h3>
 
-<div class="ascii">        Math concept (placeholder)
-   [ Input x ] --&gt; ( w · x + b ) --&gt; [ Output z ]
-                       |
-                  [ activation ]
-                       |
+<div class="ascii">   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
                   [ prediction ]</div>
 
-<img src="./assets/gan.png" width="520" alt="Generative Adversarial Network (GAN) diagram">
-<p class="muted">Interactive GAN training dashboard: generator/discriminator loss curves, sample evolution grid, decision boundary.</p>
 
 <h2>2. Core Logic &amp; Architecture</h2>
 <p>The example follows a consistent <strong>data &rarr; train &rarr; evaluate &rarr; serve</strong>

@@ -31,18 +31,42 @@ VAE KL term (1-D latent).
      = 0.5*(1 + 0 - 0.01 - 1) = -0.005 ~ 0
   ELBO = Reconstruction - KL.
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Learn a compressed 'code' z from which we can rebuild x;
+we also force z to look like a standard normal so we can sample new x.
+CONCRETE DATA: mu=0.1, sigma=1.0 (1-D latent).
+STEP-BY-STEP:
+  KL = 0.5*(1 + log(1^2) - 0.1^2 - 1^2) = 0.5*(0 - 0.01) = -0.005
+  ELBO = Reconstruction - KL.
+INTERPRETATION: Tiny KL means the code already matches the prior; the
+reconstruction term dominates training.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+mu, sig = 0.1, 1.0                              # latent mean and std-dev
+KL = 0.5*(1 + np.log(sig**2) - mu**2 - sig**2)  # KL divergence from N(mu,sig^2) to N(0,1)
+print("KL =", round(KL, 4))
+```
 
 ![Variational Autoencoder (VAE) diagram](./assets/vae.png)
 
-Interactive latent space explorer: traverse 2D latent manifold; sample generation with sliders; KL divergence monitor.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive latent space explorer: traverse 2D latent manifold; sample generation with sliders; KL divergence monitor.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

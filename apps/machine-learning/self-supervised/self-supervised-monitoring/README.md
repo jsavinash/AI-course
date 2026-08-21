@@ -26,18 +26,37 @@ Concrete forward-pass / update evaluation using the algorithm's own equations:
 InfoNCE (see self example): pull positive pair, push negatives.
   L = -log[ exp(sim(z_i,z_j)/tau) / sum_k exp(sim(z_i,z_k)/tau) ].
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Contrastive learning (see 'self' example) — pull a sample's
+two augmented views together while pushing all others away.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+pos, negs, tau = 0.8, [0.1, 0.2], 0.1           # positive score, negative scores, temperature
+num = np.exp(pos/tau)                            # numerator: exp(positive / tau)
+den = num + sum(np.exp(n/tau) for n in negs)     # denominator: positive + all negatives
+print("InfoNCE L =", round(-np.log(num/den), 4)) # contrastive loss pulls pos. closer than negs.
+```
 
 ![Self-Supervised Learning diagram](./assets/self-supervised-monitoring.png)
 
-Interactive augmentation preview; contrastive embedding t-SNE; similarity matrix heatmap.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive augmentation preview; contrastive embedding t-SNE; similarity matrix heatmap.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

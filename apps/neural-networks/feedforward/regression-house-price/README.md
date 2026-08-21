@@ -30,22 +30,49 @@ Concrete forward-pass / update evaluation using the algorithm's own equations:
 Linear regression forward pass (house price from size, $1000s sqft).
   Input   x (size) = 1.8
   Weights w       = 120.0
-  Bias    b       = 35.0
-  y_hat = 120.0*1.8 + 35.0 = 251.0  -> predicted price $251k
+  Bias    b       = 30.0
+  y_hat = 120.0*1.8 + 30.0 = 246.0  -> predicted price $246k
   Gradient: dL/dw = -2/n sum x(y_hat-y).
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Same straight-line idea, but x = house size (1000s sqft) and
+y = price ($1000s). The slope is 'price per square foot'.
+CONCRETE DATA: sizes x=[1.0,1.5,2.0,2.5], prices y=[150,210,270,330].
+STEP-BY-STEP:
+  Fit y = w*x + b. With these points w=120, b=30.
+  Predict x=1.8: y_hat = 120*1.8 + 30 = 246 (i.e. $246k).
+INTERPRETATION: ~$120 per (1000 sqft) and a $30k base; MSE/R^2 reported
+by train.py measure fit quality.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+# Data: house size (1000s sqft) and price ($1000s)
+x = np.array([1.0,1.5,2.0,2.5]); y = np.array([150.,210.,270.,330.])
+w, b = 120.0, 30.0                              # fitted slope ($/sqft) and base price
+print("y_hat =", np.round(w*x + b, 1))          # predictions at the 4 known sizes
+print("R^2   =", round(1 - np.sum((y-(w*x+b))**2)/np.sum((y-y.mean())**2), 3))  # fit quality
+print("predict size=1.8 ->", round(w*1.8 + b, 1))  # interpolate a new size
+```
 
 ![Linear Regression diagram](./assets/regression-house-price.png)
 
-Interactive scatter plot with regression line, showing loss descent over iterations.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive scatter plot with regression line, showing loss descent over iterations.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

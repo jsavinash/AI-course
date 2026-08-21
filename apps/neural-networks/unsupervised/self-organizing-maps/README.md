@@ -28,18 +28,40 @@ Autoencoder reconstruction error.
   L = ||x - x_hat||^2 = (0.05)^2+( -0.05)^2 = 0.0050
   anomaly score = reconstruction error (high -> anomaly).
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Compress x into a small code z, then decompress back; things
+the model can't reconstruct well are 'anomalous'.
+CONCRETE DATA: x=[0.20,0.80]; x_hat=[0.25,0.75].
+STEP-BY-STEP:
+  L = ||x - x_hat||^2 = (0.05)^2 + (-0.05)^2 = 0.0050
+INTERPRETATION: Low error = normal; set a threshold (e.g. 0.01) to flag
+fraud/novelty.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+x = np.array([0.2, 0.8]); xh = np.array([0.25, 0.75])  # input and its reconstruction
+print("recon error =", float(np.sum((x - xh)**2)))     # MSE between input and output
+```
 
 ![Machine Learning Fundamentals diagram](./assets/self-organizing-maps.png)
 
-Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

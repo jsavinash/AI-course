@@ -31,18 +31,43 @@ Forward diffusion noising step.
   x_t = 0.949*1.0 + 0.316*0.5 = 1.107
   Training predicts epsilon_theta from x_t, t.
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Slowly add noise to data until it's pure static, then train a
+model to reverse one small denoising step at a time.
+CONCRETE DATA: bar_alpha_t=0.9 -> sqrt=0.949, sqrt(1-0.9)=0.316;
+  x_0=1.0, epsilon=0.5.
+STEP-BY-STEP:
+  x_t = sqrt(bar_alpha_t)*x_0 + sqrt(1-bar_alpha_t)*epsilon
+      = 0.949*1.0 + 0.316*0.5 = 1.107
+INTERPRETATION: At t=0 it's the real image; at t=T it's noise. Sampling
+starts from noise and iteratively predicts/removes epsilon.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+bar_alpha, x0, eps = 0.9, 1.0, 0.5              # cumulative alpha, clean image, noise
+xt = np.sqrt(bar_alpha)*x0 + np.sqrt(1-bar_alpha)*eps  # forward noising: blend signal + noise
+print("x_t =", round(xt, 3))
+```
 
 ![Denoising Diffusion Probabilistic Model (DDPM) diagram](./assets/diffusion.png)
 
-Interactive forward/reverse process visualization; denoising trajectory viewer; noise schedule plot.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive forward/reverse process visualization; denoising trajectory viewer; noise schedule plot.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

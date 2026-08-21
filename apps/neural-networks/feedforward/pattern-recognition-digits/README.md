@@ -31,18 +31,44 @@ Feed-forward classification forward pass (3-class digit).
   y_hat = softmax(z) = [0.574, 0.285, 0.142]
   predicted class = argmax = 0 (highest probability).
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: A small neural net scores each of 3 classes; softmax turns
+raw scores into a probability distribution that sums to 1.
+CONCRETE DATA: logits z=[1.1, 0.4, -0.3].
+STEP-BY-STEP:
+  exp(z) = [3.00, 1.49, 0.74]; sum = 5.23
+  y_hat = [3.00/5.23, 1.49/5.23, 0.74/5.23] = [0.574, 0.285, 0.142]
+  Cross-entropy vs true class 0 (one-hot [1,0,0]): -log(0.574)=0.555.
+INTERPRETATION: Model is 57% sure it's class 0; argmax picks class 0.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+z = np.array([1.1, 0.4, -0.3])                  # raw scores (logits) for 3 classes
+p = np.exp(z) / np.sum(np.exp(z))               # softmax -> normalized probabilities
+print("probs   =", np.round(p, 3))
+print("class   =", int(np.argmax(p)))           # predicted class = the highest probability
+print("CE(y=0) =", round(-np.log(p[0]), 3))     # cross-entropy when the true class is 0
+```
 
 ![Digit Recognition / Classification diagram](./assets/pattern-recognition-digits.png)
 
-Interactive decision boundary; feature visualization for hidden layers; confusion matrix explorer.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive decision boundary; feature visualization for hidden layers; confusion matrix explorer.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

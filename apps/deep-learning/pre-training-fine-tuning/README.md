@@ -27,18 +27,39 @@ Masked language modeling.
   Sequence: [The, cat, [MASK], on, the, [MASK]]
   Model predicts masked tokens from context (MLM + NSP objectives).
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Hide some words and force the model to guess them from
+context — learning grammar/meaning without labels.
+CONCRETE DATA: 'The cat [MASK] on the [MASK]' -> predict 'sat','mat'.
+STEP-BY-STEP: L_MLM = -sum log P(correct | context); L_NSP for sentence
+order; L_total = L_MLM + L_NSP.
+INTERPRETATION: This self-supervision yields representations fine-tunable
+to any downstream task.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+print("Mask: 'The cat [MASK] on the [MASK]'")   # hide tokens, let the model fill them
+print("Model predicts: 'sat' and 'mat' from context")
+```
 
 ![Pre-training and Fine-Tuning diagram](./assets/pre-training-fine-tuning.png)
 
-Interactive MLM token prediction explorer; attention head visualization; layer-wise transfer analysis.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive MLM token prediction explorer; attention head visualization; layer-wise transfer analysis.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

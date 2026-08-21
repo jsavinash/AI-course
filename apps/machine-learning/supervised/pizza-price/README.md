@@ -28,24 +28,64 @@ Starting from the hypothesis $h(x) = wx + b$, we minimize the MSE loss. Taking p
 Concrete forward-pass / update evaluation using the algorithm's own equations:
 
 Linear regression forward pass (pizza price from diameter).
+  Trained weights (least squares on the data below): w=1.525, b=-2.35.
   Input   x (diameter) = 12.0 in
-  Weights w           = 0.85
-  Bias    b           = 0.30
-  y_hat = w*x + b = 0.85*12.0 + 0.30 = 10.50  -> predicted price $10.50
-  MSE over {(12,10.5),(10,8.5)}: 1/2[(10.5-10.5)^2+(8.5-8.5)^2] = 0.0
+  y_hat = w*x + b = 1.525*12.0 - 2.35 = 15.95  -> predicted price $15.95
+  Actual price at x=12 is $17.50, so residual = 17.50 - 15.95 = 1.55.
+  MSE over the 5 points ~ 0.85 (R^2 ~ 0.96): the line fits well.
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: We fit the straightest possible line through (diameter, price)
+points. Think of it like eyeballing a trend on a scatter plot: bigger pizza
+=> higher price, and the line captures 'how much per extra inch'.
+CONCRETE DATA: diameters x=[6,8,10,12,14], prices y=[7,9,13,17.5,18].
+STEP-BY-STEP:
+  Start w=0, b=0 -> all predictions 0 -> MSE huge.
+  Gradient descent repeats: e = y_hat - y; update
+    w <- w - a*(2/n) * sum(x*e);  b <- b - a*(2/n) * sum(e)
+  After training (least squares): w=1.525, b=-2.35.
+  Predict x=12: y_hat = 1.525*12 - 2.35 = 15.95 (~$16).
+INTERPRETATION: Each extra inch adds ~$1.53 to the price; R^2~0.96 means
+the line explains the data very well. This exact formula powers /predict.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+# Data: pizza diameter (in) and price ($)
+x = np.array([6,8,10,12,14.], float)
+y = np.array([7,9,13,17.5,18.], float)
+# --- 1) CLOSED FORM: exact least-squares fit of the line y = w*x + b ---
+xm, ym = x.mean(), y.mean()                     # center the data around its mean
+w = ((x-xm)*(y-ym)).sum() / ((x-xm)**2).sum()   # slope  = cov(x,y) / var(x)
+b = ym - w*xm                                   # intercept so the line hits (xm,ym)
+print("closed-form: w=%.3f  b=%.3f" % (w, b))   # -> 1.525, -2.350
+print("predict x=12 ->", round(w*12 + b, 2))    # plug a 12-in diameter into the line
+# --- 2) ONE GRADIENT-DESCENT STEP: shows the update rule actually running ---
+w2, b2, lr, n = 0.0, 0.0, 0.005, len(x)         # start at zero, pick a small lr
+e = w2*x + b2 - y                               # prediction error  e = y_hat - y
+dw = (2/n)*np.sum(x*e); db = (2/n)*np.sum(e)    # gradients of MSE wrt w and b
+w2 -= lr*dw; b2 -= lr*db                        # take one step downhill
+print("after 1 GD step from 0: w=%.3f  b=%.3f" % (w2, b2))
+```
 
 ![Linear Regression diagram](./assets/pizza-price.png)
 
-Interactive scatter plot with regression line, showing loss descent over iterations.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive scatter plot with regression line, showing loss descent over iterations.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

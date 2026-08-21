@@ -25,18 +25,39 @@ Prompt-conditioned generation probability.
   P(y|x,p) = prod_t P(y_t | x,p,y_<t)
   Optimal prompt p* = argmax_p E[log P(y* | x,p)].
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: The LLM is a probability machine; a prompt steers it toward
+the desired output distribution.
+CONCRETE DATA: P(y|x,p) = prod_t P(y_t | x,p,y_<t).
+STEP-BY-STEP: optimal prompt p* = argmax_p E[log P(y* | x,p)].
+INTERPRETATION: Soft (continuous) prompts are tuned by gradient, hard
+(text) prompts by search.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+probs = np.array([0.62, 0.12, 0.26])              # language-model token probabilities
+print("chosen token =", int(np.argmax(probs)))    # greedy decode = pick highest prob
+```
 
 ![Prompt Engineering diagram](./assets/prompt-engineering.png)
 
-Interactive prompt comparison table; generation diversity vs prompt length; token probability explorer.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive prompt comparison table; generation diversity vs prompt length; token probability explorer.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

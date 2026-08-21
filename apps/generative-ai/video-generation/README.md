@@ -26,18 +26,37 @@ Concrete forward-pass / update evaluation using the algorithm's own equations:
 Video generation likelihood + perceptual quality.
   P(x_1..T)=prod_t P(x_t|x_<t); SSIM measures frame fidelity.
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Extend sequence modeling to space+time; frames are predicted
+conditioned on past frames.
+CONCRETE DATA: P(x_1..T)=prod_t P(x_t|x_<t); SSIM measures frame fidelity.
+INTERPRETATION: Temporal consistency (warp/flow) keeps motion smooth.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+eps = np.array([0.3, 0.1]); epshat = np.array([0.25, 0.15])  # true & predicted noise per frame
+print("frame loss =", float(np.mean((eps - epshat)**2)))    # simple diffusion loss (MSE on noise)
+```
 
 ![Video Generation diagram](./assets/video-generation.png)
 
-Interactive frame-by-frame playback with generated vs real overlay; optical flow visualization; temporal consistency score.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive frame-by-frame playback with generated vs real overlay; optical flow visualization; temporal consistency score.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

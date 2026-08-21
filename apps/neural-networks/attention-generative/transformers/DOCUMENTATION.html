@@ -80,17 +80,38 @@ drive every forward and backward pass in the implementation.</p>
   QK^T = [1,0]; /sqrt(2) = [0.707,0]
   softmax = [0.67,0.33]
   out = 0.67*[1,2] + 0.33*[3,4] = [1.67,2.67]</div>
+<h3>Detailed Walkthrough</h3>
+<p class="muted">A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:</p>
+<div class="ascii">INTUITION: For each token, score how much it should attend to every other
+token, normalize to weights, and take a weighted average of their values.
+CONCRETE DATA: Q=[1,0], K=[[1,0],[0,1]], V=[[1,2],[3,4]], d_k=2.
+STEP-BY-STEP:
+  scores = Q.K^T = [1*1+0*0, 1*0+0*1] = [1, 0]
+  scaled = [1,0]/sqrt(2) = [0.707, 0]
+  softmax([0.707,0]) = [0.67, 0.33]
+  out = 0.67*[1,2] + 0.33*[3,4] = [1.67, 2.67]
+INTERPRETATION: Token attends 67% to itself, 33% to the other; multi-head
+does this in parallel subspaces. Same math as 'attention'.</div>
+<h3>Runnable Step-by-Step (execute me)</h3>
+<p class="muted">Run this self-contained snippet in a Python shell to watch every step execute and print its value:</p>
+<pre><code class="language-python">import numpy as np
+Q = np.array([1.,0.]); K = np.array([[1.,0.],[0.,1.]]); V = np.array([[1.,2.],[3.,4.]])  # query, keys, values
+dk = 2                                           # key dimension (for scaling)
+scores = Q @ K.T / np.sqrt(dk)                   # dot-product similarity, scaled
+w = np.exp(scores) / np.sum(np.exp(scores))      # softmax -&gt; attention weights
+out = w @ V                                      # weighted sum of the values
+print("weights =", np.round(w, 3), " out =", np.round(out, 3))</code></pre>
+<img src="./assets/transformers.png" width="680" alt="Transformer Architecture diagram">
+<p class="muted">Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive encoder-decoder diagram with attention head visualization and token probability explorer.</p>
 <h3>Conceptual Diagram</h3>
 
-<div class="ascii">        Math concept (placeholder)
-   [ Input x ] --&gt; ( w · x + b ) --&gt; [ Output z ]
-                       |
-                  [ activation ]
-                       |
+<div class="ascii">   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
                   [ prediction ]</div>
 
-<img src="./assets/transformers.png" width="520" alt="Transformer Architecture diagram">
-<p class="muted">Interactive encoder-decoder diagram with attention head visualization and token probability explorer.</p>
 
 <h2>2. Core Logic &amp; Architecture</h2>
 <p>The example follows a consistent <strong>data &rarr; train &rarr; evaluate &rarr; serve</strong>

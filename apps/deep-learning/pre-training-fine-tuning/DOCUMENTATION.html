@@ -77,17 +77,30 @@ drive every forward and backward pass in the implementation.</p>
 <div class="ascii">Masked language modeling.
   Sequence: [The, cat, [MASK], on, the, [MASK]]
   Model predicts masked tokens from context (MLM + NSP objectives).</div>
+<h3>Detailed Walkthrough</h3>
+<p class="muted">A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:</p>
+<div class="ascii">INTUITION: Hide some words and force the model to guess them from
+context — learning grammar/meaning without labels.
+CONCRETE DATA: 'The cat [MASK] on the [MASK]' -&gt; predict 'sat','mat'.
+STEP-BY-STEP: L_MLM = -sum log P(correct | context); L_NSP for sentence
+order; L_total = L_MLM + L_NSP.
+INTERPRETATION: This self-supervision yields representations fine-tunable
+to any downstream task.</div>
+<h3>Runnable Step-by-Step (execute me)</h3>
+<p class="muted">Run this self-contained snippet in a Python shell to watch every step execute and print its value:</p>
+<pre><code class="language-python">print("Mask: 'The cat [MASK] on the [MASK]'")   # hide tokens, let the model fill them
+print("Model predicts: 'sat' and 'mat' from context")</code></pre>
+<img src="./assets/pre-training-fine-tuning.png" width="680" alt="Pre-training and Fine-Tuning diagram">
+<p class="muted">Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive MLM token prediction explorer; attention head visualization; layer-wise transfer analysis.</p>
 <h3>Conceptual Diagram</h3>
 
-<div class="ascii">        Math concept (placeholder)
-   [ Input x ] --&gt; ( w · x + b ) --&gt; [ Output z ]
-                       |
-                  [ activation ]
-                       |
+<div class="ascii">   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
                   [ prediction ]</div>
 
-<img src="./assets/pre-training-fine-tuning.png" width="520" alt="Pre-training and Fine-Tuning diagram">
-<p class="muted">Interactive MLM token prediction explorer; attention head visualization; layer-wise transfer analysis.</p>
 
 <h2>2. Core Logic &amp; Architecture</h2>
 <p>The example follows a consistent <strong>data &rarr; train &rarr; evaluate &rarr; serve</strong>

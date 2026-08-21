@@ -80,17 +80,37 @@ drive every forward and backward pass in the implementation.</p>
   z = w*x + b = 1.2*2.0 - 1.0 = 1.40
   y_hat = sigma(z) = 1/(1+e^-1.40) = 0.802
   =&gt; P(spam) = 0.80 (above 0.5 threshold -&gt; spam).</div>
+<h3>Detailed Walkthrough</h3>
+<p class="muted">A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:</p>
+<div class="ascii">INTUITION: Instead of a line we output a probability of 'spam' in [0,1].
+The sigmoid bends any real number into 0..1 like a soft on/off switch.
+CONCRETE DATA: feature x=2.0 (e.g. count of 'FREE'), w=1.2, b=-1.0.
+STEP-BY-STEP:
+  z = w*x + b = 1.2*2.0 - 1.0 = 1.40
+  y_hat = 1/(1+e^-1.40) = 1/(1+0.247) = 0.802
+  BCE loss for true label y=1: -log(0.802) = 0.221.
+INTERPRETATION: 0.80 &gt; 0.5 threshold -&gt; flagged spam. The gradient
+simplifies to (y_hat - y), so wrong guesses push the weights hard.</div>
+<h3>Runnable Step-by-Step (execute me)</h3>
+<p class="muted">Run this self-contained snippet in a Python shell to watch every step execute and print its value:</p>
+<pre><code class="language-python">import numpy as np
+x, w, b = 2.0, 1.2, -1.0                        # one feature, trained weight &amp; bias
+z = w*x + b                                     # linear combination (logit)
+print("z =", z)
+yh = 1/(1 + np.exp(-z))                         # sigmoid squashes z into a (0,1) probability
+print("P(spam) =", round(yh, 3))
+print("BCE (y=1) =", round(-np.log(yh), 3))     # binary cross-entropy when true label is 1</code></pre>
+<img src="./assets/classification-email-spam.png" width="680" alt="Logistic Regression diagram">
+<p class="muted">Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Sigmoid curve with decision boundary overlay; ROC and precision-recall curves.</p>
 <h3>Conceptual Diagram</h3>
 
-<div class="ascii">        Math concept (placeholder)
-   [ Input x ] --&gt; ( w · x + b ) --&gt; [ Output z ]
-                       |
-                  [ activation ]
-                       |
+<div class="ascii">   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
                   [ prediction ]</div>
 
-<img src="./assets/classification-email-spam.png" width="520" alt="Logistic Regression diagram">
-<p class="muted">Sigmoid curve with decision boundary overlay; ROC and precision-recall curves.</p>
 
 <h2>2. Core Logic &amp; Architecture</h2>
 <p>The example follows a consistent <strong>data &rarr; train &rarr; evaluate &rarr; serve</strong>

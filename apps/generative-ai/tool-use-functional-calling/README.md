@@ -27,18 +27,41 @@ Tool routing.
   logits = [2.1, 0.5, 1.3] -> softmax = [0.62,0.12,0.26]
   argmax -> tool 0 invoked with parsed args; result fed back.
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: The model picks a tool (function), fills its arguments,
+runs it, and feeds the result back to finish the answer.
+CONCRETE DATA: tool logits [2.1, 0.5, 1.3].
+STEP-BY-STEP:
+  softmax = [0.62, 0.12, 0.26] -> argmax = tool 0 invoked.
+  result = execute(tool0, args); final = generate(q, result).
+INTERPRETATION: Enables structured reasoning + external API access.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+logits = np.array([2.1, 0.5, 1.3])                # scores for three tools
+p = np.exp(logits)/np.sum(np.exp(logits))         # softmax -> selection probabilities
+print("probs =", np.round(p, 3), " chosen tool =", int(np.argmax(p)))  # pick the best tool
+```
 
 ![Tool Use and Functional Calling diagram](./assets/tool-use-functional-calling.png)
 
-Interactive tool call graph; argument parsing explorer; multi-step reasoning trace.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive tool call graph; argument parsing explorer; multi-step reasoning trace.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

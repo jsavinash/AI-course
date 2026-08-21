@@ -28,18 +28,41 @@ Matrix-factorization prediction (user-item rating).
   r_hat_ui = 3.5 + 0.3 - 0.2 + 0.4 = 4.0
   Cosine sim(u,v) = (u.v)/(||u|| ||v||) ranks neighbours.
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Every user and every item gets a hidden 'taste vector';
+predicted rating = global mean + user bias + item bias + dot product.
+CONCRETE DATA: mu=3.5, b_u=0.3, b_i=-0.2, q_i.p_u=0.4.
+STEP-BY-STEP:
+  r_hat = 3.5 + 0.3 - 0.2 + 0.4 = 4.0 (predicted 4-star rating).
+  Cosine(user_a, user_b) ranks how similar two users are.
+INTERPRETATION: Biases capture 'this user rates high' / 'this movie is
+bad'; the dot product captures learned preference overlap.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+mu, b_u, b_i, qdotp = 3.5, 0.3, -0.2, 0.4   # global mean, user & item bias, latent dot
+rhat = mu + b_u + b_i + qdotp                     # matrix-factorization prediction
+print("predicted rating =", rhat)
+```
 
 ![Recommendation Engine (Collaborative Filtering) diagram](./assets/recommendation-engine.png)
 
-Interactive embedding scatter plot; recommendation coverage vs diversity trade-off; top-k recall curve.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive embedding scatter plot; recommendation coverage vs diversity trade-off; top-k recall curve.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

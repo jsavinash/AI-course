@@ -30,18 +30,42 @@ PINN data-loss term.
   L_data = (0.90-1.00)^2 = 0.010
   Total L = L_data + lambda*L_pde (PDE residual via autograd).
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Bake the physics equation directly into the loss so the net
+must obey the law, not just fit scattered measurements.
+CONCRETE DATA: u_theta(0.5,0.5)=0.90, true u=1.00.
+STEP-BY-STEP:
+  L_data = (0.90 - 1.00)^2 = 0.010
+  L_pde = residual of the PDE (computed via autograd on u_theta).
+  L_total = L_data + lambda*L_pde.
+INTERPRETATION: Even with few data points, the PDE constraint guides the
+solution everywhere.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+u_theta, u_true = 0.9, 1.0                      # network prediction & true value
+L_data = (u_theta - u_true)**2                 # data-fitting term of the physics loss
+print("L_data =", L_data)
+```
 
 ![Physics-Informed Neural Network (PINN) diagram](./assets/pinn-heat-equation.png)
 
-Interactive PDE solution comparison: PINN vs finite difference; residual heatmap; loss decomposition pie chart.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive PDE solution comparison: PINN vs finite difference; residual heatmap; loss decomposition pie chart.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

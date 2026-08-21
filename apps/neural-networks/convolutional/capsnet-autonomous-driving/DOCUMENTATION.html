@@ -80,17 +80,34 @@ drive every forward and backward pass in the implementation.</p>
   v = (||s||^2/(1+||s||^2)) * (s/||s||)
     = (4.5/5.5) * (0.707,0.707) = (0.578,0.578)
   length 0.818 encodes entity presence probability.</div>
+<h3>Detailed Walkthrough</h3>
+<p class="muted">A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:</p>
+<div class="ascii">INTUITION: Neurons become 'capsules' (vectors) whose LENGTH is how
+confident we are and DIRECTION encodes properties (pose, etc.).
+CONCRETE DATA: s=[1.5,1.5] (vector before squash).
+STEP-BY-STEP:
+  ||s|| = sqrt(1.5^2+1.5^2) = 2.12
+  v = (||s||^2/(1+||s||^2)) * (s/||s||)
+    = (4.5/5.5) * (0.707,0.707) = (0.578,0.578)
+INTERPRETATION: Output length 0.818 = ~82% presence; routing iterates
+coupling coefficients between capsules.</div>
+<h3>Runnable Step-by-Step (execute me)</h3>
+<p class="muted">Run this self-contained snippet in a Python shell to watch every step execute and print its value:</p>
+<pre><code class="language-python">import numpy as np
+s = np.array([1.5, 1.5], float); nrm = np.linalg.norm(s)  # capsule vote vector &amp; its length
+v = (nrm**2/(1+nrm**2)) * (s/nrm)               # squash: keeps direction, squashes length to (0,1)
+print("v =", np.round(v, 3), " length =", round(np.linalg.norm(v), 3))</code></pre>
+<img src="./assets/capsnet-autonomous-driving.png" width="680" alt="Capsule Neural Network (CapsNet) diagram">
+<p class="muted">Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive capsule routing diagram; pose matrix heatmap; reconstruction error vs capsule size.</p>
 <h3>Conceptual Diagram</h3>
 
-<div class="ascii">        Math concept (placeholder)
-   [ Input x ] --&gt; ( w · x + b ) --&gt; [ Output z ]
-                       |
-                  [ activation ]
-                       |
+<div class="ascii">   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
                   [ prediction ]</div>
 
-<img src="./assets/capsnet-autonomous-driving.png" width="520" alt="Capsule Neural Network (CapsNet) diagram">
-<p class="muted">Interactive capsule routing diagram; pose matrix heatmap; reconstruction error vs capsule size.</p>
 
 <h2>2. Core Logic &amp; Architecture</h2>
 <p>The example follows a consistent <strong>data &rarr; train &rarr; evaluate &rarr; serve</strong>

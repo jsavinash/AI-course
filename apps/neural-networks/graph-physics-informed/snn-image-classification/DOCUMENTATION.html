@@ -78,17 +78,32 @@ drive every forward and backward pass in the implementation.</p>
   tau_m dV/dt = -(V - V_rest) + R_m I
   V=0.5, V_rest=0, I=1.0, tau=10 -&gt; dV/dt = 0.05
   If V &gt;= V_th=1.0 emit spike and reset to V_reset.</div>
+<h3>Detailed Walkthrough</h3>
+<p class="muted">A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:</p>
+<div class="ascii">INTUITION: Neurons communicate in discrete spikes, not continuous values;
+a capacitor (membrane) charges until it fires, then resets.
+CONCRETE DATA: tau=10, V=0.5, V_rest=0, I=1.0.
+STEP-BY-STEP:
+  tau*dV/dt = -(V - V_rest) + R_m*I = -(0.5) + 1.0 = 0.5
+  dV/dt = 0.05 (slowly charges)
+  if V &gt;= V_th (e.g. 1.0): emit spike, reset to V_reset.
+INTERPRETATION: Sparse, event-driven, energy-efficient computation.</div>
+<h3>Runnable Step-by-Step (execute me)</h3>
+<p class="muted">Run this self-contained snippet in a Python shell to watch every step execute and print its value:</p>
+<pre><code class="language-python">tau, V, Vr, I = 10, 0.5, 0.0, 1.0               # membrane time const, voltage, rest, input
+dV = (-(V - Vr) + I)/tau                       # leaky integrate-and-fire membrane dynamics
+print("dV/dt =", dV, " (spikes if V &gt;= threshold)")</code></pre>
+<img src="./assets/snn-image-classification.png" width="680" alt="Image Generation (GAN/VAE/Diffusion) diagram">
+<p class="muted">Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive latent space explorer; denoising trajectory viewer; FID score vs training steps.</p>
 <h3>Conceptual Diagram</h3>
 
-<div class="ascii">        Math concept (placeholder)
-   [ Input x ] --&gt; ( w · x + b ) --&gt; [ Output z ]
-                       |
-                  [ activation ]
-                       |
+<div class="ascii">   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
                   [ prediction ]</div>
 
-<img src="./assets/snn-image-classification.png" width="520" alt="Image Generation (GAN/VAE/Diffusion) diagram">
-<p class="muted">Interactive latent space explorer; denoising trajectory viewer; FID score vs training steps.</p>
 
 <h2>2. Core Logic &amp; Architecture</h2>
 <p>The example follows a consistent <strong>data &rarr; train &rarr; evaluate &rarr; serve</strong>

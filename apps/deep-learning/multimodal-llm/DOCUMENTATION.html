@@ -78,17 +78,33 @@ drive every forward and backward pass in the implementation.</p>
   text_emb=[1,1], image_emb=[0.9,1.1]
   cos = (1*0.9+1*1.1)/(sqrt2*sqrt(0.81+1.21))
       = 2.0/(1.414*1.421) = 0.995 (well aligned).</div>
+<h3>Detailed Walkthrough</h3>
+<p class="muted">A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:</p>
+<div class="ascii">INTUITION: Project text and images into one shared space so a caption
+and its photo land near each other.
+CONCRETE DATA: text_emb=[1,1], image_emb=[0.9,1.1].
+STEP-BY-STEP:
+  cos = (1*0.9 + 1*1.1) / (sqrt2 * sqrt(0.81+1.21))
+      = 2.0 / (1.414 * 1.421) = 0.995
+INTERPRETATION: ~1.0 means the pair is well aligned; cross-attention lets
+one modality query the other.</div>
+<h3>Runnable Step-by-Step (execute me)</h3>
+<p class="muted">Run this self-contained snippet in a Python shell to watch every step execute and print its value:</p>
+<pre><code class="language-python">import numpy as np
+t = np.array([1.,1.]); im = np.array([0.9,1.1])    # text &amp; image embedding vectors
+cos = float(t @ im / (np.linalg.norm(t)*np.linalg.norm(im)))  # cosine similarity
+print("cosine =", round(cos, 3))</code></pre>
+<img src="./assets/multimodal-llm.png" width="680" alt="Multimodal Learning diagram">
+<p class="muted">Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive embedding alignment plot; cross-attention weight heatmap; modality contribution explorer.</p>
 <h3>Conceptual Diagram</h3>
 
-<div class="ascii">        Math concept (placeholder)
-   [ Input x ] --&gt; ( w · x + b ) --&gt; [ Output z ]
-                       |
-                  [ activation ]
-                       |
+<div class="ascii">   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
                   [ prediction ]</div>
 
-<img src="./assets/multimodal-llm.png" width="520" alt="Multimodal Learning diagram">
-<p class="muted">Interactive embedding alignment plot; cross-attention weight heatmap; modality contribution explorer.</p>
 
 <h2>2. Core Logic &amp; Architecture</h2>
 <p>The example follows a consistent <strong>data &rarr; train &rarr; evaluate &rarr; serve</strong>

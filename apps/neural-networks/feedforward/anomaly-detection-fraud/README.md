@@ -28,18 +28,35 @@ Concrete forward-pass / update evaluation using the algorithm's own equations:
 Autoencoder anomaly scoring (see autoencoder example).
   score = ||x - x_hat||^2; threshold e.g. 0.01 flags fraud.
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Autoencoder anomaly scoring (see 'autoencoder' example).
+score = ||x - x_hat||^2; high reconstruction error -> likely fraud.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+x = np.array([0.2, 0.8]); xh = np.array([0.25, 0.75])  # transaction & its reconstruction
+print("anomaly score =", float(np.sum((x - xh)**2)))   # high error => likely fraud
+```
 
 ![Anomaly Detection / Autoencoder diagram](./assets/anomaly-detection-fraud.png)
 
-Interactive latent space traversal; reconstruction error vs latent dimension; bottleneck visualization.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive latent space traversal; reconstruction error vs latent dimension; bottleneck visualization.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

@@ -79,17 +79,37 @@ drive every forward and backward pass in the implementation.</p>
   Assign: {0,0},{1,0}-&gt;C0 ; {8,8},{9,8}-&gt;C1
   Update mu0 = mean(C0) = (0.5,0); mu1 = mean(C1) = (8.5,8)
   Objective J drops after each EM step.</div>
+<h3>Detailed Walkthrough</h3>
+<p class="muted">A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:</p>
+<div class="ascii">INTUITION: Group customers so similar ones share a cluster; like sorting
+candy by color and shape into piles.
+CONCRETE DATA: points {0,0},{1,0},{8,8},{9,8}; init mu0=(0,0), mu1=(9,8).
+STEP-BY-STEP (one EM round):
+  Assign nearest: {0,0},{1,0}-&gt;C0 ; {8,8},{9,8}-&gt;C1.
+  Recompute: mu0=mean(C0)=(0.5,0); mu1=mean(C1)=(8.5,8).
+  Objective J = sum of squared distances to own centroid drops.
+INTERPRETATION: Centroids are the 'average customer' of each segment.</div>
+<h3>Runnable Step-by-Step (execute me)</h3>
+<p class="muted">Run this self-contained snippet in a Python shell to watch every step execute and print its value:</p>
+<pre><code class="language-python">import numpy as np
+pts = np.array([[0,0],[1,0],[8,8],[9,8]], float)   # customer locations
+mu0, mu1 = np.array([0.,0.]), np.array([9.,8.])    # two starting cluster centers
+def assign(p): return 0 if np.linalg.norm(p-mu0) &lt; np.linalg.norm(p-mu1) else 1  # nearest center
+labels = [assign(p) for p in pts]                 # assign each point to a cluster
+print("labels =", labels)
+mu0 = pts[np.array(labels)==0].mean(0); mu1 = pts[np.array(labels)==1].mean(0)  # recompute centers
+print("new mu0 =", np.round(mu0,2), " mu1 =", np.round(mu1,2))</code></pre>
+<img src="./assets/market-segmentation.png" width="680" alt="Market Segmentation (K-Means) diagram">
+<p class="muted">Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive elbow method plot; cluster visualization with centroids; silhouette score explorer.</p>
 <h3>Conceptual Diagram</h3>
 
-<div class="ascii">        Math concept (placeholder)
-   [ Input x ] --&gt; ( w · x + b ) --&gt; [ Output z ]
-                       |
-                  [ activation ]
-                       |
+<div class="ascii">   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
                   [ prediction ]</div>
 
-<img src="./assets/market-segmentation.png" width="520" alt="Market Segmentation (K-Means) diagram">
-<p class="muted">Interactive elbow method plot; cluster visualization with centroids; silhouette score explorer.</p>
 
 <h2>2. Core Logic &amp; Architecture</h2>
 <p>The example follows a consistent <strong>data &rarr; train &rarr; evaluate &rarr; serve</strong>

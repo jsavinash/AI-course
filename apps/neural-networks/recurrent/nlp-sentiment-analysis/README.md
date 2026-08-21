@@ -28,18 +28,40 @@ Gradient-descent parameter update.
   theta <- 1.00 - 0.10*(-0.50) = 1.05
   Loss L(theta) decreases each step.
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Machine learning fits parameters theta to minimize a loss L
+that measures prediction error; gradient descent walks downhill.
+CONCRETE DATA: theta=1.00, alpha=0.10, gradient=-0.50.
+STEP-BY-STEP:
+  theta <- 1.00 - 0.10*(-0.50) = 1.05
+INTERPRETATION: Each step reduces L; learning rate controls step size
+(too big overshoots, too small crawls).
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+theta, alpha, grad = 1.0, 0.1, -0.5          # parameter, learning rate, gradient
+theta = theta - alpha*grad                       # gradient-descent update step
+print("updated theta =", theta)
+```
 
 ![Machine Learning Fundamentals diagram](./assets/nlp-sentiment-analysis.png)
 
-Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

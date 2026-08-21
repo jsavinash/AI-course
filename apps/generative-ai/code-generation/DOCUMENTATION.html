@@ -76,17 +76,29 @@ drive every forward and backward pass in the implementation.</p>
 <div class="ascii">Autoregressive code generation.
   P(c|p) = prod_t P(c_t | p, c_&lt;t)
   L = -sum_t log P(c_t | p, c_&lt;t); beam search decodes.</div>
+<h3>Detailed Walkthrough</h3>
+<p class="muted">A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:</p>
+<div class="ascii">INTUITION: Source code is just a sequence; the model autoregressively
+predicts the next token given the docstring/context.
+CONCRETE DATA: prompt p; tokens c_1..c_T.
+STEP-BY-STEP: L = -sum_t log P(c_t | p, c_&lt;t); decode via beam search.
+INTERPRETATION: Low perplexity = high confidence in the generated code.</div>
+<h3>Runnable Step-by-Step (execute me)</h3>
+<p class="muted">Run this self-contained snippet in a Python shell to watch every step execute and print its value:</p>
+<pre><code class="language-python">import numpy as np
+probs = np.array([0.62, 0.12, 0.26])              # next-token probabilities
+print("next token idx =", int(np.argmax(probs)))  # greedy decode = highest prob</code></pre>
+<img src="./assets/code-generation.png" width="680" alt="Code Generation diagram">
+<p class="muted">Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive code completion demo; token probability heatmap; beam search tree explorer.</p>
 <h3>Conceptual Diagram</h3>
 
-<div class="ascii">        Math concept (placeholder)
-   [ Input x ] --&gt; ( w · x + b ) --&gt; [ Output z ]
-                       |
-                  [ activation ]
-                       |
+<div class="ascii">   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
                   [ prediction ]</div>
 
-<img src="./assets/code-generation.png" width="520" alt="Code Generation diagram">
-<p class="muted">Interactive code completion demo; token probability heatmap; beam search tree explorer.</p>
 
 <h2>2. Core Logic &amp; Architecture</h2>
 <p>The example follows a consistent <strong>data &rarr; train &rarr; evaluate &rarr; serve</strong>

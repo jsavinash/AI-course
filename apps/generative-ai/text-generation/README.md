@@ -27,18 +27,40 @@ Autoregressive text generation.
   h_t = LSTM(x_t, h_{t-1}); P(w_t|w_<t)=softmax(W_h h_t)
   Temperature scales logits; top-k/nucleus truncate mass.
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Predict the next word from history (LSTM/transformer).
+CONCRETE DATA: h_t = LSTM(x_t, h_{t-1}); P(w_t|w_<t)=softmax(W_h h_t).
+STEP-BY-STEP: temperature scales logits (high=creative, low=safe);
+top-k/nucleus truncate the probability mass for diversity.
+INTERPRETATION: Sampling controls the randomness of generated text.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+h = 0.38
+logits = np.array([1.1, 0.4, -0.3])               # raw scores for the next word
+p = np.exp(logits)/np.sum(np.exp(logits))         # softmax -> word probabilities
+print("P(w_t) =", np.round(p, 3))
+```
 
 ![Text Generation diagram](./assets/text-generation.png)
 
-Interactive temperature slider; generated text preview; perplexity vs context length.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive temperature slider; generated text preview; perplexity vs context length.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

@@ -26,18 +26,38 @@ Concrete forward-pass / update evaluation using the algorithm's own equations:
 Image synthesis objective (diffusion/VAE/GAN blend).
   L_simple = E||epsilon - epsilon_theta(x_t,t)||^2 (diffusion term).
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Image synthesis blends GAN/VAE/Diffusion objectives to map a
+latent code (or noise) to pixels.
+CONCRETE DATA: diffusion term L_simple = E||epsilon - epsilon_theta||^2.
+INTERPRETATION: Lower L_simple -> the model better predicts the noise to
+remove at each step.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+eps = np.array([0.3, 0.1]); epshat = np.array([0.25, 0.15])  # true & predicted noise
+print("L_simple =", float(np.mean((eps - epshat)**2)))      # simple diffusion loss (MSE on noise)
+```
 
 ![Image Generation (GAN/VAE/Diffusion) diagram](./assets/image-generation.png)
 
-Interactive latent space explorer; denoising trajectory viewer; FID score vs training steps.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive latent space explorer; denoising trajectory viewer; FID score vs training steps.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

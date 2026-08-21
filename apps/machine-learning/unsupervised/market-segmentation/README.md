@@ -29,18 +29,46 @@ K-Means assignment + centroid update (k=2).
   Update mu0 = mean(C0) = (0.5,0); mu1 = mean(C1) = (8.5,8)
   Objective J drops after each EM step.
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Group customers so similar ones share a cluster; like sorting
+candy by color and shape into piles.
+CONCRETE DATA: points {0,0},{1,0},{8,8},{9,8}; init mu0=(0,0), mu1=(9,8).
+STEP-BY-STEP (one EM round):
+  Assign nearest: {0,0},{1,0}->C0 ; {8,8},{9,8}->C1.
+  Recompute: mu0=mean(C0)=(0.5,0); mu1=mean(C1)=(8.5,8).
+  Objective J = sum of squared distances to own centroid drops.
+INTERPRETATION: Centroids are the 'average customer' of each segment.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+pts = np.array([[0,0],[1,0],[8,8],[9,8]], float)   # customer locations
+mu0, mu1 = np.array([0.,0.]), np.array([9.,8.])    # two starting cluster centers
+def assign(p): return 0 if np.linalg.norm(p-mu0) < np.linalg.norm(p-mu1) else 1  # nearest center
+labels = [assign(p) for p in pts]                 # assign each point to a cluster
+print("labels =", labels)
+mu0 = pts[np.array(labels)==0].mean(0); mu1 = pts[np.array(labels)==1].mean(0)  # recompute centers
+print("new mu0 =", np.round(mu0,2), " mu1 =", np.round(mu1,2))
+```
 
 ![Market Segmentation (K-Means) diagram](./assets/market-segmentation.png)
 
-Interactive elbow method plot; cluster visualization with centroids; silhouette score explorer.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive elbow method plot; cluster visualization with centroids; silhouette score explorer.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

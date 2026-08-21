@@ -31,18 +31,39 @@ Scaled dot-product attention (see transformer example).
   out = softmax(QK^T/sqrt(d_k)) V; positional encodings
   PE(pos,2i)=sin(pos/10000^{2i/d}) inject order.
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Scaled dot-product attention (see 'transformer' walkthrough).
+Positional encodings PE(pos,2i)=sin(pos/10000^{2i/d}) add order info
+because attention alone is order-agnostic.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+Q = np.array([1.,0.]); K = np.array([[1.,0.],[0.,1.]]); V = np.array([[1.,2.],[3.,4.]])  # query, keys, values
+dk = 2                                           # key dimension (for scaling)
+scores = Q @ K.T / np.sqrt(dk)                   # dot-product similarity, scaled
+w = np.exp(scores) / np.sum(np.exp(scores))      # softmax -> attention weights
+print("attn weights =", np.round(w, 3), " out =", np.round(w @ V, 3))  # weighted sum of values
+```
 
 ![Attention Mechanism diagram](./assets/attention-mechanism.png)
 
-Interactive attention heatmap viewer; multi-head attention flow diagram; position encoding visualizer.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive attention heatmap viewer; multi-head attention flow diagram; position encoding visualizer.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

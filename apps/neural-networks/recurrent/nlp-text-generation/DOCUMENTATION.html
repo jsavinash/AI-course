@@ -77,17 +77,31 @@ drive every forward and backward pass in the implementation.</p>
 <div class="ascii">Autoregressive text generation.
   h_t = LSTM(x_t, h_{t-1}); P(w_t|w_&lt;t)=softmax(W_h h_t)
   Temperature scales logits; top-k/nucleus truncate mass.</div>
+<h3>Detailed Walkthrough</h3>
+<p class="muted">A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:</p>
+<div class="ascii">INTUITION: Predict the next word from history (LSTM/transformer).
+CONCRETE DATA: h_t = LSTM(x_t, h_{t-1}); P(w_t|w_&lt;t)=softmax(W_h h_t).
+STEP-BY-STEP: temperature scales logits (high=creative, low=safe);
+top-k/nucleus truncate the probability mass for diversity.
+INTERPRETATION: Sampling controls the randomness of generated text.</div>
+<h3>Runnable Step-by-Step (execute me)</h3>
+<p class="muted">Run this self-contained snippet in a Python shell to watch every step execute and print its value:</p>
+<pre><code class="language-python">import numpy as np
+h = 0.38
+logits = np.array([1.1, 0.4, -0.3])               # raw scores for the next word
+p = np.exp(logits)/np.sum(np.exp(logits))         # softmax -&gt; word probabilities
+print("P(w_t) =", np.round(p, 3))</code></pre>
+<img src="./assets/nlp-text-generation.png" width="680" alt="Text Generation diagram">
+<p class="muted">Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive temperature slider; generated text preview; perplexity vs context length.</p>
 <h3>Conceptual Diagram</h3>
 
-<div class="ascii">        Math concept (placeholder)
-   [ Input x ] --&gt; ( w · x + b ) --&gt; [ Output z ]
-                       |
-                  [ activation ]
-                       |
+<div class="ascii">   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
                   [ prediction ]</div>
 
-<img src="./assets/nlp-text-generation.png" width="520" alt="Text Generation diagram">
-<p class="muted">Interactive temperature slider; generated text preview; perplexity vs context length.</p>
 
 <h2>2. Core Logic &amp; Architecture</h2>
 <p>The example follows a consistent <strong>data &rarr; train &rarr; evaluate &rarr; serve</strong>

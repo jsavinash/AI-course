@@ -29,18 +29,47 @@ Scaled dot-product attention (2 tokens, d_k=2).
   softmax = [0.67,0.33]
   out = 0.67*[1,2] + 0.33*[3,4] = [1.67,2.67]
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: For each token, score how much it should attend to every other
+token, normalize to weights, and take a weighted average of their values.
+CONCRETE DATA: Q=[1,0], K=[[1,0],[0,1]], V=[[1,2],[3,4]], d_k=2.
+STEP-BY-STEP:
+  scores = Q.K^T = [1*1+0*0, 1*0+0*1] = [1, 0]
+  scaled = [1,0]/sqrt(2) = [0.707, 0]
+  softmax([0.707,0]) = [0.67, 0.33]
+  out = 0.67*[1,2] + 0.33*[3,4] = [1.67, 2.67]
+INTERPRETATION: Token attends 67% to itself, 33% to the other; multi-head
+does this in parallel subspaces. Same math as 'attention'.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+Q = np.array([1.,0.]); K = np.array([[1.,0.],[0.,1.]]); V = np.array([[1.,2.],[3.,4.]])  # query, keys, values
+dk = 2                                           # key dimension (for scaling)
+scores = Q @ K.T / np.sqrt(dk)                   # dot-product similarity, scaled
+w = np.exp(scores) / np.sum(np.exp(scores))      # softmax -> attention weights
+out = w @ V                                      # weighted sum of the values
+print("weights =", np.round(w, 3), " out =", np.round(out, 3))
+```
 
 ![Machine Learning Fundamentals diagram](./assets/large-language-model.png)
 
-Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

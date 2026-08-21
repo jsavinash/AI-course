@@ -77,17 +77,32 @@ drive every forward and backward pass in the implementation.</p>
 <div class="ascii">Transfer learning / distillation.
   L = L_task + lambda * KL(p_teacher || p_student)
   Soft targets p_i = exp(z_i/T)/sum exp(z_j/T) (T=2) transfer knowledge.</div>
+<h3>Detailed Walkthrough</h3>
+<p class="muted">A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:</p>
+<div class="ascii">INTUITION: Reuse a model pre-trained on a huge dataset, then tweak the
+last layers for your small task — standing on giants' shoulders.
+CONCRETE DATA: teacher logits z=[2,1] (T=2) -&gt; soft p=[0.62,0.38].
+STEP-BY-STEP:
+  L = L_task + lambda * KL(p_teacher || p_student)
+INTERPRETATION: Soft targets (p) carry 'dark knowledge' beyond the 0/1
+label, improving the small student.</div>
+<h3>Runnable Step-by-Step (execute me)</h3>
+<p class="muted">Run this self-contained snippet in a Python shell to watch every step execute and print its value:</p>
+<pre><code class="language-python">import numpy as np
+z = np.array([2.,1.]); T = 2                        # teacher logits &amp; temperature
+p = np.exp(z/T); p = p/p.sum()                     # soften into soft probability targets
+print("soft targets =", np.round(p, 3))</code></pre>
+<img src="./assets/transfer-learning.png" width="680" alt="Transfer Learning diagram">
+<p class="muted">Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive feature reuse heatmap; layer freezing/unfreezing timeline; teacher vs student probability comparison.</p>
 <h3>Conceptual Diagram</h3>
 
-<div class="ascii">        Math concept (placeholder)
-   [ Input x ] --&gt; ( w · x + b ) --&gt; [ Output z ]
-                       |
-                  [ activation ]
-                       |
+<div class="ascii">   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
                   [ prediction ]</div>
 
-<img src="./assets/transfer-learning.png" width="520" alt="Transfer Learning diagram">
-<p class="muted">Interactive feature reuse heatmap; layer freezing/unfreezing timeline; teacher vs student probability comparison.</p>
 
 <h2>2. Core Logic &amp; Architecture</h2>
 <p>The example follows a consistent <strong>data &rarr; train &rarr; evaluate &rarr; serve</strong>

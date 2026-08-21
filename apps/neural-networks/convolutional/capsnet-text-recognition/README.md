@@ -31,18 +31,43 @@ CapsNet squash function.
     = (4.5/5.5) * (0.707,0.707) = (0.578,0.578)
   length 0.818 encodes entity presence probability.
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Neurons become 'capsules' (vectors) whose LENGTH is how
+confident we are and DIRECTION encodes properties (pose, etc.).
+CONCRETE DATA: s=[1.5,1.5] (vector before squash).
+STEP-BY-STEP:
+  ||s|| = sqrt(1.5^2+1.5^2) = 2.12
+  v = (||s||^2/(1+||s||^2)) * (s/||s||)
+    = (4.5/5.5) * (0.707,0.707) = (0.578,0.578)
+INTERPRETATION: Output length 0.818 = ~82% presence; routing iterates
+coupling coefficients between capsules.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+s = np.array([1.5, 1.5], float); nrm = np.linalg.norm(s)  # capsule vote vector & its length
+v = (nrm**2/(1+nrm**2)) * (s/nrm)               # squash: keeps direction, squashes length to (0,1)
+print("v =", np.round(v, 3), " length =", round(np.linalg.norm(v), 3))
+```
 
 ![Capsule Neural Network (CapsNet) diagram](./assets/capsnet-text-recognition.png)
 
-Interactive capsule routing diagram; pose matrix heatmap; reconstruction error vs capsule size.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive capsule routing diagram; pose matrix heatmap; reconstruction error vs capsule size.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

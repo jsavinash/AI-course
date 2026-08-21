@@ -31,18 +31,41 @@ GAN discriminator loss (one step).
        = -[(-0.105) + (-0.223)] = 0.328
   Generator minimises -log D(G(z)).
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: A forger (generator) and a detective (discriminator) compete:
+the forger improves until fakes are indistinguishable from real.
+CONCRETE DATA: D(real)=0.90, D(fake)=0.20.
+STEP-BY-STEP (discriminator loss):
+  L_D = -[log 0.90 + log(1-0.20)] = -[(-0.105)+(-0.223)] = 0.328
+  Generator minimizes -log D(G(z)).
+INTERPRETATION: At equilibrium D=0.5 (guessing) and G fakes the data.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+D_real, D_fake = 0.9, 0.2                        # discriminator outputs for real & fake samples
+L_D = -(np.log(D_real) + np.log(1 - D_fake))    # discriminator loss: maximize both correct calls
+print("L_D =", round(L_D, 3))
+```
 
 ![Generative Adversarial Network (GAN) diagram](./assets/gan.png)
 
-Interactive GAN training dashboard: generator/discriminator loss curves, sample evolution grid, decision boundary.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive GAN training dashboard: generator/discriminator loss curves, sample evolution grid, decision boundary.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

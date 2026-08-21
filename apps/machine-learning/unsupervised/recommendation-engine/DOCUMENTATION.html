@@ -78,17 +78,32 @@ drive every forward and backward pass in the implementation.</p>
   mu=3.5, b_u=0.3, b_i=-0.2, q_i.p_u = 0.4
   r_hat_ui = 3.5 + 0.3 - 0.2 + 0.4 = 4.0
   Cosine sim(u,v) = (u.v)/(||u|| ||v||) ranks neighbours.</div>
+<h3>Detailed Walkthrough</h3>
+<p class="muted">A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:</p>
+<div class="ascii">INTUITION: Every user and every item gets a hidden 'taste vector';
+predicted rating = global mean + user bias + item bias + dot product.
+CONCRETE DATA: mu=3.5, b_u=0.3, b_i=-0.2, q_i.p_u=0.4.
+STEP-BY-STEP:
+  r_hat = 3.5 + 0.3 - 0.2 + 0.4 = 4.0 (predicted 4-star rating).
+  Cosine(user_a, user_b) ranks how similar two users are.
+INTERPRETATION: Biases capture 'this user rates high' / 'this movie is
+bad'; the dot product captures learned preference overlap.</div>
+<h3>Runnable Step-by-Step (execute me)</h3>
+<p class="muted">Run this self-contained snippet in a Python shell to watch every step execute and print its value:</p>
+<pre><code class="language-python">mu, b_u, b_i, qdotp = 3.5, 0.3, -0.2, 0.4   # global mean, user &amp; item bias, latent dot
+rhat = mu + b_u + b_i + qdotp                     # matrix-factorization prediction
+print("predicted rating =", rhat)</code></pre>
+<img src="./assets/recommendation-engine.png" width="680" alt="Recommendation Engine (Collaborative Filtering) diagram">
+<p class="muted">Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive embedding scatter plot; recommendation coverage vs diversity trade-off; top-k recall curve.</p>
 <h3>Conceptual Diagram</h3>
 
-<div class="ascii">        Math concept (placeholder)
-   [ Input x ] --&gt; ( w · x + b ) --&gt; [ Output z ]
-                       |
-                  [ activation ]
-                       |
+<div class="ascii">   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
                   [ prediction ]</div>
 
-<img src="./assets/recommendation-engine.png" width="520" alt="Recommendation Engine (Collaborative Filtering) diagram">
-<p class="muted">Interactive embedding scatter plot; recommendation coverage vs diversity trade-off; top-k recall curve.</p>
 
 <h2>2. Core Logic &amp; Architecture</h2>
 <p>The example follows a consistent <strong>data &rarr; train &rarr; evaluate &rarr; serve</strong>

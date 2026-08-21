@@ -28,18 +28,41 @@ Spiking neuron membrane update.
   V=0.5, V_rest=0, I=1.0, tau=10 -> dV/dt = 0.05
   If V >= V_th=1.0 emit spike and reset to V_reset.
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Neurons communicate in discrete spikes, not continuous values;
+a capacitor (membrane) charges until it fires, then resets.
+CONCRETE DATA: tau=10, V=0.5, V_rest=0, I=1.0.
+STEP-BY-STEP:
+  tau*dV/dt = -(V - V_rest) + R_m*I = -(0.5) + 1.0 = 0.5
+  dV/dt = 0.05 (slowly charges)
+  if V >= V_th (e.g. 1.0): emit spike, reset to V_reset.
+INTERPRETATION: Sparse, event-driven, energy-efficient computation.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+tau, V, Vr, I = 10, 0.5, 0.0, 1.0               # membrane time const, voltage, rest, input
+dV = (-(V - Vr) + I)/tau                       # leaky integrate-and-fire membrane dynamics
+print("dV/dt =", dV, " (spikes if V >= threshold)")
+```
 
 ![Image Generation (GAN/VAE/Diffusion) diagram](./assets/snn-image-classification.png)
 
-Interactive latent space explorer; denoising trajectory viewer; FID score vs training steps.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive latent space explorer; denoising trajectory viewer; FID score vs training steps.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

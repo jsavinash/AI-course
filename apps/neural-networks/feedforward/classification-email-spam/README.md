@@ -31,18 +31,46 @@ Logistic regression single-sample forward pass (spam classifier).
   y_hat = sigma(z) = 1/(1+e^-1.40) = 0.802
   => P(spam) = 0.80 (above 0.5 threshold -> spam).
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Instead of a line we output a probability of 'spam' in [0,1].
+The sigmoid bends any real number into 0..1 like a soft on/off switch.
+CONCRETE DATA: feature x=2.0 (e.g. count of 'FREE'), w=1.2, b=-1.0.
+STEP-BY-STEP:
+  z = w*x + b = 1.2*2.0 - 1.0 = 1.40
+  y_hat = 1/(1+e^-1.40) = 1/(1+0.247) = 0.802
+  BCE loss for true label y=1: -log(0.802) = 0.221.
+INTERPRETATION: 0.80 > 0.5 threshold -> flagged spam. The gradient
+simplifies to (y_hat - y), so wrong guesses push the weights hard.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+x, w, b = 2.0, 1.2, -1.0                        # one feature, trained weight & bias
+z = w*x + b                                     # linear combination (logit)
+print("z =", z)
+yh = 1/(1 + np.exp(-z))                         # sigmoid squashes z into a (0,1) probability
+print("P(spam) =", round(yh, 3))
+print("BCE (y=1) =", round(-np.log(yh), 3))     # binary cross-entropy when true label is 1
+```
 
 ![Logistic Regression diagram](./assets/classification-email-spam.png)
 
-Sigmoid curve with decision boundary overlay; ROC and precision-recall curves.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Sigmoid curve with decision boundary overlay; ROC and precision-recall curves.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 

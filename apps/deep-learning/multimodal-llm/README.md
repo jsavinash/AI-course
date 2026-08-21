@@ -28,18 +28,42 @@ Cross-modal alignment score.
   cos = (1*0.9+1*1.1)/(sqrt2*sqrt(0.81+1.21))
       = 2.0/(1.414*1.421) = 0.995 (well aligned).
 
-### Conceptual Diagram
+### Detailed Walkthrough
 
-        Math concept (placeholder)
-   [ Input x ] --> ( w · x + b ) --> [ Output z ]
-                       |
-                  [ activation ]
-                       |
-                  [ prediction ]
+A step-by-step, intuitive explanation with concrete data so the formal equations above become clear:
+
+INTUITION: Project text and images into one shared space so a caption
+and its photo land near each other.
+CONCRETE DATA: text_emb=[1,1], image_emb=[0.9,1.1].
+STEP-BY-STEP:
+  cos = (1*0.9 + 1*1.1) / (sqrt2 * sqrt(0.81+1.21))
+      = 2.0 / (1.414 * 1.421) = 0.995
+INTERPRETATION: ~1.0 means the pair is well aligned; cross-attention lets
+one modality query the other.
+
+### Runnable Step-by-Step (execute me)
+
+Run this self-contained snippet in a Python shell to watch every step execute and print its value:
+
+```python
+import numpy as np
+t = np.array([1.,1.]); im = np.array([0.9,1.1])    # text & image embedding vectors
+cos = float(t @ im / (np.linalg.norm(t)*np.linalg.norm(im)))  # cosine similarity
+print("cosine =", round(cos, 3))
+```
 
 ![Multimodal Learning diagram](./assets/multimodal-llm.png)
 
-Interactive embedding alignment plot; cross-attention weight heatmap; modality contribution explorer.
+Plots of the execution above — left: the concept; right: the
+step-by-step computation visualised. Interactive embedding alignment plot; cross-attention weight heatmap; modality contribution explorer.
+
+### Conceptual Diagram
+
+   [ Input ] --> ( core transform ) --> [ Output ]
+                        |
+                  [ activation / loss ]
+                        |
+                  [ prediction ]
 
 ## 2. Core Logic & Architecture
 
