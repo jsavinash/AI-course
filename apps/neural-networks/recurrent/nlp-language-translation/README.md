@@ -15,19 +15,18 @@
 <body>
 <section id="math" class="section math-section">
 <h2><span class="section-icon">∫</span> Mathematics &amp; Theory</h2>
-<p class="section-subtitle">Recurrent Neural Network (RNN) — Underlying equations and derivations</p>
+<p class="section-subtitle">Machine Learning Fundamentals — Underlying equations and derivations</p>
 <div class="math-content">
-<div class="equations"><div class="math-block">$$h_t = \tanh(W_{hh}h_{t-1} + W_{xh}x_t + b_h)$$</div>
-<div class="math-block">$$\hat{y}_t = W_{hy}h_t + b_y$$</div>
-<div class="math-block">$$\mathcal{L} = \sum_{t=1}^{T} \mathcal{L}_t(y_t, \hat{y}_t)$$</div>
-<div class="math-block">$$\frac{\partial \mathcal{L}}{\partial W_{hh}} = \sum_{t=1}^{T} \delta_t h_{t-1}^T$$</div></div>
+<div class="equations"><div class="math-block">$$\hat{y} = f(x; \theta)$$</div>
+<div class="math-block">$$\mathcal{L}(\theta) = \frac{1}{n} \sum_{i=1}^{n} \ell(y_i, \hat{y}_i)$$</div>
+<div class="math-block">$$\theta \leftarrow \theta - \alpha \nabla_\theta \mathcal{L}(\theta)$$</div></div>
 <div class="derivation">
 <h3>Step-by-Step Derivation</h3>
-<p>RNNs process sequences by maintaining a hidden state $h_t$ that summarizes past inputs. At each timestep, the hidden state is updated via $h_t = \tanh(W_{hh}h_{t-1} + W_{xh}x_t)$. Backpropagation Through Time (BPTT) unrolls the network and computes gradients across all timesteps. Vanishing gradients are mitigated by gated architectures like LSTM and GRU.</p>
+<p>Machine learning models learn parameters $\theta$ by minimizing a loss function $\mathcal{L}$. Gradient descent iteratively updates parameters in the direction of steepest descent. The learning rate $\alpha$ controls step size. Stochastic gradient descent (SGD) uses mini-batches for computational efficiency.</p>
 </div>
 <div class="viz-desc">
 <h3>Interactive Visualization</h3>
-<p>Interactive unfolded RNN diagram with gradient flow visualization; hidden state trajectory plot.</p>
+<p>Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.</p>
 </div>
 </div>
 </section>
@@ -65,8 +64,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2058704483')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2058704483"><code class="language-python">&quot;&quot;&quot;Training pipeline for language translation (RNN).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-1116923684')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1116923684"><code class="language-python">&quot;&quot;&quot;Training pipeline for language translation (RNN).&quot;&quot;&quot;
 
 import argparse
 import os
@@ -290,8 +289,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-4062216253')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-4062216253"><code class="language-python">&quot;&quot;&quot;Serving API for language translation (RNN).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-3880012782')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3880012782"><code class="language-python">&quot;&quot;&quot;Serving API for language translation (RNN).&quot;&quot;&quot;
 
 import os
 import time
@@ -631,8 +630,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-160894305')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-160894305"><code class="language-bash">uv run python -m nlp_language_translation.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-693130873')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-693130873"><code class="language-bash">uv run python -m nlp_language_translation.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

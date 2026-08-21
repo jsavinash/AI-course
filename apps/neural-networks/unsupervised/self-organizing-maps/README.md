@@ -64,8 +64,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2197946435')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2197946435"><code class="language-python">&quot;&quot;&quot;Training pipeline for Self-Organizing Maps.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-3204908111')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3204908111"><code class="language-python">&quot;&quot;&quot;Training pipeline for Self-Organizing Maps.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -219,8 +219,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-598247438')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-598247438"><code class="language-python">&quot;&quot;&quot;Serving API for Self-Organizing Maps.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-1726774972')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1726774972"><code class="language-python">&quot;&quot;&quot;Serving API for Self-Organizing Maps.&quot;&quot;&quot;
 
 import os
 import time
@@ -530,8 +530,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-4085047009')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-4085047009"><code class="language-bash">uv run python -m self_organizing_maps.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-2213721549')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2213721549"><code class="language-bash">uv run python -m self_organizing_maps.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

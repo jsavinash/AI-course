@@ -15,20 +15,19 @@
 <body>
 <section id="math" class="section math-section">
 <h2><span class="section-icon">∫</span> Mathematics &amp; Theory</h2>
-<p class="section-subtitle">Anomaly Detection / PCA — Underlying equations and derivations</p>
+<p class="section-subtitle">Autoencoder — Underlying equations and derivations</p>
 <div class="math-content">
-<div class="equations"><div class="math-block">$$X_{\text{centered}} = X - \bar{x}$$</div>
-<div class="math-block">$$\Sigma = \frac{1}{n} X_{\text{centered}}^T X_{\text{centered}}$$</div>
-<div class="math-block">$$\Sigma v = \lambda v$$</div>
-<div class="math-block">$$X_{\text{reduced}} = X_{\text{centered}} V_k$$</div>
-<div class="math-block">$$\text{recon error} = \|X - X_{\text{reconstructed}}\|^2$$</div></div>
+<div class="equations"><div class="math-block">$$z = f(x) = \sigma(W_e x + b_e) \quad \text{(encoder)}$$</div>
+<div class="math-block">$$\hat{x} = g(z) = \sigma(W_d z + b_d) \quad \text{(decoder)}$$</div>
+<div class="math-block">$$\mathcal{L} = \|x - \hat{x}\|^2 + \lambda (\|W_e\|^2 + \|W_d\|^2)$$</div>
+<div class="math-block">$$z^* = \arg\min_z \|x - g(f(x))\|^2$$</div></div>
 <div class="derivation">
 <h3>Step-by-Step Derivation</h3>
-<p>PCA finds orthogonal directions of maximum variance. By computing the SVD of centered data $X = U\Sigma V^T$, the right singular vectors $V$ are the principal components. Anomalies are detected from large reconstruction error after projection.</p>
+<p>Autoencoders learn compressed representations by minimizing reconstruction error. The encoder maps input $x$ to a latent code $z$. The decoder reconstructs $\hat{x}$ from $z$. L2 regularization and bottleneck architecture prevent trivial identity solutions.</p>
 </div>
 <div class="viz-desc">
 <h3>Interactive Visualization</h3>
-<p>Interactive 2D/3D PCA projection; explained variance scree plot; anomaly score distribution.</p>
+<p>Interactive latent space traversal; reconstruction error vs latent dimension; bottleneck visualization.</p>
 </div>
 </div>
 </section>
@@ -66,8 +65,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2219523189')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2219523189"><code class="language-python">&quot;&quot;&quot;Training pipeline for Deep Belief Networks.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-3434279660')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3434279660"><code class="language-python">&quot;&quot;&quot;Training pipeline for Deep Belief Networks.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -225,8 +224,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-4106509635')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-4106509635"><code class="language-python">&quot;&quot;&quot;Serving API for Deep Belief Networks.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-1585491667')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1585491667"><code class="language-python">&quot;&quot;&quot;Serving API for Deep Belief Networks.&quot;&quot;&quot;
 
 import os
 import time
@@ -531,8 +530,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1110913041')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1110913041"><code class="language-bash">uv run python -m deep_belief_networks.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-2510061009')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2510061009"><code class="language-bash">uv run python -m deep_belief_networks.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

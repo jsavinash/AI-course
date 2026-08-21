@@ -64,8 +64,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2545641925')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2545641925"><code class="language-python">&quot;&quot;&quot;Production training pipeline for spam email classification.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-4156739861')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-4156739861"><code class="language-python">&quot;&quot;&quot;Production training pipeline for spam email classification.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -290,8 +290,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1980601304')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1980601304"><code class="language-python">&quot;&quot;&quot;Production serving API for spam email classification.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-4221630749')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-4221630749"><code class="language-python">&quot;&quot;&quot;Production serving API for spam email classification.&quot;&quot;&quot;
 
 import os
 import re
@@ -647,8 +647,8 @@ def predict_email(body: EmailRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1977773668')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1977773668"><code class="language-bash">uv run python -m spam_classification.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-707904828')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-707904828"><code class="language-bash">uv run python -m spam_classification.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

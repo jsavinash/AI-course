@@ -67,8 +67,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3137372415')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3137372415"><code class="language-python">&quot;&quot;&quot;Training pipeline for Transformer Language Modeling.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-2580451902')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2580451902"><code class="language-python">&quot;&quot;&quot;Training pipeline for Transformer Language Modeling.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -245,8 +245,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-392730056')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-392730056"><code class="language-python">&quot;&quot;&quot;Serving API for Transformer Language Modeling.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-4186091448')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-4186091448"><code class="language-python">&quot;&quot;&quot;Serving API for Transformer Language Modeling.&quot;&quot;&quot;
 
 import os
 import time
@@ -544,8 +544,8 @@ def predict(body: PredictRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-903816698')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-903816698"><code class="language-bash">uv run python -m transformers_language_modeling.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-3258220911')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3258220911"><code class="language-bash">uv run python -m transformers_language_modeling.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

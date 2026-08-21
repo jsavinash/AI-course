@@ -66,8 +66,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-4191780049')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-4191780049"><code class="language-python">&quot;&quot;&quot;Training pipeline for Prompt Engineering.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-3484462921')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3484462921"><code class="language-python">&quot;&quot;&quot;Training pipeline for Prompt Engineering.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -224,8 +224,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3018390077')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3018390077"><code class="language-python">&quot;&quot;&quot;Serving API for Prompt Engineering.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-2022217226')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2022217226"><code class="language-python">&quot;&quot;&quot;Serving API for Prompt Engineering.&quot;&quot;&quot;
 
 import os
 import time
@@ -540,8 +540,8 @@ def get_stats():
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3308291390')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3308291390"><code class="language-bash">uv run python -m prompt_engineering.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-2692160528')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2692160528"><code class="language-bash">uv run python -m prompt_engineering.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

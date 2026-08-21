@@ -65,8 +65,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3510345627')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3510345627"><code class="language-python">&quot;&quot;&quot;Production training pipeline for PCA-based anomaly detection.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-2834585931')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2834585931"><code class="language-python">&quot;&quot;&quot;Production training pipeline for PCA-based anomaly detection.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -382,8 +382,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3043064947')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3043064947"><code class="language-python">&quot;&quot;&quot;Production serving API for PCA-based anomaly detection.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-3748401341')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3748401341"><code class="language-python">&quot;&quot;&quot;Production serving API for PCA-based anomaly detection.&quot;&quot;&quot;
 
 import os
 import time
@@ -894,8 +894,8 @@ def predict_anomaly_bulk(body: MetricsBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3583439326')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3583439326"><code class="language-bash">uv run python -m anomaly_detection_pca.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-1682521896')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1682521896"><code class="language-bash">uv run python -m anomaly_detection_pca.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

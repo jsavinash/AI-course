@@ -64,8 +64,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-672126538')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-672126538"><code class="language-python">&quot;&quot;&quot;Training pipeline for credit card fraud detection using a feedforward autoencoder.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-1368717151')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1368717151"><code class="language-python">&quot;&quot;&quot;Training pipeline for credit card fraud detection using a feedforward autoencoder.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -334,8 +334,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3503644651')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3503644651"><code class="language-python">&quot;&quot;&quot;Production serving API for credit card fraud detection via autoencoder reconstruction error.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-27629925')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-27629925"><code class="language-python">&quot;&quot;&quot;Production serving API for credit card fraud detection via autoencoder reconstruction error.&quot;&quot;&quot;
 
 import os
 import time
@@ -773,8 +773,8 @@ def predict_fraud_bulk(body: FraudBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3690962379')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3690962379"><code class="language-bash">uv run python -m anomaly_detection_fraud.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-2517555061')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2517555061"><code class="language-bash">uv run python -m anomaly_detection_fraud.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

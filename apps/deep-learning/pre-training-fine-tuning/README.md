@@ -73,8 +73,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-299627409')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-299627409"><code class="language-python">&quot;&quot;&quot;Training pipeline for Pre-training and Fine-tuning.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-4060536562')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-4060536562"><code class="language-python">&quot;&quot;&quot;Training pipeline for Pre-training and Fine-tuning.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -287,8 +287,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-650346947')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-650346947"><code class="language-python">&quot;&quot;&quot;Serving API for Pre-training and Fine-tuning.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-844733779')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-844733779"><code class="language-python">&quot;&quot;&quot;Serving API for Pre-training and Fine-tuning.&quot;&quot;&quot;
 
 import os
 import time
@@ -694,8 +694,8 @@ def reload_model():
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1279103830')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1279103830"><code class="language-bash">uv run python -m pre_training_fine_tuning.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-3524864539')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3524864539"><code class="language-bash">uv run python -m pre_training_fine_tuning.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

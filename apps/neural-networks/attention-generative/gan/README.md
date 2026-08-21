@@ -64,8 +64,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-4156880830')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-4156880830"><code class="language-python">&quot;&quot;&quot;Training pipeline for GAN Image Generation.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-3701195885')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3701195885"><code class="language-python">&quot;&quot;&quot;Training pipeline for GAN Image Generation.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -280,8 +280,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3471473862')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3471473862"><code class="language-python">&quot;&quot;&quot;Serving API for GAN Image Generation.
+<button class="copy-btn" onclick="copyCode('code-721490601')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-721490601"><code class="language-python">&quot;&quot;&quot;Serving API for GAN Image Generation.
 
 Provides image generation via the trained GAN generator and real/fake
 classification via the discriminator.
@@ -607,8 +607,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3116889966')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3116889966"><code class="language-bash">uv run python -m gan.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-947742408')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-947742408"><code class="language-bash">uv run python -m gan.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

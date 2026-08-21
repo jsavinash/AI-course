@@ -72,8 +72,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2114773525')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2114773525"><code class="language-python">&quot;&quot;&quot;Training pipeline for Code Generation.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-1140404946')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1140404946"><code class="language-python">&quot;&quot;&quot;Training pipeline for Code Generation.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -243,8 +243,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-4209205197')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-4209205197"><code class="language-python">&quot;&quot;&quot;Serving API for Code Generation.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-2129975769')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2129975769"><code class="language-python">&quot;&quot;&quot;Serving API for Code Generation.&quot;&quot;&quot;
 
 import os
 import time
@@ -649,8 +649,8 @@ def generate_tests(body: UnitTestRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-742016441')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-742016441"><code class="language-bash">uv run python -m code_generation.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-2166420967')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2166420967"><code class="language-bash">uv run python -m code_generation.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

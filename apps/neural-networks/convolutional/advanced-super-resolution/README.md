@@ -15,20 +15,18 @@
 <body>
 <section id="math" class="section math-section">
 <h2><span class="section-icon">∫</span> Mathematics &amp; Theory</h2>
-<p class="section-subtitle">Convolutional Neural Network — Underlying equations and derivations</p>
+<p class="section-subtitle">Machine Learning Fundamentals — Underlying equations and derivations</p>
 <div class="math-content">
-<div class="equations"><div class="math-block">$$Z^{(l)} = W^{(l)} * X^{(l)} + b^{(l)}$$</div>
-<div class="math-block">$$A^{(l)} = \text{ReLU}(Z^{(l)})$$</div>
-<div class="math-block">$$\text{MaxPool}(X)_{i,j} = \max_{m \in \mathcal{R}_i, n \in \mathcal{R}_j} X_{m,n}$$</div>
-<div class="math-block">$$\text{Softmax}(z)_j = \frac{e^{z_j}}{\sum_{k=1}^{K} e^{z_k}}$$</div>
-<div class="math-block">$$\mathcal{L}_{CE} = -\sum_{i=1}^{C} y_i \log(\hat{y}_i)$$</div></div>
+<div class="equations"><div class="math-block">$$\hat{y} = f(x; \theta)$$</div>
+<div class="math-block">$$\mathcal{L}(\theta) = \frac{1}{n} \sum_{i=1}^{n} \ell(y_i, \hat{y}_i)$$</div>
+<div class="math-block">$$\theta \leftarrow \theta - \alpha \nabla_\theta \mathcal{L}(\theta)$$</div></div>
 <div class="derivation">
 <h3>Step-by-Step Derivation</h3>
-<p>CNNs apply learned filters across spatial dimensions. Convolution slides a kernel $W$ over the input, computing dot products at each position. ReLU introduces non-linearity. Pooling reduces spatial dimensions. The softmax converts final logits to class probabilities.</p>
+<p>Machine learning models learn parameters $\theta$ by minimizing a loss function $\mathcal{L}$. Gradient descent iteratively updates parameters in the direction of steepest descent. The learning rate $\alpha$ controls step size. Stochastic gradient descent (SGD) uses mini-batches for computational efficiency.</p>
 </div>
 <div class="viz-desc">
 <h3>Interactive Visualization</h3>
-<p>Interactive filter visualization; feature map heatmap; receptive field calculator; Grad-CAM overlay.</p>
+<p>Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.</p>
 </div>
 </div>
 </section>
@@ -66,8 +64,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3343301487')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3343301487"><code class="language-python">&quot;&quot;&quot;Training pipeline for Image Super-Resolution (DN).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-2928727836')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2928727836"><code class="language-python">&quot;&quot;&quot;Training pipeline for Image Super-Resolution (DN).&quot;&quot;&quot;
 
 import argparse
 import os
@@ -277,8 +275,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1973474589')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1973474589"><code class="language-python">&quot;&quot;&quot;Serving API for Image Super-Resolution (DN).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-2881602111')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2881602111"><code class="language-python">&quot;&quot;&quot;Serving API for Image Super-Resolution (DN).&quot;&quot;&quot;
 
 import os
 import time
@@ -603,8 +601,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3976623788')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3976623788"><code class="language-bash">uv run python -m advanced_super_resolution.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-3714307774')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3714307774"><code class="language-bash">uv run python -m advanced_super_resolution.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

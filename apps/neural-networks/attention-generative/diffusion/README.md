@@ -64,8 +64,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2607290290')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2607290290"><code class="language-python">&quot;&quot;&quot;Training pipeline for Diffusion Image Generation.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-1429790945')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1429790945"><code class="language-python">&quot;&quot;&quot;Training pipeline for Diffusion Image Generation.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -294,8 +294,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2951677805')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2951677805"><code class="language-python">&quot;&quot;&quot;Serving API for Diffusion Image Generation.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-1097237156')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1097237156"><code class="language-python">&quot;&quot;&quot;Serving API for Diffusion Image Generation.&quot;&quot;&quot;
 
 import os
 import time
@@ -621,8 +621,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-328180275')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-328180275"><code class="language-bash">uv run python -m diffusion.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-2422502322')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2422502322"><code class="language-bash">uv run python -m diffusion.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

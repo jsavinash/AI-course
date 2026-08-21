@@ -64,8 +64,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3327367763')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3327367763"><code class="language-python">&quot;&quot;&quot;Training pipeline for Medical Scan Analysis (CapsNet).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-2234356701')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2234356701"><code class="language-python">&quot;&quot;&quot;Training pipeline for Medical Scan Analysis (CapsNet).&quot;&quot;&quot;
 
 import argparse
 import os
@@ -275,8 +275,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-651045187')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-651045187"><code class="language-python">&quot;&quot;&quot;Serving API for Medical Scan Analysis (CapsNet).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-218963566')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-218963566"><code class="language-python">&quot;&quot;&quot;Serving API for Medical Scan Analysis (CapsNet).&quot;&quot;&quot;
 
 import os
 import time
@@ -603,8 +603,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-691460543')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-691460543"><code class="language-bash">uv run python -m capsnet_medical_scan.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-1502789181')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1502789181"><code class="language-bash">uv run python -m capsnet_medical_scan.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

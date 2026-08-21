@@ -15,18 +15,19 @@
 <body>
 <section id="math" class="section math-section">
 <h2><span class="section-icon">∫</span> Mathematics &amp; Theory</h2>
-<p class="section-subtitle">Market Segmentation (K-Means) — Underlying equations and derivations</p>
+<p class="section-subtitle">Recurrent Neural Network (RNN) — Underlying equations and derivations</p>
 <div class="math-content">
-<div class="equations"><div class="math-block">$$\min_S \sum_{i=1}^{k} \sum_{x \in S_i} \|x - \mu_i\|^2$$</div>
-<div class="math-block">$$\mu_i = \frac{1}{|S_i|} \sum_{x \in S_i} x$$</div>
-<div class="math-block">$$J = \sum_{i=1}^{n} \|x^{(i)} - \mu_{c^{(i)}}\|^2$$</div></div>
+<div class="equations"><div class="math-block">$$h_t = \tanh(W_{hh}h_{t-1} + W_{xh}x_t + b_h)$$</div>
+<div class="math-block">$$\hat{y}_t = W_{hy}h_t + b_y$$</div>
+<div class="math-block">$$\mathcal{L} = \sum_{t=1}^{T} \mathcal{L}_t(y_t, \hat{y}_t)$$</div>
+<div class="math-block">$$\frac{\partial \mathcal{L}}{\partial W_{hh}} = \sum_{t=1}^{T} \delta_t h_{t-1}^T$$</div></div>
 <div class="derivation">
 <h3>Step-by-Step Derivation</h3>
-<p>K-Means partitions data into $k$ clusters by minimizing within-cluster sum of squares. The Expectation-Maximization (EM) algorithm alternates between: (1) assigning each point to the nearest centroid, and (2) recomputing centroids as the mean of assigned points. Convergence is guaranteed but the solution depends on initialization.</p>
+<p>RNNs process sequences by maintaining a hidden state $h_t$ that summarizes past inputs. At each timestep, the hidden state is updated via $h_t = \tanh(W_{hh}h_{t-1} + W_{xh}x_t)$. Backpropagation Through Time (BPTT) unrolls the network and computes gradients across all timesteps. Vanishing gradients are mitigated by gated architectures like LSTM and GRU.</p>
 </div>
 <div class="viz-desc">
 <h3>Interactive Visualization</h3>
-<p>Interactive elbow method plot; cluster visualization with centroids; silhouette score explorer.</p>
+<p>Interactive unfolded RNN diagram with gradient flow visualization; hidden state trajectory plot.</p>
 </div>
 </div>
 </section>
@@ -64,8 +65,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1087679462')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1087679462"><code class="language-python">&quot;&quot;&quot;Training pipeline for stock market prediction (RNN).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-1237464368')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1237464368"><code class="language-python">&quot;&quot;&quot;Training pipeline for stock market prediction (RNN).&quot;&quot;&quot;
 
 import argparse
 import os
@@ -291,8 +292,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1894861426')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1894861426"><code class="language-python">&quot;&quot;&quot;Serving API for stock market prediction (RNN).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-4113676201')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-4113676201"><code class="language-python">&quot;&quot;&quot;Serving API for stock market prediction (RNN).&quot;&quot;&quot;
 
 import os
 import time
@@ -611,8 +612,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1840153277')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1840153277"><code class="language-bash">uv run python -m time_series_stock.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-4204345055')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-4204345055"><code class="language-bash">uv run python -m time_series_stock.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

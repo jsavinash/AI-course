@@ -64,8 +64,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2838705417')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2838705417"><code class="language-python">&quot;&quot;&quot;Training pipeline for image captioning (RNN).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-678583881')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-678583881"><code class="language-python">&quot;&quot;&quot;Training pipeline for image captioning (RNN).&quot;&quot;&quot;
 
 import argparse
 import os
@@ -298,8 +298,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1096062569')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1096062569"><code class="language-python">&quot;&quot;&quot;Serving API for image captioning (RNN).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-4070947003')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-4070947003"><code class="language-python">&quot;&quot;&quot;Serving API for image captioning (RNN).&quot;&quot;&quot;
 
 import os
 import time
@@ -623,8 +623,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3506889188')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3506889188"><code class="language-bash">uv run python -m vision_image_captioning.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-2016049837')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2016049837"><code class="language-bash">uv run python -m vision_image_captioning.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

@@ -64,8 +64,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-853618168')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-853618168"><code class="language-python">&quot;&quot;&quot;Training pipeline for VAE Data Generation.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-679997295')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-679997295"><code class="language-python">&quot;&quot;&quot;Training pipeline for VAE Data Generation.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -275,8 +275,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2145183266')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2145183266"><code class="language-python">&quot;&quot;&quot;Serving API for VAE Data Generation.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-2867508566')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2867508566"><code class="language-python">&quot;&quot;&quot;Serving API for VAE Data Generation.&quot;&quot;&quot;
 
 import os
 import time
@@ -596,8 +596,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-387747482')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-387747482"><code class="language-bash">uv run python -m vae.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-2644432034')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2644432034"><code class="language-bash">uv run python -m vae.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

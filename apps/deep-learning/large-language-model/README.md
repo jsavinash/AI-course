@@ -15,20 +15,19 @@
 <body>
 <section id="math" class="section math-section">
 <h2><span class="section-icon">∫</span> Mathematics &amp; Theory</h2>
-<p class="section-subtitle">Attention Mechanism — Underlying equations and derivations</p>
+<p class="section-subtitle">Transformer Architecture — Underlying equations and derivations</p>
 <div class="math-content">
 <div class="equations"><div class="math-block">$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$</div>
 <div class="math-block">$$\text{MultiHead}(Q,K,V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^O$$</div>
-<div class="math-block">$$\text{FFN}(x) = \max(0, xW_1 + b_1)W_2 + b_2$$</div>
-<div class="math-block">$$\text{LayerNorm}(x) = \gamma \odot \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta$$</div>
-<div class="math-block">$$\text{PE}_{(pos,2i)} = \sin\left(\frac{pos}{10000^{2i/d}}\right), \quad \text{PE}_{(pos,2i+1)} = \cos\left(\frac{pos}{10000^{2i/d}}\right)$$</div></div>
+<div class="math-block">$$y = \text{softmax}(W_{proj} \cdot \text{LayerNorm}(x + \text{MultiHead}(x)))$$</div>
+<div class="math-block">$$\mathcal{L} = -\sum_{t=1}^{T} \log P(w_t | w_{<t}; \theta)$$</div></div>
 <div class="derivation">
 <h3>Step-by-Step Derivation</h3>
-<p>Scaled dot-product attention computes compatibility between queries and keys. Scaling by $\sqrt{d_k}$ prevents vanishing gradients for large dimensions. Multi-head attention allows the model to attend to different representation subspaces. Positional encodings inject sequence order information since attention is permutation-invariant.</p>
+<p>The Transformer uses stacked encoder-decoder blocks. Each block applies multi-head self-attention followed by position-wise feed-forward networks, with residual connections and layer normalization. The decoder uses masked self-attention to prevent attending to future tokens during training.</p>
 </div>
 <div class="viz-desc">
 <h3>Interactive Visualization</h3>
-<p>Interactive attention heatmap viewer; multi-head attention flow diagram; position encoding visualizer.</p>
+<p>Interactive encoder-decoder diagram with attention head visualization and token probability explorer.</p>
 </div>
 </div>
 </section>
@@ -68,8 +67,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1532172410')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1532172410"><code class="language-python">&quot;&quot;&quot;Training pipeline for Large Language Model (LLM).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-1178553871')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1178553871"><code class="language-python">&quot;&quot;&quot;Training pipeline for Large Language Model (LLM).&quot;&quot;&quot;
 
 import argparse
 import os
@@ -242,8 +241,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2987088139')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2987088139"><code class="language-python">&quot;&quot;&quot;Serving API for Large Language Model (LLM).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-2469418719')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2469418719"><code class="language-python">&quot;&quot;&quot;Serving API for Large Language Model (LLM).&quot;&quot;&quot;
 
 import os
 import time
@@ -502,8 +501,8 @@ def predict(body: PredictRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3814297299')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3814297299"><code class="language-bash">uv run python -m large_language_model.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-1037145862')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1037145862"><code class="language-bash">uv run python -m large_language_model.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

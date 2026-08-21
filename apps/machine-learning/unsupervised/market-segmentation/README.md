@@ -63,8 +63,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3752656883')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3752656883"><code class="language-python">&quot;&quot;&quot;Production training pipeline for market segmentation (unsupervised K-Means).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-1868322139')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1868322139"><code class="language-python">&quot;&quot;&quot;Production training pipeline for market segmentation (unsupervised K-Means).&quot;&quot;&quot;
 
 import argparse
 import os
@@ -292,8 +292,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3777040552')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3777040552"><code class="language-python">&quot;&quot;&quot;Production serving API for market segmentation (unsupervised K-Means).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-2133881143')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2133881143"><code class="language-python">&quot;&quot;&quot;Production serving API for market segmentation (unsupervised K-Means).&quot;&quot;&quot;
 
 import os
 import time
@@ -713,8 +713,8 @@ def segment_bulk(body: SegmentBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2577752954')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2577752954"><code class="language-bash">uv run python -m market_segmentation.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-1849160385')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1849160385"><code class="language-bash">uv run python -m market_segmentation.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

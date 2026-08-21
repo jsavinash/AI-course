@@ -70,8 +70,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2752374207')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2752374207"><code class="language-python">&quot;&quot;&quot;Training pipeline for Video Generation.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-349085834')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-349085834"><code class="language-python">&quot;&quot;&quot;Training pipeline for Video Generation.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -210,8 +210,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1600330316')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1600330316"><code class="language-python">&quot;&quot;&quot;Serving API for Video Generation.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-1774562669')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1774562669"><code class="language-python">&quot;&quot;&quot;Serving API for Video Generation.&quot;&quot;&quot;
 
 import os
 import time
@@ -480,8 +480,8 @@ def get_stats():
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-410206843')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-410206843"><code class="language-bash">uv run python -m video_generation.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-4077587483')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-4077587483"><code class="language-bash">uv run python -m video_generation.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

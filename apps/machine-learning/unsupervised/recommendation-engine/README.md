@@ -64,8 +64,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-331664408')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-331664408"><code class="language-python">&quot;&quot;&quot;Production training pipeline for the recommendation engine (Apriori).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-3515416332')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3515416332"><code class="language-python">&quot;&quot;&quot;Production training pipeline for the recommendation engine (Apriori).&quot;&quot;&quot;
 
 import argparse
 import os
@@ -296,8 +296,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-400491378')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-400491378"><code class="language-python">&quot;&quot;&quot;Production serving API for the recommendation engine (Apriori).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-3019320832')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3019320832"><code class="language-python">&quot;&quot;&quot;Production serving API for the recommendation engine (Apriori).&quot;&quot;&quot;
 
 import os
 import time
@@ -704,8 +704,8 @@ def recommend(body: RecommendRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-650404106')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-650404106"><code class="language-bash">uv run python -m recommendation_engine.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-1813204983')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1813204983"><code class="language-bash">uv run python -m recommendation_engine.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

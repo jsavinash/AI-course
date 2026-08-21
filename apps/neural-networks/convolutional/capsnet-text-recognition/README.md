@@ -64,8 +64,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2915843671')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2915843671"><code class="language-python">&quot;&quot;&quot;Training pipeline for Text and Character Recognition (CapsNet).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-1648163656')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1648163656"><code class="language-python">&quot;&quot;&quot;Training pipeline for Text and Character Recognition (CapsNet).&quot;&quot;&quot;
 
 import argparse
 import os
@@ -275,8 +275,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2776918554')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2776918554"><code class="language-python">&quot;&quot;&quot;Serving API for Text and Character Recognition (CapsNet).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-978773602')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-978773602"><code class="language-python">&quot;&quot;&quot;Serving API for Text and Character Recognition (CapsNet).&quot;&quot;&quot;
 
 import os
 import time
@@ -603,8 +603,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1197086616')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1197086616"><code class="language-bash">uv run python -m capsnet_text_recognition.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-550631578')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-550631578"><code class="language-bash">uv run python -m capsnet_text_recognition.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

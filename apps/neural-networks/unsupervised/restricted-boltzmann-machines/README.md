@@ -15,19 +15,19 @@
 <body>
 <section id="math" class="section math-section">
 <h2><span class="section-icon">∫</span> Mathematics &amp; Theory</h2>
-<p class="section-subtitle">Graph Neural Network (GNN) — Underlying equations and derivations</p>
+<p class="section-subtitle">Autoencoder — Underlying equations and derivations</p>
 <div class="math-content">
-<div class="equations"><div class="math-block">$$h_v^{(k+1)} = \sigma\left( W^{(k)} \cdot \text{AGGREGATE}_k \left( \{ h_u^{(k)} : u \in \mathcal{N}(v) \} \right) \right)$$</div>
-<div class="math-block">$$\text{AGGREGATE}_k = \text{mean} \left( \{ h_u^{(k)} : u \in \mathcal{N}(v) \} \right)$$</div>
-<div class="math-block">$$\text{GAT}: \alpha_{uv} = \frac{\exp(\text{LeakyReLU}(a^T [Wh_u \| Wh_v]))}{\sum_{k \in \mathcal{N}(v)} \exp(\text{LeakyReLU}(a^T [Wh_u \| Wh_k]))}$$</div>
-<div class="math-block">$$h_v^{(k+1)} = \sigma\left( \sum_{u \in \mathcal{N}(v)} \alpha_{uv} W h_u^{(k)} \right)$$</div></div>
+<div class="equations"><div class="math-block">$$z = f(x) = \sigma(W_e x + b_e) \quad \text{(encoder)}$$</div>
+<div class="math-block">$$\hat{x} = g(z) = \sigma(W_d z + b_d) \quad \text{(decoder)}$$</div>
+<div class="math-block">$$\mathcal{L} = \|x - \hat{x}\|^2 + \lambda (\|W_e\|^2 + \|W_d\|^2)$$</div>
+<div class="math-block">$$z^* = \arg\min_z \|x - g(f(x))\|^2$$</div></div>
 <div class="derivation">
 <h3>Step-by-Step Derivation</h3>
-<p>GNNs generalize convolutions to graph-structured data. Each node updates its representation by aggregating messages from neighbors. After $K$ rounds of message passing, each node embeds its $K$-hop neighborhood. GATs introduce attention weights $\alpha_{uv}$ to prioritize important neighbors.</p>
+<p>Autoencoders learn compressed representations by minimizing reconstruction error. The encoder maps input $x$ to a latent code $z$. The decoder reconstructs $\hat{x}$ from $z$. L2 regularization and bottleneck architecture prevent trivial identity solutions.</p>
 </div>
 <div class="viz-desc">
 <h3>Interactive Visualization</h3>
-<p>Interactive graph with animated message passing; node embedding t-SNE projection; attention weight heatmap.</p>
+<p>Interactive latent space traversal; reconstruction error vs latent dimension; bottleneck visualization.</p>
 </div>
 </div>
 </section>
@@ -64,8 +64,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-4079365044')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-4079365044"><code class="language-python">&quot;&quot;&quot;Training pipeline for RBM Feature Learning.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-452206085')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-452206085"><code class="language-python">&quot;&quot;&quot;Training pipeline for RBM Feature Learning.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -220,8 +220,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3879432141')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3879432141"><code class="language-python">&quot;&quot;&quot;Serving API for RBM Feature Learning.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-2072487913')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2072487913"><code class="language-python">&quot;&quot;&quot;Serving API for RBM Feature Learning.&quot;&quot;&quot;
 
 import os
 import time
@@ -533,8 +533,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3093102093')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3093102093"><code class="language-bash">uv run python -m restricted_boltzmann_machines.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-1096756867')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1096756867"><code class="language-bash">uv run python -m restricted_boltzmann_machines.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

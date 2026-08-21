@@ -64,8 +64,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-656515676')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-656515676"><code class="language-python">&quot;&quot;&quot;Training pipeline for text generation (RNN language model).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-3281418262')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3281418262"><code class="language-python">&quot;&quot;&quot;Training pipeline for text generation (RNN language model).&quot;&quot;&quot;
 
 import argparse
 import os
@@ -286,8 +286,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-147434087')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-147434087"><code class="language-python">&quot;&quot;&quot;Serving API for text generation (RNN language model).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-41240661')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-41240661"><code class="language-python">&quot;&quot;&quot;Serving API for text generation (RNN language model).&quot;&quot;&quot;
 
 import os
 import time
@@ -624,8 +624,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3428860485')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3428860485"><code class="language-bash">uv run python -m nlp_text_generation.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-4216094540')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-4216094540"><code class="language-bash">uv run python -m nlp_text_generation.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

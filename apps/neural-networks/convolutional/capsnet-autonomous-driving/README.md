@@ -64,8 +64,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-4041136107')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-4041136107"><code class="language-python">&quot;&quot;&quot;Training pipeline for Autonomous Driving Object Recognition (CapsNet).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-4067578147')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-4067578147"><code class="language-python">&quot;&quot;&quot;Training pipeline for Autonomous Driving Object Recognition (CapsNet).&quot;&quot;&quot;
 
 import argparse
 import os
@@ -275,8 +275,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2137702745')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2137702745"><code class="language-python">&quot;&quot;&quot;Serving API for Autonomous Driving Object Recognition (CapsNet).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-1718770250')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1718770250"><code class="language-python">&quot;&quot;&quot;Serving API for Autonomous Driving Object Recognition (CapsNet).&quot;&quot;&quot;
 
 import os
 import time
@@ -603,8 +603,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1968320571')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1968320571"><code class="language-bash">uv run python -m capsnet_autonomous_driving.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-3019629961')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3019629961"><code class="language-bash">uv run python -m capsnet_autonomous_driving.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

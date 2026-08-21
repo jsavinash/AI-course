@@ -72,8 +72,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3411118387')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3411118387"><code class="language-python">&quot;&quot;&quot;Training pipeline for Tool Use and Functional Calling.
+<button class="copy-btn" onclick="copyCode('code-3330487348')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3330487348"><code class="language-python">&quot;&quot;&quot;Training pipeline for Tool Use and Functional Calling.
 
 Demonstrates the complete 5-step function-calling workflow:
 1. Register tools (tool definitions)
@@ -264,8 +264,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3294175218')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3294175218"><code class="language-python">&quot;&quot;&quot;Serving API for Tool Use and Functional Calling.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-858999650')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-858999650"><code class="language-python">&quot;&quot;&quot;Serving API for Tool Use and Functional Calling.&quot;&quot;&quot;
 
 from __future__ import annotations
 
@@ -607,8 +607,8 @@ def get_stats():
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-864071894')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-864071894"><code class="language-bash">uv run python -m tool_use_functional_calling.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-9834197')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-9834197"><code class="language-bash">uv run python -m tool_use_functional_calling.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

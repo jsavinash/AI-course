@@ -64,8 +64,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2428199761')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2428199761"><code class="language-python">&quot;&quot;&quot;Training pipeline for Autoencoder Dimensionality Reduction.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-1136028593')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1136028593"><code class="language-python">&quot;&quot;&quot;Training pipeline for Autoencoder Dimensionality Reduction.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -257,8 +257,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2841932795')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2841932795"><code class="language-python">&quot;&quot;&quot;Serving API for Autoencoder Dimensionality Reduction.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-711364564')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-711364564"><code class="language-python">&quot;&quot;&quot;Serving API for Autoencoder Dimensionality Reduction.&quot;&quot;&quot;
 
 import os
 import time
@@ -581,8 +581,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-4075124811')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-4075124811"><code class="language-bash">uv run python -m autoencoders_dimensionality_reduction.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-1736898799')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1736898799"><code class="language-bash">uv run python -m autoencoders_dimensionality_reduction.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

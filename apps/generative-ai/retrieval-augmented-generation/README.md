@@ -71,8 +71,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3567154620')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3567154620"><code class="language-python">from __future__ import annotations
+<button class="copy-btn" onclick="copyCode('code-3073880277')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3073880277"><code class="language-python">from __future__ import annotations
 
 &quot;&quot;&quot;Training / indexing pipeline for Retrieval-Augmented Generation (RAG).
 
@@ -248,8 +248,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-644126295')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-644126295"><code class="language-python">from __future__ import annotations
+<button class="copy-btn" onclick="copyCode('code-3764931985')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3764931985"><code class="language-python">from __future__ import annotations
 
 &quot;&quot;&quot;Serving API for Retrieval-Augmented Generation (RAG).&quot;&quot;&quot;
 
@@ -555,8 +555,8 @@ def refresh_index():
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-4280448814')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-4280448814"><code class="language-bash">uv run python -m retrieval_augmented_generation.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-3105444452')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3105444452"><code class="language-bash">uv run python -m retrieval_augmented_generation.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

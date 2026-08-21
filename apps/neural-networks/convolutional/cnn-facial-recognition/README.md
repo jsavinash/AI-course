@@ -65,8 +65,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2276483264')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2276483264"><code class="language-python">&quot;&quot;&quot;Training pipeline for Facial Recognition (CNN).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-2640967439')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2640967439"><code class="language-python">&quot;&quot;&quot;Training pipeline for Facial Recognition (CNN).&quot;&quot;&quot;
 
 import argparse
 import os
@@ -276,8 +276,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1319949241')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1319949241"><code class="language-python">&quot;&quot;&quot;Serving API for Facial Recognition (CNN).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-860142287')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-860142287"><code class="language-python">&quot;&quot;&quot;Serving API for Facial Recognition (CNN).&quot;&quot;&quot;
 
 import os
 import time
@@ -604,8 +604,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-4182455956')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-4182455956"><code class="language-bash">uv run python -m cnn_facial_recognition.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-3148095635')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3148095635"><code class="language-bash">uv run python -m cnn_facial_recognition.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

@@ -63,8 +63,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2959521132')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2959521132"><code class="language-python">&quot;&quot;&quot;Production training pipeline for self-supervised server monitoring.
+<button class="copy-btn" onclick="copyCode('code-3503285913')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3503285913"><code class="language-python">&quot;&quot;&quot;Production training pipeline for self-supervised server monitoring.
 
 Trains a denoising autoencoder to reconstruct normal server metrics from
 corrupted inputs. The self-supervised signal comes from the data itself -
@@ -337,8 +337,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2369532845')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2369532845"><code class="language-python">&quot;&quot;&quot;Production serving API for self-supervised server monitoring anomaly detection.
+<button class="copy-btn" onclick="copyCode('code-4073351800')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-4073351800"><code class="language-python">&quot;&quot;&quot;Production serving API for self-supervised server monitoring anomaly detection.
 
 Uses a denoising autoencoder trained on normal server metrics to detect
 anomalies via reconstruction error. The model is trained in a self-supervised
@@ -842,8 +842,8 @@ def predict_anomaly_bulk(body: MetricsBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3435862005')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3435862005"><code class="language-bash">uv run python -m self_supervised_monitoring.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-445399025')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-445399025"><code class="language-bash">uv run python -m self_supervised_monitoring.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

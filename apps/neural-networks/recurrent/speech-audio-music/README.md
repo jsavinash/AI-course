@@ -15,18 +15,19 @@
 <body>
 <section id="math" class="section math-section">
 <h2><span class="section-icon">∫</span> Mathematics &amp; Theory</h2>
-<p class="section-subtitle">Self-Supervised Learning — Underlying equations and derivations</p>
+<p class="section-subtitle">Recurrent Neural Network (RNN) — Underlying equations and derivations</p>
 <div class="math-content">
-<div class="equations"><div class="math-block">$$\mathcal{L}_{InfoNCE} = -\log \frac{\exp(\text{sim}(z_i, z_j) / \tau)}{\sum_{k=1}^{2N} \mathbb{1}_{[k \neq i]} \exp(\text{sim}(z_i, z_k) / \tau)}$$</div>
-<div class="math-block">$$z_i = g_\theta(f_\theta(x_i))$$</div>
-<div class="math-block">$$\text{sim}(u, v) = \frac{u^T v}{\|u\| \|v\|}$$</div></div>
+<div class="equations"><div class="math-block">$$h_t = \tanh(W_{hh}h_{t-1} + W_{xh}x_t + b_h)$$</div>
+<div class="math-block">$$\hat{y}_t = W_{hy}h_t + b_y$$</div>
+<div class="math-block">$$\mathcal{L} = \sum_{t=1}^{T} \mathcal{L}_t(y_t, \hat{y}_t)$$</div>
+<div class="math-block">$$\frac{\partial \mathcal{L}}{\partial W_{hh}} = \sum_{t=1}^{T} \delta_t h_{t-1}^T$$</div></div>
 <div class="derivation">
 <h3>Step-by-Step Derivation</h3>
-<p>Self-supervised learning creates labels from the data itself via pretext tasks. Contrastive learning (e.g., SimCLR, MoCo) maximizes agreement between augmented views of the same sample. The InfoNCE loss pulls positive pairs together while pushing apart negatives. A temperature parameter $\tau$ controls the sharpness of the distribution.</p>
+<p>RNNs process sequences by maintaining a hidden state $h_t$ that summarizes past inputs. At each timestep, the hidden state is updated via $h_t = \tanh(W_{hh}h_{t-1} + W_{xh}x_t)$. Backpropagation Through Time (BPTT) unrolls the network and computes gradients across all timesteps. Vanishing gradients are mitigated by gated architectures like LSTM and GRU.</p>
 </div>
 <div class="viz-desc">
 <h3>Interactive Visualization</h3>
-<p>Interactive augmentation preview; contrastive embedding t-SNE; similarity matrix heatmap.</p>
+<p>Interactive unfolded RNN diagram with gradient flow visualization; hidden state trajectory plot.</p>
 </div>
 </div>
 </section>
@@ -64,8 +65,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-4007773170')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-4007773170"><code class="language-python">&quot;&quot;&quot;Training pipeline for music generation (RNN language model).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-827873234')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-827873234"><code class="language-python">&quot;&quot;&quot;Training pipeline for music generation (RNN language model).&quot;&quot;&quot;
 
 import argparse
 import os
@@ -286,8 +287,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-4212142281')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-4212142281"><code class="language-python">&quot;&quot;&quot;Serving API for music generation (RNN language model).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-3580984938')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3580984938"><code class="language-python">&quot;&quot;&quot;Serving API for music generation (RNN language model).&quot;&quot;&quot;
 
 import os
 import time
@@ -610,8 +611,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-752832027')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-752832027"><code class="language-bash">uv run python -m speech_audio_music.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-2453923904')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2453923904"><code class="language-bash">uv run python -m speech_audio_music.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

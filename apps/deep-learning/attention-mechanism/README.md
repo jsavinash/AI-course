@@ -69,8 +69,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-876885727')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-876885727"><code class="language-python">&quot;&quot;&quot;Training pipeline for Attention Mechanism.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-847130364')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-847130364"><code class="language-python">&quot;&quot;&quot;Training pipeline for Attention Mechanism.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -232,8 +232,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3334120054')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3334120054"><code class="language-python">&quot;&quot;&quot;Serving API for Attention Mechanism.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-2021478418')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2021478418"><code class="language-python">&quot;&quot;&quot;Serving API for Attention Mechanism.&quot;&quot;&quot;
 
 import os
 import time
@@ -531,8 +531,8 @@ def predict(body: PredictRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3068867932')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3068867932"><code class="language-bash">uv run python -m attention_mechanism.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-2310468031')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2310468031"><code class="language-bash">uv run python -m attention_mechanism.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

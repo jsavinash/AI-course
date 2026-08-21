@@ -64,8 +64,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2892988426')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2892988426"><code class="language-python">&quot;&quot;&quot;Training pipeline for email spam detection using a feedforward neural network.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-1620391311')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1620391311"><code class="language-python">&quot;&quot;&quot;Training pipeline for email spam detection using a feedforward neural network.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -293,8 +293,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-718380570')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-718380570"><code class="language-python">&quot;&quot;&quot;Production serving API for email spam detection via feedforward neural network.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-472208552')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-472208552"><code class="language-python">&quot;&quot;&quot;Production serving API for email spam detection via feedforward neural network.&quot;&quot;&quot;
 
 import os
 import time
@@ -696,8 +696,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-287104979')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-287104979"><code class="language-bash">uv run python -m classification_email_spam.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-1407486977')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1407486977"><code class="language-bash">uv run python -m classification_email_spam.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

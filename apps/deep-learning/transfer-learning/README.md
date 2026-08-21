@@ -70,8 +70,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-4258450362')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-4258450362"><code class="language-python">&quot;&quot;&quot;Training pipeline for Transfer Learning.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-73730689')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-73730689"><code class="language-python">&quot;&quot;&quot;Training pipeline for Transfer Learning.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -276,8 +276,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1134446121')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1134446121"><code class="language-python">&quot;&quot;&quot;Serving API for Transfer Learning.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-3604497163')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3604497163"><code class="language-python">&quot;&quot;&quot;Serving API for Transfer Learning.&quot;&quot;&quot;
 
 import os
 import time
@@ -580,8 +580,8 @@ def predict(body: PredictRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-916501537')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-916501537"><code class="language-bash">uv run python -m transfer_learning.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-1204800886')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1204800886"><code class="language-bash">uv run python -m transfer_learning.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

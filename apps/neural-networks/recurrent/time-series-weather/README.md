@@ -65,8 +65,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1375718457')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1375718457"><code class="language-python">&quot;&quot;&quot;Training pipeline for weather forecasting (RNN).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-31392575')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-31392575"><code class="language-python">&quot;&quot;&quot;Training pipeline for weather forecasting (RNN).&quot;&quot;&quot;
 
 import argparse
 import os
@@ -292,8 +292,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3592271473')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3592271473"><code class="language-python">&quot;&quot;&quot;Serving API for weather forecasting (RNN).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-207787601')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-207787601"><code class="language-python">&quot;&quot;&quot;Serving API for weather forecasting (RNN).&quot;&quot;&quot;
 
 import os
 import time
@@ -613,8 +613,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1374226365')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1374226365"><code class="language-bash">uv run python -m time_series_weather.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-882545957')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-882545957"><code class="language-bash">uv run python -m time_series_weather.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

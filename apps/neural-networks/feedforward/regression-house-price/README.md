@@ -65,8 +65,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2629778112')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2629778112"><code class="language-python">&quot;&quot;&quot;Training pipeline for house price prediction using a feedforward neural network.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-395873256')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-395873256"><code class="language-python">&quot;&quot;&quot;Training pipeline for house price prediction using a feedforward neural network.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -293,8 +293,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-436892881')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-436892881"><code class="language-python">&quot;&quot;&quot;Production serving API for house price prediction via feedforward neural network.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-649754494')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-649754494"><code class="language-python">&quot;&quot;&quot;Production serving API for house price prediction via feedforward neural network.&quot;&quot;&quot;
 
 import os
 import time
@@ -689,8 +689,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3065820159')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3065820159"><code class="language-bash">uv run python -m regression_house_price.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-2868036556')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2868036556"><code class="language-bash">uv run python -m regression_house_price.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

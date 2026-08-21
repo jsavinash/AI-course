@@ -70,8 +70,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-4060726788')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-4060726788"><code class="language-python">&quot;&quot;&quot;Training pipeline for Image Generation.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-3437463208')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3437463208"><code class="language-python">&quot;&quot;&quot;Training pipeline for Image Generation.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -204,8 +204,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1813495986')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1813495986"><code class="language-python">&quot;&quot;&quot;Serving API for Image Generation.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-3884975034')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3884975034"><code class="language-python">&quot;&quot;&quot;Serving API for Image Generation.&quot;&quot;&quot;
 
 import os
 import time
@@ -422,8 +422,8 @@ def get_stats():
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2432158998')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2432158998"><code class="language-bash">uv run python -m image_generation.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-3780414527')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3780414527"><code class="language-bash">uv run python -m image_generation.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

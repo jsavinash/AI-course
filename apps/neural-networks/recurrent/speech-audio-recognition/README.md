@@ -65,8 +65,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2037313524')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2037313524"><code class="language-python">&quot;&quot;&quot;Training pipeline for speech recognition (RNN).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-1579555870')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1579555870"><code class="language-python">&quot;&quot;&quot;Training pipeline for speech recognition (RNN).&quot;&quot;&quot;
 
 import argparse
 import os
@@ -298,8 +298,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-4240202497')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-4240202497"><code class="language-python">&quot;&quot;&quot;Serving API for speech recognition (RNN).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-3056946705')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3056946705"><code class="language-python">&quot;&quot;&quot;Serving API for speech recognition (RNN).&quot;&quot;&quot;
 
 import os
 import time
@@ -635,8 +635,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1756174662')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1756174662"><code class="language-bash">uv run python -m speech_audio_recognition.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-1730805338')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1730805338"><code class="language-bash">uv run python -m speech_audio_recognition.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

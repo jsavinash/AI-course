@@ -15,19 +15,18 @@
 <body>
 <section id="math" class="section math-section">
 <h2><span class="section-icon">∫</span> Mathematics &amp; Theory</h2>
-<p class="section-subtitle">Graph Neural Network (GNN) — Underlying equations and derivations</p>
+<p class="section-subtitle">Machine Learning Fundamentals — Underlying equations and derivations</p>
 <div class="math-content">
-<div class="equations"><div class="math-block">$$h_v^{(k+1)} = \sigma\left( W^{(k)} \cdot \text{AGGREGATE}_k \left( \{ h_u^{(k)} : u \in \mathcal{N}(v) \} \right) \right)$$</div>
-<div class="math-block">$$\text{AGGREGATE}_k = \text{mean} \left( \{ h_u^{(k)} : u \in \mathcal{N}(v) \} \right)$$</div>
-<div class="math-block">$$\text{GAT}: \alpha_{uv} = \frac{\exp(\text{LeakyReLU}(a^T [Wh_u \| Wh_v]))}{\sum_{k \in \mathcal{N}(v)} \exp(\text{LeakyReLU}(a^T [Wh_u \| Wh_k]))}$$</div>
-<div class="math-block">$$h_v^{(k+1)} = \sigma\left( \sum_{u \in \mathcal{N}(v)} \alpha_{uv} W h_u^{(k)} \right)$$</div></div>
+<div class="equations"><div class="math-block">$$\hat{y} = f(x; \theta)$$</div>
+<div class="math-block">$$\mathcal{L}(\theta) = \frac{1}{n} \sum_{i=1}^{n} \ell(y_i, \hat{y}_i)$$</div>
+<div class="math-block">$$\theta \leftarrow \theta - \alpha \nabla_\theta \mathcal{L}(\theta)$$</div></div>
 <div class="derivation">
 <h3>Step-by-Step Derivation</h3>
-<p>GNNs generalize convolutions to graph-structured data. Each node updates its representation by aggregating messages from neighbors. After $K$ rounds of message passing, each node embeds its $K$-hop neighborhood. GATs introduce attention weights $\alpha_{uv}$ to prioritize important neighbors.</p>
+<p>Machine learning models learn parameters $\theta$ by minimizing a loss function $\mathcal{L}$. Gradient descent iteratively updates parameters in the direction of steepest descent. The learning rate $\alpha$ controls step size. Stochastic gradient descent (SGD) uses mini-batches for computational efficiency.</p>
 </div>
 <div class="viz-desc">
 <h3>Interactive Visualization</h3>
-<p>Interactive graph with animated message passing; node embedding t-SNE projection; attention weight heatmap.</p>
+<p>Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.</p>
 </div>
 </div>
 </section>
@@ -65,8 +64,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2531042842')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2531042842"><code class="language-python">&quot;&quot;&quot;Training pipeline for GNN Social Network Analysis.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-723076996')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-723076996"><code class="language-python">&quot;&quot;&quot;Training pipeline for GNN Social Network Analysis.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -215,8 +214,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1782406336')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1782406336"><code class="language-python">&quot;&quot;&quot;Serving API for GNN Social Network Analysis.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-3059223074')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3059223074"><code class="language-python">&quot;&quot;&quot;Serving API for GNN Social Network Analysis.&quot;&quot;&quot;
 
 import os
 import time
@@ -517,8 +516,8 @@ def predict(body: PredictRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2443827444')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2443827444"><code class="language-bash">uv run python -m gnn_social_networks.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-4049405169')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-4049405169"><code class="language-bash">uv run python -m gnn_social_networks.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

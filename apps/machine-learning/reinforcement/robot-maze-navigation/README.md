@@ -64,8 +64,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2697970622')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2697970622"><code class="language-python">&quot;&quot;&quot;Production training pipeline for robot maze navigation (Q-Learning).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-2373243630')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2373243630"><code class="language-python">&quot;&quot;&quot;Production training pipeline for robot maze navigation (Q-Learning).&quot;&quot;&quot;
 
 import argparse
 import os
@@ -399,8 +399,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2526109603')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2526109603"><code class="language-python">&quot;&quot;&quot;Production serving API for robot maze navigation (Q-Learning).&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-2067180425')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2067180425"><code class="language-python">&quot;&quot;&quot;Production serving API for robot maze navigation (Q-Learning).&quot;&quot;&quot;
 
 import os
 import time
@@ -867,8 +867,8 @@ def trigger_training(body: TrainRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-75592677')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-75592677"><code class="language-bash">uv run python -m robot_maze_navigation.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-1500878013')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1500878013"><code class="language-bash">uv run python -m robot_maze_navigation.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

@@ -74,8 +74,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3580262285')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3580262285"><code class="language-python">&quot;&quot;&quot;Training pipeline for Multimodal Language Modeling.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-836150620')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-836150620"><code class="language-python">&quot;&quot;&quot;Training pipeline for Multimodal Language Modeling.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -295,8 +295,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3649152595')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3649152595"><code class="language-python">&quot;&quot;&quot;Serving API for Multimodal Language Modeling.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-3843070131')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3843070131"><code class="language-python">&quot;&quot;&quot;Serving API for Multimodal Language Modeling.&quot;&quot;&quot;
 
 import os
 import time
@@ -606,8 +606,8 @@ def predict(body: MultimodalPredictRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-519129918')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-519129918"><code class="language-bash">uv run python -m multimodal_llm.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-3793007334')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3793007334"><code class="language-bash">uv run python -m multimodal_llm.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">

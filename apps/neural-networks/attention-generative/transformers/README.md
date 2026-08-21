@@ -66,8 +66,8 @@
 <p class="section-subtitle">Code examples and CLI commands</p>
 <h3>Training Script</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-3988547741')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-3988547741"><code class="language-python">&quot;&quot;&quot;Training pipeline for Transformer Language Modeling.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-1670059962')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1670059962"><code class="language-python">&quot;&quot;&quot;Training pipeline for Transformer Language Modeling.&quot;&quot;&quot;
 
 import argparse
 import os
@@ -281,8 +281,8 @@ if __name__ == &quot;__main__&quot;:
     main()</code></pre>
 </div><h3>API Server</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-1575237208')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-1575237208"><code class="language-python">&quot;&quot;&quot;Serving API for Transformer Language Modeling.&quot;&quot;&quot;
+<button class="copy-btn" onclick="copyCode('code-1893256279')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-1893256279"><code class="language-python">&quot;&quot;&quot;Serving API for Transformer Language Modeling.&quot;&quot;&quot;
 
 import os
 import time
@@ -608,8 +608,8 @@ def predict_bulk(body: PredictBulkRequest):
 </div>
 <h3>CLI Commands</h3>
 <div class="code-block-wrapper">
-<button class="copy-btn" onclick="copyCode('code-2814485233')" title="Copy to clipboard">&#x2398;</button>
-<pre class="code-block" id="code-2814485233"><code class="language-bash">uv run python -m transformers.train --model-dir ./artifacts/models</code></pre>
+<button class="copy-btn" onclick="copyCode('code-2547754475')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-2547754475"><code class="language-bash">uv run python -m transformers.train --model-dir ./artifacts/models</code></pre>
 </div>
 </section>
 <section id="benchmarks" class="section bench-section">
