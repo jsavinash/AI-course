@@ -25,29 +25,24 @@ CNNs apply learned filters across spatial dimensions. Convolution slides a kerne
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+2-D convolution (edge kernel) at one position.
+  Input row = [1,2,1,0]; kernel = [1,0,-1]
+  out = 1*1 + 0*2 + (-1)*1 = 0   (left)
+  out = 2*1 + 0*1 + (-1)*0 = 2   (right)
+  ReLU(2)=2 activates strong edges.
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Convolutional Network diagram](./assets/cnn-facial-recognition.png)
+![Convolutional Neural Network diagram](./assets/cnn-facial-recognition.png)
 
 Interactive filter visualization; feature map heatmap; receptive field calculator; Grad-CAM overlay.
 
@@ -330,7 +325,7 @@ def train(
 
     if "binary_classification" in ("classification", "binary_classification"):
         validator = DataValidator(create_facial_recognition_schema())
-        validation = validator.validate(X.reshape(-1, 1))
+        validation = validator.validate(X)
         if not validation.valid:
             logger.error("Training data validation failed", errors=validation.errors)
             raise ValueError(f"Training data validation failed: {validation.errors}")

@@ -21,22 +21,14 @@ Video generation extends sequence modeling to spatiotemporal data. 3D convolutio
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+Video generation likelihood + perceptual quality.
+  P(x_1..T)=prod_t P(x_t|x_<t); SSIM measures frame fidelity.
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
@@ -669,6 +661,7 @@ import numpy as np
 DEFAULT_N_SAMPLES = 200
 DEFAULT_IMG_SIZE = 32
 DEFAULT_N_FRAMES = 8
+DEFAULT_LATENT_DIM = 64
 
 def generate_synthetic_videos(n_samples: int = DEFAULT_N_SAMPLES, img_size: int = DEFAULT_IMG_SIZE, n_frames: int = DEFAULT_N_FRAMES, random_seed: int = 42) -> tuple[np.ndarray, list[str]]:
     rng = np.random.default_rng(random_seed)

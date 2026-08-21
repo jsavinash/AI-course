@@ -21,22 +21,15 @@ Text generation models learn to predict the next token given past context. Tempe
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+Autoregressive text generation.
+  h_t = LSTM(x_t, h_{t-1}); P(w_t|w_<t)=softmax(W_h h_t)
+  Temperature scales logits; top-k/nucleus truncate mass.
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
@@ -524,8 +517,8 @@ from pathlib import Path
 
 from ai_core.logging import get_logger, setup_logging
 from ai_core.model_registry import ModelRegistry
-from text_gen.data import load_text_dataset, save_dataset, train_test_split
-from text_gen.model import TextGenerationModel
+from text_generation.data import load_text_dataset, save_dataset, train_test_split
+from text_generation.model import TextGenerationModel
 
 logger = get_logger(__name__)
 
@@ -746,8 +739,8 @@ from ai_core.metrics import MetricsCollector
 from ai_core.model_registry import ModelRegistry
 from fastapi import FastAPI, HTTPException, Response
 from pydantic import BaseModel, Field
-from text_gen.data import DEFAULT_VOCAB_SIZE
-from text_gen.model import TextGenerationModel
+from text_generation.data import DEFAULT_VOCAB_SIZE
+from text_generation.model import TextGenerationModel
 
 logger = get_logger(__name__)
 
@@ -864,7 +857,7 @@ def _load_model() -> tuple[TextGenerationModel, str]:
     return model, "1.0.0-baseline"
 
 def _load_reference_data() -> np.ndarray | None:
-    from nlp_text_generation.data import generate_synthetic_text
+    from text_generation.data import generate_synthetic_text
     X_base, _ = generate_synthetic_text(n_samples=100, random_seed=42)
     return X_base.astype(float)
 

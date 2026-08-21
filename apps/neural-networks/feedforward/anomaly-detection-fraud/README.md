@@ -23,29 +23,21 @@ Autoencoders learn compressed representations by minimizing reconstruction error
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+Autoencoder anomaly scoring (see autoencoder example).
+  score = ||x - x_hat||^2; threshold e.g. 0.01 flags fraud.
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Autoencoder Anomaly diagram](./assets/anomaly-detection-fraud.png)
+![Anomaly Detection / Autoencoder diagram](./assets/anomaly-detection-fraud.png)
 
 Interactive latent space traversal; reconstruction error vs latent dimension; bottleneck visualization.
 

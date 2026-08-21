@@ -21,22 +21,16 @@ Multimodal models align representations from different modalities in a shared em
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+Cross-modal alignment score.
+  text_emb=[1,1], image_emb=[0.9,1.1]
+  cos = (1*0.9+1*1.1)/(sqrt2*sqrt(0.81+1.21))
+      = 2.0/(1.414*1.421) = 0.995 (well aligned).
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]

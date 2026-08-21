@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pre-training-fine-tuning — AI Example Documentation</title>
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$']], displayMath: [['$$','$$']] },
+    svg: { fontCache: 'global' } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root{
+  --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --border:#30363d;
+  --text:#e6edf3; --muted:#9da7b3; --accent:#58a6ff; --accent2:#bc8cff;
+  --green:#3fb950; --mono:'SFMono-Regular',Consolas,'Liberation Mono',monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.7;font-size:16px}
+.wrap{max-width:980px;margin:0 auto;padding:32px 20px 80px}
+header.hero{background:linear-gradient(135deg,#0d1117,#161b22);border-bottom:1px solid var(--border);
+  padding:36px 20px}
+header.hero .inner{max-width:980px;margin:0 auto}
+header.hero h1{margin:0 0 8px;font-size:30px}
+header.hero p{margin:0;color:var(--muted)}
+h2{margin-top:40px;padding-bottom:8px;border-bottom:1px solid var(--border);color:var(--accent)}
+h3{margin-top:28px;color:var(--accent2)}
+p{color:var(--text)}
+.muted{color:var(--muted)}
+.equation{background:var(--panel);border:1px solid var(--border);border-radius:8px;
+  padding:12px 16px;margin:12px 0;font-family:var(--mono);overflow-x:auto;color:#fff}
+.ascii{background:#010409;border:1px solid var(--border);border-radius:8px;padding:16px;
+  font-family:var(--mono);white-space:pre;overflow-x:auto;color:#7ee787;font-size:13px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:10px;
+  padding:16px 20px;margin:16px 0}
+table{border-collapse:collapse;width:100%;margin:16px 0;font-size:14px}
+th,td{border:1px solid var(--border);padding:8px 12px;text-align:left}
+th{background:var(--panel2)}
+code{background:#010409;border:1px solid var(--border);border-radius:4px;padding:1px 6px;
+  font-family:var(--mono);font-size:13px;color:#ffa657}
+pre{background:#010409;border:1px solid var(--border);border-radius:8px;padding:16px;
+  overflow-x:auto}
+pre code{background:none;border:none;padding:0;color:#c9d1d9;font-size:13px}
+details{border:1px solid var(--border);border-radius:8px;margin:12px 0;background:var(--panel)}
+summary{cursor:pointer;padding:12px 16px;font-weight:600;color:var(--accent)}
+details[open] summary{border-bottom:1px solid var(--border)}
+details pre{max-height:520px;overflow:auto;border:none;border-radius:0}
+.badge{display:inline-block;background:var(--panel2);border:1px solid var(--border);
+  border-radius:999px;padding:2px 10px;margin:2px;font-size:12px;color:var(--muted)}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px 0}
+.step{background:var(--panel2);border:1px solid var(--border);border-radius:8px;
+  padding:10px 14px;font-size:14px}
+.arrow{color:var(--accent)}
+img{border:1px solid var(--border);border-radius:8px;max-width:100%}
+ul li{margin:6px 0}
+</style>
+</head>
+<body>
+<header class="hero"><div class="inner">
+  <h1>pre-training-fine-tuning</h1>
+  <p>Pre-training and Fine-Tuning — AI engineering example &middot; part of the MLOps monorepo</p>
+</div></header>
+<div class="wrap">
+
+<h2>1. Mathematical Foundations</h2>
+<p>This example is grounded in <strong>Pre-training and Fine-Tuning</strong>. The equations below
+drive every forward and backward pass in the implementation.</p>
+<div class="equation">$$\mathcal{L}_{MLM} = -\sum_{i \in M} \log P(x_i | x_{\setminus M})$$</div>
+<div class="equation">$$\mathcal{L}_{NSP} = \log P(\text{IsNext} | [CLS])$$</div>
+<div class="equation">$$\mathcal{L}_{total} = \mathcal{L}_{MLM} + \mathcal{L}_{NSP}$$</div>
+<h3>Derivation</h3>
+<p>Pre-training learns general representations from large unlabeled corpora. Masked Language Modeling (MLM) predicts randomly masked tokens. Next Sentence Prediction (NSP) learns inter-sentence coherence. Fine-tuning adapts pre-trained weights to downstream tasks with minimal labeled data.</p>
+<h3>Worked Numerical Example</h3>
+<p class="muted">Concrete forward-pass / update evaluation using the algorithm's own equations:</p>
+<div class="ascii">Masked language modeling.
+  Sequence: [The, cat, [MASK], on, the, [MASK]]
+  Model predicts masked tokens from context (MLM + NSP objectives).</div>
+<h3>Conceptual Diagram</h3>
+
+<div class="ascii">        Math concept (placeholder)
+   [ Input x ] --&gt; ( w · x + b ) --&gt; [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]</div>
+
+<img src="./assets/pre-training-fine-tuning.png" width="520" alt="Pre-training and Fine-Tuning diagram">
+<p class="muted">Interactive MLM token prediction explorer; attention head visualization; layer-wise transfer analysis.</p>
+
+<h2>2. Core Logic &amp; Architecture</h2>
+<p>The example follows a consistent <strong>data &rarr; train &rarr; evaluate &rarr; serve</strong>
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.</p>
+
+<div class="flow">
+  <span class="step">Raw dataset</span><span class="arrow">→</span>
+  <span class="step">load + validate (data.py)</span><span class="arrow">→</span>
+  <span class="step">fit / transform (model.py)</span><span class="arrow">→</span>
+  <span class="step">evaluate + persist (train.py)</span><span class="arrow">→</span>
+  <span class="step">serve (api.py)</span>
+</div>
+<h3>Primary Components</h3>
+<table>
+<thead><tr><th>Class</th><th>Public methods</th><th>Responsibility</th></tr></thead>
+<tbody><tr><td><code>PretrainRequest</code></td><td>—</td><td></td></tr>
+<tr><td><code>FinetuneRequest</code></td><td>—</td><td></td></tr>
+<tr><td><code>PredictRequest</code></td><td>—</td><td></td></tr>
+<tr><td><code>PredictResponse</code></td><td>—</td><td></td></tr>
+<tr><td><code>StatsResponse</code></td><td>—</td><td></td></tr>
+<tr><td><code>MultiHeadAttention</code></td><td>__post_init__, init_weights, _split_heads, _combine_heads, forward, set_enc_output, backward, update_params</td><td>Multi-Head Attention mechanism.</td></tr>
+<tr><td><code>FeedForward</code></td><td>init_weights, forward, backward, update_params</td><td>Position-wise Feed-Forward Network.</td></tr>
+<tr><td><code>AddNorm</code></td><td>init_params, forward, backward, update_params</td><td>Residual connection + Layer Normalization.</td></tr>
+<tr><td><code>LoRAAdapter</code></td><td>init_weights, forward, backward, update_params</td><td>Low-Rank Adaptation (LoRA) adapter for efficient fine-tuning.
+
+Adds low-rank matrices A and B to update weights without modifying original weights:
+W' = W + B @ A, where B @ A is low-rank.</td></tr>
+<tr><td><code>MLMHead</code></td><td>init_weights, forward, backward, update_params</td><td>Masked Language Modeling head for pre-training.
+
+Predicts original tokens at masked positions.</td></tr>
+<tr><td><code>NTPHead</code></td><td>init_weights, forward, backward, update_params</td><td>Next-Token Prediction head for pre-training.
+
+Predicts the next token in a sequence.</td></tr>
+<tr><td><code>ClassificationHead</code></td><td>init_weights, forward, backward, update_params</td><td>Task-specific classification head for fine-tuning.</td></tr>
+<tr><td><code>Transformer</code></td><td>_init, _apply_fine_tuning_strategy, _embed, _create_lookahead_mask, _forward_encoder, _forward_decoder, _compute_mlm_loss, _compute_ntp_loss, _compute_classification_loss, fit, predict, predict_proba, evaluate, save, load, to_dict</td><td>Full Transformer supporting pre-training and fine-tuning.
+
+Supports:
+    - Pre-training objectives: MLM, NTP
+    - Fine-tuning strategies: full, feature_extraction, partial, peft</td></tr></tbody>
+</table>
+<h3>Data Flow</h3>
+<ol>
+  <li><strong>Load</strong> — <code>data.py</code> reads the source dataset and splits train/test.</li>
+  <li><strong>Validate</strong> — a Pydantic schema guards input shape/dtypes before training.</li>
+  <li><strong>Fit / Transform</strong> — <code>model.py</code> applies the mathematics from Section 1.</li>
+  <li><strong>Evaluate</strong> — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.</li>
+  <li><strong>Persist</strong> — weights/artifacts are saved and registered in the model registry.</li>
+  <li><strong>Serve</strong> — <code>api.py</code> exposes prediction endpoints with drift detection.</li>
+</ol>
+<h3>Design Patterns &amp; Performance</h3>
+<p>Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via <code>ai_core.validation</code>, structured JSON logging through <code>ai_core.logging</code>, Prometheus metrics from <code>ai_core.metrics</code>, and MLflow/model-registry persistence via <code>ai_core.model_registry</code>. The FastAPI service wraps the trained model with observability middleware from <code>ai_core.fastapi_middleware</code>.</p>
+
+<h2>3. Detailed Code Walkthrough</h2>
+<p>The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.</p>
+<div class="card"><h3><code>Transformer.fit(X_train, y_train, phase, objective, strategy, n_iterations, learning_rate, mask_positions)</code></h3><p>Train the model for pre-training or fine-tuning.
+
+Args:
+    X_train: input sequences
+    y_train: targets (original tokens for MLM, next tokens for NTP, labels for fine-tuning)
+    phase: "pretrain" or "finetune"
+    objective: "mlm" or "ntp" for pre-training
+    strategy: fine-tuning strategy ("full", "feature_extraction", "partial", "peft")
+    n_iterations: override default iterations
+    learning_rate: override default learning rate
+    mask_positions: boolean mask for MLM objective</p></div>
+<div class="card"><h3><code>Transformer.predict(X, max_len, phase)</code></h3><p>Predict tokens or classes.</p></div>
+<div class="card"><h3><code>Transformer.evaluate(X, y, phase)</code></h3><p>Evaluate model on test data.</p></div>
+<h3>Source Files</h3>
+<details><summary>model.py</summary>
+<pre><code>"""Pre-training and Fine-Tuning Transformer model.
+
+Implements:
+- Pre-training objectives: Masked Language Modeling (MLM), Next-Token Prediction (NTP)
+- Fine-tuning strategies: Full, Feature Extraction, Partial, PEFT (LoRA-style)
+"""
+
+from dataclasses import dataclass, field
+from typing import Literal
+
+import numpy as np
+
+FineTuningStrategy = Literal["full", "feature_extraction", "partial", "peft"]
+PretrainingObjective = Literal["mlm", "ntp"]
+
+
+def gelu(x: np.ndarray) -&gt; np.ndarray:
+    return 0.5 * x * (1.0 + np.tanh(np.sqrt(2.0 / np.pi) * (x + 0.044715 * x**3)))
+
+
+def softmax(z: np.ndarray, axis: int = -1) -&gt; np.ndarray:
+    z_shifted = z - np.max(z, axis=axis, keepdims=True)
+    exp_z = np.exp(z_shifted)
+    return exp_z / np.sum(exp_z, axis=axis, keepdims=True)
+
+
+def layer_norm(x: np.ndarray, gamma: np.ndarray, beta: np.ndarray, eps: float = 1e-5) -&gt; np.ndarray:
+    mean = np.mean(x, axis=-1, keepdims=True)
+    var = np.var(x, axis=-1, keepdims=True)
+    return gamma * (x - mean) / np.sqrt(var + eps) + beta
+
+
+def scaled_dot_product_attention(
+    Q: np.ndarray, K: np.ndarray, V: np.ndarray, mask: np.ndarray | None = None
+) -&gt; np.ndarray:
+    d_k = Q.shape[-1]
+    scores = Q @ np.swapaxes(K, -2, -1) / np.sqrt(d_k)
+    if mask is not None:
+        scores = scores + (mask * -1e9)
+    attn = softmax(scores, axis=-1)
+    return attn @ V
+
+
+def positional_encoding(max_len: int, d_model: int) -&gt; np.ndarray:
+    pe = np.zeros((max_len, d_model))
+    for pos in range(max_len):
+        for i in range(d_model):
+            angle = pos / (10000 ** (2 * (i // 2) / d_model))
+            if i % 2 == 0:
+                pe[pos, i] = np.sin(angle)
+            else:
+                pe[pos, i] = np.cos(angle)
+    return pe
+
+
+@dataclass
+class MultiHeadAttention:
+    """Multi-Head Attention mechanism."""
+
+    d_model: int = 512
+    n_heads: int = 8
+    random_seed: int = 42
+
+    d_k: int = field(init=False)
+    W_q: np.ndarray | None = None
+    W_k: np.ndarray | None = None
+    W_v: np.ndarray | None = None
+    W_o: np.ndarray | None = None
+    dW_q: np.ndarray | None = None
+    dW_k: np.ndarray | None = None
+    dW_v: np.ndarray | None = None
+    dW_o: np.ndarray | None = None
+    _cache: dict = field(default_factory=dict, repr=False)
+    _frozen: bool = False
+
+    def __post_init__(self):
+        self.d_k = self.d_model // self.n_heads
+
+    def init_weights(self) -&gt; None:
+        rng = np.random.default_rng(self.random_seed)
+        scale = np.sqrt(2.0 / self.d_model)
+        self.W_q = rng.normal(0, scale, (self.d_model, self.d_model))
+        self.W_k = rng.normal(0, scale, (self.d_model, self.d_model))
+        self.W_v = rng.normal(0, scale, (self.d_model, self.d_model))
+        self.W_o = rng.normal(0, scale, (self.d_model, self.d_model))
+
+    def _split_heads(self, x: np.ndarray) -&gt; np.ndarray:
+        batch_size, seq_len, _ = x.shape
+        x = x.reshape(batch_size, seq_len, self.n_heads, self.d_k)
+        return np.transpose(x, (0, 2, 1, 3))
+
+    def _combine_heads(self, x: np.ndarray) -&gt; np.ndarray:
+        batch_size, _, seq_len, _ = x.shape
+        x = np.transpose(x, (0, 2, 1, 3))
+        return x.reshape(batch_size, seq_len, self.d_model)
+
+    def forward(self, x: np.ndarray, mask: np.ndarray | None = None) -&gt; np.ndarray:
+        if self.W_q is None:
+            self.init_weights()
+        Q = x @ self.W_q
+        K = x @ self.W_k
+        V = x @ self.W_v
+        Q_split = self._split_heads(Q)
+        K_split = self._split_heads(K)
+        V_split = self._split_heads(V)
+        if mask is not None and mask.ndim == 2:
+            mask = mask[np.newaxis, np.newaxis, :, :].astype(bool)
+        elif mask is not None and mask.ndim == 3:
+            mask = mask[:, np.newaxis, :, :].astype(bool)
+        out = np.zeros_like(Q_split)
+        for h in range(self.n_heads):
+            q_h = Q_split[:, h, :, :]
+            k_h = K_split[:, h, :, :]
+            v_h = V_split[:, h, :, :]
+            out[:, h, :, :] = scaled_dot_product_attention(q_h, k_h, v_h, mask)
+        out = self._combine_heads(out)
+        result = out @ self.W_o
+        self._cache = {"x": x, "Q": Q, "K": K, "V": V, "out": out, "result": result}
+        return result
+
+    def set_enc_output(self, enc_output: np.ndarray) -&gt; None:
+        """Set encoder output for cross-attention (encoder-decoder attention)."""
+        self._enc_output = enc_output
+        self._is_cross = True
+
+    def backward(self, dout: np.ndarray) -&gt; np.ndarray:
+        c = self._cache
+        out_grad = dout @ self.W_o.T
+        dout_combined = self._split_heads(out_grad)
+        dQ_split = np.zeros_like(dout_combined)
+        dK_split = np.zeros_like(dout_combined)
+        dV_split = np.zeros_like(dout_combined)
+        for _h in range(self.n_heads):
+            pass
+        dQ = self._combine_heads(dQ_split)
+        dK = self._combine_heads(dK_split)
+        dV = self._combine_heads(dV_split)
+        self.dW_q = c["x"].T @ dQ
+        self.dW_k = c["x"].T @ dK
+        self.dW_v = c["x"].T @ dV
+        self.dW_o = c["out"].T @ dout
+        dx = dout @ self.W_o.T @ self.W_q.T
+        return dx
+
+    def update_params(self, lr: float, weight_decay: float = 0.0) -&gt; None:
+        if self.W_q is None or self._frozen:
+            return
+        self.W_q -= lr * (self.dW_q + weight_decay * self.W_q)
+        self.W_k -= lr * (self.dW_k + weight_decay * self.W_k)
+        self.W_v -= lr * (self.dW_v + weight_decay * self.W_v)
+        self.W_o -= lr * (self.dW_o + weight_decay * self.W_o)
+
+
+@dataclass
+class FeedForward:
+    """Position-wise Feed-Forward Network."""
+
+    d_model: int = 512
+    d_ff: int = 2048
+    random_seed: int = 42
+
+    W1: np.ndarray | None = None
+    b1: np.ndarray | None = None
+    W2: np.ndarray | None = None
+    b2: np.ndarray | None = None
+    dW1: np.ndarray | None = None
+    db1: np.ndarray | None = None
+    dW2: np.ndarray | None = None
+    db2: np.ndarray | None = None
+    _cache: dict = field(default_factory=dict, repr=False)
+    _frozen: bool = False
+
+    def init_weights(self) -&gt; None:
+        rng = np.random.default_rng(self.random_seed)
+        scale = np.sqrt(2.0 / self.d_model)
+        self.W1 = rng.normal(0, scale, (self.d_model, self.d_ff))
+        self.b1 = np.zeros(self.d_ff)
+        self.W2 = rng.normal(0, scale, (self.d_ff, self.d_model))
+        self.b2 = np.zeros(self.d_model)
+
+    def forward(self, x: np.ndarray) -&gt; np.ndarray:
+        if self.W1 is None:
+            self.init_weights()
+        z1 = x @ self.W1 + self.b1
+        a1 = gelu(z1)
+        out = a1 @ self.W2 + self.b2
+        self._cache = {"x": x, "z1": z1, "a1": a1}
+        return out
+
+    def backward(self, dout: np.ndarray) -&gt; np.ndarray:
+        c = self._cache
+        self.dW2 = c["a1"].T @ dout
+        self.db2 = np.sum(dout, axis=0)
+        da1 = dout @ self.W2.T
+        dz1 = da1 * (c["a1"] * (1 - c["a1"]))
+        self.dW1 = c["x"].T @ dz1
+        self.db1 = np.sum(dz1, axis=0)
+        return dz1 @ self.W1.T
+
+    def update_params(self, lr: float, weight_decay: float = 0.0) -&gt; None:
+        if self.W1 is None or self._frozen:
+            return
+        self.W1 -= lr * (self.dW1 + weight_decay * self.W1)
+        self.b1 -= lr * self.db1
+        self.W2 -= lr * (self.dW2 + weight_decay * self.W2)
+        self.b2 -= lr * self.db2
+
+
+@dataclass
+class AddNorm:
+    """Residual connection + Layer Normalization."""
+
+    d_model: int = 512
+    random_seed: int = 42
+
+    gamma: np.ndarray | None = None
+    beta: np.ndarray | None = None
+    _cache: dict = field(default_factory=dict, repr=False)
+    _frozen: bool = False
+
+    def init_params(self) -&gt; None:
+        self.gamma = np.ones(self.d_model)
+        self.beta = np.zeros(self.d_model)
+
+    def forward(self, residual: np.ndarray, output: np.ndarray) -&gt; np.ndarray:
+        if self.gamma is None:
+            self.init_params()
+        combined = residual + output
+        normed = layer_norm(combined, self.gamma, self.beta)
+        self._cache = {"residual": residual, "output": output, "combined": combined, "normed": normed}
+        return normed
+
+    def backward(self, dout: np.ndarray) -&gt; np.ndarray:
+        eps = 1e-5
+        c = self._cache
+        x = c["combined"]
+        mean = np.mean(x, axis=-1, keepdims=True)
+        var = np.var(x, axis=-1, keepdims=True)
+        std = np.sqrt(var + eps)
+        dx_norm = dout * self.gamma
+        dvar = np.sum(dx_norm * (x - mean) * -0.5 * (var + eps) ** (-1.5), axis=-1, keepdims=True)
+        dmean = np.sum(dx_norm * -1.0 / std, axis=-1, keepdims=True) + dvar * np.mean(-2 * (x - mean), axis=-1, keepdims=True)
+        dx = dx_norm / std + dvar * 2 * (x - mean) / x.shape[-1] + dmean / x.shape[-1]
+        return dx
+
+    def update_params(self, lr: float, weight_decay: float = 0.0) -&gt; None:
+        if self.gamma is None or self._frozen:
+            return
+        self.gamma -= lr * weight_decay * self.gamma
+        self.beta -= lr * weight_decay * self.beta
+
+
+@dataclass
+class LoRAAdapter:
+    """Low-Rank Adaptation (LoRA) adapter for efficient fine-tuning.
+
+    Adds low-rank matrices A and B to update weights without modifying original weights:
+    W' = W + B @ A, where B @ A is low-rank.
+    """
+
+    d_model: int = 128
+    rank: int = 4
+    random_seed: int = 42
+
+    A: np.ndarray | None = None
+    B: np.ndarray | None = None
+    dA: np.ndarray | None = None
+    dB: np.ndarray | None = None
+
+    def init_weights(self) -&gt; None:
+        rng = np.random.default_rng(self.random_seed)
+        scale_a = np.sqrt(1.0 / self.d_model)
+        self.A = rng.normal(0, scale_a, (self.d_model, self.rank))
+        self.B = np.zeros((self.rank, self.d_model))
+
+    def forward(self, x: np.ndarray, base_output: np.ndarray) -&gt; np.ndarray:
+        if self.A is None:
+            self.init_weights()
+        lora_output = x @ self.A @ self.B
+        self._cache = {"x": x, "base_output": base_output, "lora_output": lora_output}
+        return base_output + lora_output
+
+    def backward(self, dout: np.ndarray) -&gt; np.ndarray:
+        c = self._cache
+        self.dB = c["x"] @ self.A @ dout
+        self.dA = c["x"].T @ (dout @ self.B.T)
+        return dout
+
+    def update_params(self, lr: float, weight_decay: float = 0.0) -&gt; None:
+        if self.A is None:
+            return
+        self.A -= lr * (self.dA + weight_decay * self.A)
+        self.B -= lr * (self.dB + weight_decay * self.B)
+
+
+@dataclass
+class MLMHead:
+    """Masked Language Modeling head for pre-training.
+
+    Predicts original tokens at masked positions.
+    """
+
+    d_model: int = 128
+    vocab_size: int = 100
+    random_seed: int = 42
+
+    W: np.ndarray | None = None
+    b: np.ndarray | None = None
+    dW: np.ndarray | None = None
+    db: np.ndarray | None = None
+    _cache: dict = field(default_factory=dict, repr=False)
+
+    def init_weights(self) -&gt; None:
+        rng = np.random.default_rng(self.random_seed)
+        scale = np.sqrt(2.0 / self.d_model)
+        self.W = rng.normal(0, scale, (self.d_model, self.vocab_size))
+        self.b = np.zeros(self.vocab_size)
+
+    def forward(self, x: np.ndarray) -&gt; np.ndarray:
+        if self.W is None:
+            self.init_weights()
+        logits = x @ self.W + self.b
+        self._cache = {"x": x, "logits": logits}
+        return logits
+
+    def backward(self, dout: np.ndarray) -&gt; np.ndarray:
+        c = self._cache
+        self.dW = c["x"].T @ dout
+        self.db = np.sum(dout, axis=0)
+        return dout @ self.W.T
+
+    def update_params(self, lr: float, weight_decay: float = 0.0) -&gt; None:
+        if self.W is None:
+            return
+        self.W -= lr * (self.dW + weight_decay * self.W)
+        self.b -= lr * self.db
+
+
+@dataclass
+class NTPHead:
+    """Next-Token Prediction head for pre-training.
+
+    Predicts the next token in a sequence.
+    """
+
+    d_model: int = 128
+    vocab_size: int = 100
+    random_seed: int = 42
+
+    W: np.ndarray | None = None
+    b: np.ndarray | None = None
+    dW: np.ndarray | None = None
+    db: np.ndarray | None = None
+    _cache: dict = field(default_factory=dict, repr=False)
+
+    def init_weights(self) -&gt; None:
+        rng = np.random.default_rng(self.random_seed)
+        scale = np.sqrt(2.0 / self.d_model)
+        self.W = rng.normal(0, scale, (self.d_model, self.vocab_size))
+        self.b = np.zeros(self.vocab_size)
+
+    def forward(self, x: np.ndarray) -&gt; np.ndarray:
+        if self.W is None:
+            self.init_weights()
+        logits = x @ self.W + self.b
+        self._cache = {"x": x, "logits": logits}
+        return logits
+
+    def backward(self, dout: np.ndarray) -&gt; np.ndarray:
+        c = self._cache
+        self.dW = c["x"].T @ dout
+        self.db = np.sum(dout, axis=0)
+        return dout @ self.W.T
+
+    def update_params(self, lr: float, weight_decay: float = 0.0) -&gt; None:
+        if self.W is None:
+            return
+        self.W -= lr * (self.dW + weight_decay * self.W)
+        self.b -= lr * self.db
+
+
+@dataclass
+class ClassificationHead:
+    """Task-specific classification head for fine-tuning."""
+
+    d_model: int = 128
+    n_classes: int = 10
+    random_seed: int = 42
+
+    W: np.ndarray | None = None
+    b: np.ndarray | None = None
+    dW: np.ndarray | None = None
+    db: np.ndarray | None = None
+    _cache: dict = field(default_factory=dict, repr=False)
+
+    def init_weights(self) -&gt; None:
+        rng = np.random.default_rng(self.random_seed)
+        scale = np.sqrt(2.0 / self.d_model)
+        self.W = rng.normal(0, scale, (self.d_model, self.n_classes))
+        self.b = np.zeros(self.n_classes)
+... (truncated) ...</code></pre></details>
+<details><summary>train.py</summary>
+<pre><code>"""Training pipeline for Pre-training and Fine-tuning."""
+
+import argparse
+import os
+from pathlib import Path
+
+from ai_core.logging import get_logger, setup_logging
+from ai_core.model_registry import ModelRegistry
+
+from pre_training_fine_tuning.data import (
+    VOCAB_SIZE,
+    generate_mlm_data,
+    generate_ntp_data,
+    generate_synthetic_data,
+    save_training_data,
+    train_test_split,
+)
+from pre_training_fine_tuning.model import Transformer
+
+logger = get_logger(__name__)
+
+
+def train(
+    model_dir: Path,
+    data_path: Path | None = None,
+    n_samples: int = 500,
+    d_model: int = 128,
+    n_heads: int = 4,
+    n_encoder_layers: int = 2,
+    n_decoder_layers: int = 2,
+    d_ff: int = 512,
+    max_seq_len: int = 32,
+    learning_rate: float = 0.001,
+    n_iterations: int = 100,
+    weight_decay: float = 0.01,
+    model_version: str = "1.0.0",
+    register_to_mlflow: bool = False,
+    test_size: float = 0.2,
+    random_seed: int = 42,
+    phase: str = "pretrain",
+    objective: str = "ntp",
+    strategy: str = "full",
+) -&gt; dict:
+    """Train model for pre-training or fine-tuning.
+
+    Args:
+        phase: "pretrain" or "finetune"
+        objective: "mlm" or "ntp" (for pre-training)
+        strategy: "full", "feature_extraction", "partial", "peft" (for fine-tuning)
+    """
+    if phase == "pretrain":
+        if objective == "mlm":
+            X, y, mask_positions = generate_mlm_data(n_samples=n_samples, vocab_size=VOCAB_SIZE, random_seed=random_seed)
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_seed=random_seed)
+            logger.info("Generated MLM pre-training data", n_samples=n_samples, mask_prob=0.15)
+        else:
+            X, y = generate_ntp_data(n_samples=n_samples, vocab_size=VOCAB_SIZE, random_seed=random_seed)
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_seed=random_seed)
+            mask_positions = None
+            logger.info("Generated NTP pre-training data", n_samples=n_samples)
+    else:
+        X, y = generate_synthetic_data(n_samples=n_samples, vocab_size=VOCAB_SIZE, random_seed=random_seed, phase="finetune")
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_seed=random_seed)
+        mask_positions = None
+        logger.info("Generated fine-tuning data", n_samples=n_samples, strategy=strategy)
+
+    model_dir.mkdir(parents=True, exist_ok=True)
+    save_training_data(X, y, model_dir / "training_data.npz")
+
+    model = Transformer(
+        vocab_size=VOCAB_SIZE,
+        d_model=d_model,
+        n_heads=n_heads,
+        n_encoder_layers=n_encoder_layers,
+        n_decoder_layers=n_decoder_layers,
+        d_ff=d_ff,
+        max_seq_len=max_seq_len,
+        learning_rate=learning_rate,
+        n_iterations=n_iterations,
+        weight_decay=weight_decay,
+        random_seed=random_seed,
+    )
+
+    model.fit(
+        X_train,
+        y_train,
+        phase=phase,
+        objective=objective,
+        strategy=strategy,
+        n_iterations=n_iterations,
+        learning_rate=learning_rate,
+        mask_positions=mask_positions if phase == "pretrain" and objective == "mlm" else None,
+    )
+
+    test_metrics = model.evaluate(X_test, y_test, phase=phase)
+    logger.info("Training complete", training_mode=model.training_mode, final_loss=model.loss_history[-1])
+
+    model_path = model_dir / f"model_v{model_version}.npz"
+    model.save(str(model_path))
+
+    metrics = {
+        **test_metrics,
+        "training_mode": phase,
+        "objective": objective if phase == "pretrain" else "finetune",
+        "strategy": strategy if phase == "finetune" else "none",
+        "n_epochs_run": float(len(model.loss_history)),
+        "final_loss": model.loss_history[-1] if model.loss_history else 0.0,
+        "n_train_samples": float(len(X_train)),
+        "n_test_samples": float(len(X_test)),
+        "vocab_size": float(VOCAB_SIZE),
+        "d_model": float(d_model),
+        "n_heads": float(n_heads),
+        "n_encoder_layers": float(n_encoder_layers),
+        "n_decoder_layers": float(n_decoder_layers),
+    }
+
+    registry = ModelRegistry(base_dir=model_dir)
+    registry.save_model(
+        model_name="pre-training-fine-tuning",
+        model_version=model_version,
+        model_type="transformer",
+        metrics=metrics,
+        parameters={
+            "vocab_size": VOCAB_SIZE,
+            "d_model": d_model,
+            "n_heads": n_heads,
+            "n_encoder_layers": n_encoder_layers,
+            "n_decoder_layers": n_decoder_layers,
+            "d_ff": d_ff,
+            "max_seq_len": max_seq_len,
+            "learning_rate": learning_rate,
+            "n_iterations": n_iterations,
+            "weight_decay": weight_decay,
+            "random_seed": random_seed,
+            "phase": phase,
+            "objective": objective,
+            "strategy": strategy,
+        },
+        artifacts={
+            f"model_v{model_version}.npz": model_path,
+            "training_data.npz": model_dir / "training_data.npz",
+        },
+        tags={"framework": "numpy", "task": "pre_training_fine_tuning", "model_type": "Transformer", "phase": phase},
+    )
+
+    if register_to_mlflow:
+        registry.log_to_mlflow(
+            model_name="pre-training-fine-tuning",
+            model_version=model_version,
+            metrics=metrics,
+            params={"vocab_size": VOCAB_SIZE, "d_model": d_model, "n_heads": n_heads, "n_iterations": n_iterations},
+            artifacts={"model": str(model_path)},
+            tags={"model_type": "transformer", "framework": "numpy", "phase": phase},
+        )
+
+    return metrics
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Train Pre-training and Fine-tuning Transformer")
+    parser.add_argument("--model-dir", type=Path, default=Path(os.getenv("MODEL_DIR", "/models")))
+    parser.add_argument("--data-path", type=Path, default=None)
+    parser.add_argument("--n-samples", type=int, default=int(os.getenv("N_SAMPLES", "500")))
+    parser.add_argument("--d-model", type=int, default=int(os.getenv("D_MODEL", "128")))
+    parser.add_argument("--n-heads", type=int, default=int(os.getenv("N_HEADS", "4")))
+    parser.add_argument("--n-encoder-layers", type=int, default=int(os.getenv("N_ENCODER_LAYERS", "2")))
+    parser.add_argument("--n-decoder-layers", type=int, default=int(os.getenv("N_DECODER_LAYERS", "2")))
+    parser.add_argument("--d-ff", type=int, default=int(os.getenv("D_FF", "512")))
+    parser.add_argument("--max-seq-len", type=int, default=int(os.getenv("MAX_SEQ_LEN", "32")))
+    parser.add_argument("--learning-rate", type=float, default=float(os.getenv("LEARNING_RATE", "0.001")))
+    parser.add_argument("--n-iterations", type=int, default=int(os.getenv("N_ITERATIONS", "100")))
+    parser.add_argument("--weight-decay", type=float, default=float(os.getenv("WEIGHT_DECAY", "0.01")))
+    parser.add_argument("--model-version", type=str, default=os.getenv("MODEL_VERSION", "1.0.0"))
+    parser.add_argument("--test-size", type=float, default=float(os.getenv("TEST_SIZE", "0.2")))
+    parser.add_argument("--random-seed", type=int, default=int(os.getenv("RANDOM_SEED", "42")))
+    parser.add_argument("--phase", type=str, default=os.getenv("PHASE", "pretrain"), choices=["pretrain", "finetune"])
+    parser.add_argument("--objective", type=str, default=os.getenv("OBJECTIVE", "ntp"), choices=["mlm", "ntp"])
+    parser.add_argument("--strategy", type=str, default=os.getenv("STRATEGY", "full"), choices=["full", "feature_extraction", "partial", "peft"])
+    parser.add_argument("--register-mlflow", action="store_true", default=os.getenv("REGISTER_MLFLOW", "false").lower() == "true")
+    parser.add_argument("--log-level", type=str, default=os.getenv("LOG_LEVEL", "INFO"))
+    args = parser.parse_args()
+
+    setup_logging(args.log_level)
+    args.model_dir.mkdir(parents=True, exist_ok=True)
+
+    metrics = train(
+        model_dir=args.model_dir,
+        data_path=args.data_path,
+        n_samples=args.n_samples,
+        d_model=args.d_model,
+        n_heads=args.n_heads,
+        n_encoder_layers=args.n_encoder_layers,
+        n_decoder_layers=args.n_decoder_layers,
+        d_ff=args.d_ff,
+        max_seq_len=args.max_seq_len,
+        learning_rate=args.learning_rate,
+        n_iterations=args.n_iterations,
+        weight_decay=args.weight_decay,
+        model_version=args.model_version,
+        register_to_mlflow=args.register_mlflow,
+        test_size=args.test_size,
+        random_seed=args.random_seed,
+        phase=args.phase,
+        objective=args.objective,
+        strategy=args.strategy,
+    )
+    logger.info("Training finished", metrics=metrics, model_dir=str(args.model_dir))
+
+
+if __name__ == "__main__":
+    main()</code></pre></details>
+<details><summary>data.py</summary>
+<pre><code>"""Data loading and preprocessing for pre-training and fine-tuning."""
+
+from pathlib import Path
+
+import numpy as np
+
+VOCAB_SIZE = 100
+MAX_SEQ_LEN = 32
+DEFAULT_N_SAMPLES = 500
+
+
+def generate_synthetic_data(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    vocab_size: int = VOCAB_SIZE,
+    seq_len: int = MAX_SEQ_LEN,
+    random_seed: int = 42,
+    phase: str = "pretrain",
+) -&gt; tuple[np.ndarray, np.ndarray]:
+    """Generate synthetic data for pre-training or fine-tuning.
+
+    For pre-training:
+        - MLM objective: returns (masked_sequences, original_sequences, mask_positions)
+        - NTP objective: returns (input_sequences, target_sequences)
+
+    For fine-tuning:
+        - Returns (sequences, labels) for classification/regression
+
+    Returns:
+        X: input data
+        y: target data (format depends on phase and objective)
+    """
+    rng = np.random.default_rng(random_seed)
+
+    if phase == "pretrain":
+        X = rng.integers(1, vocab_size, size=(n_samples, seq_len))
+        y = np.zeros_like(X)
+        y[:, :-1] = X[:, 1:]
+        y[:, -1] = rng.integers(1, vocab_size)
+        return X, y
+
+    X = rng.integers(1, vocab_size, size=(n_samples, seq_len))
+    y = rng.integers(0, 10, size=n_samples)
+    return X, y
+
+
+def generate_mlm_data(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    vocab_size: int = VOCAB_SIZE,
+    seq_len: int = MAX_SEQ_LEN,
+    mask_prob: float = 0.15,
+    random_seed: int = 42,
+) -&gt; tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Generate data for Masked Language Modeling (MLM) pre-training.
+
+    Args:
+        mask_prob: probability of masking a token (default 15% like BERT)
+
+    Returns:
+        masked_X: input sequences with masked tokens (replaced with [MASK] token id=0)
+        original_y: original token sequences (targets)
+        mask_positions: boolean array indicating masked positions
+    """
+    rng = np.random.default_rng(random_seed)
+    X = rng.integers(1, vocab_size, size=(n_samples, seq_len))
+    mask_positions = rng.random((n_samples, seq_len)) &lt; mask_prob
+    masked_X = X.copy()
+    masked_X[mask_positions] = 0
+    return masked_X, X, mask_positions
+
+
+def generate_ntp_data(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    vocab_size: int = VOCAB_SIZE,
+    seq_len: int = MAX_SEQ_LEN,
+    random_seed: int = 42,
+) -&gt; tuple[np.ndarray, np.ndarray]:
+    """Generate data for Next-Token Prediction (NTP) pre-training.
+
+    Returns:
+        X: input sequences (all tokens except last)
+        y: target next tokens (shifted by one position)
+    """
+    rng = np.random.default_rng(random_seed)
+    X = rng.integers(1, vocab_size, size=(n_samples, seq_len))
+    y = np.zeros_like(X)
+    y[:, :-1] = X[:, 1:]
+    y[:, -1] = rng.integers(1, vocab_size)
+    return X, y
+
+
+def generate_finetune_data(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    vocab_size: int = VOCAB_SIZE,
+    seq_len: int = MAX_SEQ_LEN,
+    n_classes: int = 10,
+    random_seed: int = 42,
+) -&gt; tuple[np.ndarray, np.ndarray]:
+    """Generate data for fine-tuning (classification task).
+
+    Returns:
+        X: input sequences
+        y: class labels
+    """
+    rng = np.random.default_rng(random_seed)
+    X = rng.integers(1, vocab_size, size=(n_samples, seq_len))
+    y = rng.integers(0, n_classes, size=n_samples)
+    return X, y
+
+
+def train_test_split(
+    X: np.ndarray, y: np.ndarray, test_size: float = 0.2, random_seed: int | None = None
+) -&gt; tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Split data into train and test sets."""
+    n = len(X)
+    n_test = max(1, int(n * test_size))
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+    test_idx = indices[:n_test]
+    train_idx = indices[n_test:]
+    return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
+
+
+def save_training_data(X: np.ndarray, y: np.ndarray, path: Path) -&gt; None:
+    """Save training data to npz file."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(path, X=X, y=y)
+
+
+def load_training_data(
+    data_path: Path | None = None,
+    n_samples: int = DEFAULT_N_SAMPLES,
+    vocab_size: int = VOCAB_SIZE,
+    random_seed: int = 42,
+    phase: str = "pretrain",
+) -&gt; tuple[np.ndarray, np.ndarray]:
+    """Load training data from file or generate synthetic data."""
+    if data_path and Path(data_path).exists():
+        data = np.load(data_path, allow_pickle=True)
+        return data["X"], data["y"]
+    return generate_synthetic_data(
+        n_samples=n_samples, vocab_size=vocab_size, random_seed=random_seed, phase=phase
+    )</code></pre></details>
+<details><summary>api.py</summary>
+<pre><code>"""Serving API for Pre-training and Fine-tuning."""
+
+import os
+import time
+from contextlib import asynccontextmanager
+from pathlib import Path
+
+import numpy as np
+from ai_core.drift import DriftDetector
+from ai_core.fastapi_middleware import add_observability_middleware
+from ai_core.logging import get_logger, setup_logging
+from ai_core.metrics import MetricsCollector
+from ai_core.model_registry import ModelRegistry
+from fastapi import FastAPI, HTTPException, Response
+from pydantic import BaseModel, Field
+
+from pre_training_fine_tuning.data import VOCAB_SIZE, generate_synthetic_data
+from pre_training_fine_tuning.model import Transformer, softmax
+
+logger = get_logger(__name__)
+
+MODEL_DIR = Path(os.getenv("MODEL_DIR", "/models"))
+MODEL_VERSION = os.getenv("MODEL_VERSION", "latest")
+METRICS_PORT = int(os.getenv("PRETRAIN_METRICS_PORT", "8012"))
+DRIFT_THRESHOLD = float(os.getenv("DRIFT_THRESHOLD", "0.2"))
+
+
+class PretrainRequest(BaseModel):
+    tokens: list[int] = Field(..., min_length=1, max_length=64)
+    objective: str = Field(default="ntp", pattern="^(mlm|ntp)$")
+    mask_positions: list[int] | None = Field(default=None)
+
+
+class FinetuneRequest(BaseModel):
+    tokens: list[int] = Field(..., min_length=1, max_length=64)
+    label: int = Field(..., ge=0, le=9)
+    strategy: str = Field(default="partial", pattern="^(full|feature_extraction|partial|peft)$")
+    learning_rate: float = Field(default=0.0001, gt=0)
+    n_iterations: int = Field(default=50, ge=1, le=500)
+
+
+class PredictRequest(BaseModel):
+    tokens: list[int] = Field(..., min_length=1, max_length=64)
+    max_len: int = Field(default=10, ge=1, le=32)
+    phase: str = Field(default="pretrain", pattern="^(pretrain|finetune)$")
+
+
+class PredictResponse(BaseModel):
+    generated_tokens: list[int]
+    predicted_class: int | None = None
+    confidence: float | None = None
+    model_version: str
+    training_mode: str
+    objective: str | None = None
+    strategy: str | None = None
+
+
+class StatsResponse(BaseModel):
+    vocab_size: int
+    d_model: int
+    n_heads: int
+    n_encoder_layers: int
+    n_decoder_layers: int
+    d_ff: int
+    training_mode: str
+    pretraining_objective: str
+    fine_tuning_strategy: str
+    n_epochs_run: int
+    final_loss: float
+    model_version: str
+
+
+_model: Transformer | None = None
+_model_version: str = "unknown"
+_metrics: MetricsCollector | None = None
+_drift_detector: DriftDetector | None = None
+_reference_data: np.ndarray | None = None
+_recent_predictions: list[list[float]] = []
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global _model, _model_version, _metrics, _drift_detector, _reference_data
+
+    setup_logging(os.getenv("LOG_LEVEL", "INFO"))
+    _metrics = MetricsCollector("pre_training_fine_tuning", port=METRICS_PORT)
+    app.state.metrics = _metrics
+
+    feature_names = [f"token_{i}" for i in range(VOCAB_SIZE)]
+    _drift_detector = DriftDetector(
+        feature_names=feature_names,
+        feature_types={f: "float" for f in feature_names},
+        psi_threshold=DRIFT_THRESHOLD,
+    )
+
+    _model, _model_version = _load_model()
+    _metrics.set_model_version(_model_version)
+    _metrics.set_model_info(
+        model_name="pre-training-fine-tuning",
+        model_version=_model_version,
+        model_type="transformer",
+    )
+
+    _reference_data = _load_reference_data()
+    logger.info("Model loaded", model="pre-training-fine-tuning", version=_model_version, mode=_model.training_mode)
+
+    yield
+    logger.info("Shutting down pre-training-fine-tuning API")
+
+
+def _load_model() -&gt; tuple[Transformer, str]:
+    registry = ModelRegistry(base_dir=MODEL_DIR)
+    try:
+        if MODEL_VERSION == "latest":
+            models = registry.list_models()
+            pt_models = [m for m in models if m.get("model_name") == "pre-training-fine-tuning"]
+            if pt_models:
+                pt_models.sort(key=lambda m: m["model_version"], reverse=True)
+                latest = pt_models[0]
+                model_dir = Path(latest["artifact_path"])
+                npz_files = list(model_dir.glob("model_v*.npz")) + list(model_dir.glob("*.npz"))
+                if npz_files:
+                    return Transformer.load(str(npz_files[0])), latest["model_version"]
+        else:
+            model_dir = MODEL_DIR / "pre-training-fine-tuning" / MODEL_VERSION
+            if model_dir.exists():
+                npz_files = list(model_dir.glob("model_v*.npz")) + list(model_dir.glob("*.npz"))
+                if npz_files:
+                    return Transformer.load(str(npz_files[0])), MODEL_VERSION
+    except Exception as e:
+        logger.warning(f"Registry lookup failed: {e}")
+
+    npz_path = MODEL_DIR / "model.npz"
+    if npz_path.exists():
+        return Transformer.load(str(npz_path)), "legacy"
+
+    candidate_paths = [
+        Path("/app/artifacts/models/model_v1.0.0.npz"),
+        Path(__file__).resolve().parents[3] / "artifacts" / "models" / "model_v1.0.0.npz",
+    ]
+    for p in candidate_paths:
+        if p.exists():
+            logger.info("Loading bundled baseline model", path=str(p))
+            return Transformer.load(str(p)), "1.0.0-bundled"
+
+    logger.warning("No pre-existing model found. Initializing baseline model.")
+    X_base, y_base = generate_synthetic_data(n_samples=100, vocab_size=VOCAB_SIZE, random_seed=42, phase="pretrain")
+    model = Transformer(
+        vocab_size=VOCAB_SIZE,
+        d_model=64,
+        n_heads=4,
+        n_encoder_layers=1,
+        n_decoder_layers=1,
+        d_ff=256,
+        learning_rate=0.001,
+        n_iterations=50,
+        random_seed=42,
+    )
+    model.fit(X_base, y_base, phase="pretrain", objective="ntp")
+    return model, "1.0.0-baseline"
+
+
+def _load_reference_data() -&gt; np.ndarray | None:
+    X_base, _ = generate_synthetic_data(n_samples=100, vocab_size=VOCAB_SIZE, random_seed=42, phase="pretrain")
+    return X_base.astype(float)
+
+
+app = FastAPI(
+    title="Pre-training and Fine-tuning API",
+    description="Pre-training (MLM, NTP) and fine-tuning (full, feature extraction, partial, PEFT) for deep learning models",
+    version="1.0.0",
+    lifespan=lifespan,
+)
+
+add_observability_middleware(app)
+
+
+@app.get("/")
+def read_root():
+    return {
+        "service": "pre_training_fine_tuning-api",
+        "version": "1.0.0",
+        "model_version": _model_version,
+        "training_mode": _model.training_mode if _model else "unknown",
+        "endpoints": {
+            "health": "/health",
+            "pretrain": "POST /pretrain",
+            "finetune": "POST /finetune",
+            "predict": "POST /predict",
+            "stats": "GET /stats",
+            "drift": "GET /drift",
+            "metrics": "/metrics",
+        },
+    }
+
+
+@app.get("/health")
+def health_check():
+    if _model is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+    return {
+        "status": "healthy",
+        "model_loaded": True,
+        "model_version": _model_version,
+        "training_mode": _model.training_mode if _model else "unknown",
+    }
+
+
+@app.get("/metrics")
+def metrics():
+    from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+@app.post("/pretrain")
+def pretrain(body: PretrainRequest):
+    """Run pre-training step (simulated inference) with MLM or NTP objective."""
+    if _model is None or _metrics is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+
+    X = np.array(body.tokens).reshape(1, -1)
+    start = time.time()
+
+    try:
+        if body.objective == "mlm":
+            from pre_training_fine_tuning.data import generate_mlm_data
+            _, y_orig, _ = generate_mlm_data(n_samples=1, vocab_size=VOCAB_SIZE, random_seed=42)
+            y_orig = y_orig[:1]
+            _model.pretraining_objective = "mlm"
+            logits = _model.mlm_head.forward(_model._embed(X))
+            predicted = np.argmax(softmax(logits[0]), axis=-1).tolist()
+        else:
+            _model.pretraining_objective = "ntp"
+            generated = _model.predict(X, max_len=min(10, X.shape[1] if X.ndim &gt; 1 else 10), phase="pretrain")
+            predicted = generated.tolist()
+
+        duration = time.time() - start
+        _metrics.record_prediction(model_version=_model_version, duration=duration)
+
+        _recent_predictions.append([float(t) for t in body.tokens])
+        if len(_recent_predictions) &gt; 1000:
+            _recent_predictions.pop(0)
+
+        return {
+            "predicted_tokens": predicted,
+            "objective": body.objective,
+            "model_version": _model_version,
+            "training_mode": _model.training_mode,
+        }
+    except Exception as e:
+        _metrics.record_error(model_version=_model_version, error_type="pretrain")
+        logger.exception("Pre-training inference failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Pre-training inference failed") from e
+
+
+@app.post("/finetune")
+def finetune(body: FinetuneRequest):
+    """Fine-tune model on a single sample (simulated)."""
+    if _model is None or _metrics is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+
+    X = np.array(body.tokens).reshape(1, -1)
+    y = np.array([body.label])
+
+    start = time.time()
+    try:
+        _model.fit(
+            X,
+            y,
+            phase="finetune",
+            strategy=body.strategy,
+            n_iterations=body.n_iterations,
+            learning_rate=body.learning_rate,
+        )
+
+        preds = _model.predict(X, phase="finetune")
+        predicted_class = int(preds[0]) if len(preds) &gt; 0 else 0
+
+        duration = time.time() - start
+        _metrics.record_prediction(model_version=_model_version, duration=duration)
+
+        return {
+            "predicted_class": predicted_class,
+            "true_label": body.label,
+            "strategy": body.strategy,
+            "model_version": _model_version,
+            "training_mode": _model.training_mode,
+            "final_loss": _model.loss_history[-1] if _model.loss_history else 0.0,
+        }
+    except Exception as e:
+        _metrics.record_error(model_version=_model_version, error_type="finetune")
+        logger.exception("Fine-tuning failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Fine-tuning failed") from e
+
+
+@app.post("/predict", response_model=PredictResponse)
+def predict(body: PredictRequest):
+    """Generate predictions using pre-trained or fine-tuned model."""
+    if _model is None or _metrics is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+
+    X = np.array(body.tokens).reshape(1, -1)
+    start = time.time()
+
+    try:
+        if body.phase == "finetune":
+            preds = _model.predict(X, phase="finetune")
+            predicted_class = int(preds[0]) if len(preds) &gt; 0 else 0
+            logits = _model.classification_head.forward(np.mean(_model._embed(X), axis=1))
+            probs = softmax(logits[0])
+            confidence = float(probs[predicted_class]) if predicted_class &lt; len(probs) else 0.0
+
+            response = PredictResponse(
+                generated_tokens=[],
+                predicted_class=predicted_class,
+                confidence=round(confidence, 4),
+                model_version=_model_version,
+                training_mode=_model.training_mode,
+                strategy=_model.fine_tuning_strategy,
+            )
+        else:
+            generated = _model.predict(X, max_len=body.max_len, phase="pretrain")
+            logits = _model._embed(X) @ _model.W_out.T
+            probs = softmax(logits.flatten())
+            predicted_token = int(generated[0]) if len(generated) &gt; 0 else 0
+            confidence = float(probs[predicted_token]) if predicted_token &lt; len(probs) else 0.0
+
+            response = PredictResponse(
+                generated_tokens=generated.tolist(),
+                predicted_class=None,
+                confidence=round(confidence, 4),
+                model_version=_model_version,
+                training_mode=_model.training_mode,
+                objective=_model.pretraining_objective,
+            )
+
+        duration = time.time() - start
+        _metrics.record_prediction(model_version=_model_version, duration=duration)
+
+        _recent_predictions.append([float(t) for t in body.tokens])
+        if len(_recent_predictions) &gt; 1000:
+            _recent_predictions.pop(0)
+
+        return response
+    except Exception as e:
+        _metrics.record_error(model_version=_model_version, error_type="prediction")
+        logger.exception("Prediction failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Prediction failed") from e
+
+
+@app.get("/drift")
+def drift_check():
+    if _drift_detector is None or _reference_data is None:
+        raise HTTPException(status_code=503, detail="Drift detection not available")
+    if len(_recent_predictions) &lt; 10:
+        return {"total_features": VOCAB_SIZE, "drifted_features": 0, "drift_ratio": 0.0, "drifted": [], "all_results": []}
+    current = np.array(_recent_predictions[-100:])
+    results = _drift_detector.detect_drift(_reference_data, current)
+    summary = _drift_detector.summarize(results)
+    if _metrics:
+        _metrics.set_drift_ratio(summary["drift_ratio"])
+    return summary
+
+
+@app.get("/stats", response_model=StatsResponse)
+def get_stats():
+    if _model is None or not _model.encoder_layers:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+    info = _model.to_dict()
+    return StatsResponse(
+        vocab_size=info["vocab_size"],
+        d_model=info["d_model"],
+        n_heads=info["n_heads"],
+        n_encoder_layers=info["n_encoder_layers"],
+        n_decoder_layers=info["n_decoder_layers"],
+        d_ff=info["d_ff"],
+        training_mode=info["training_mode"],
+        pretraining_objective=info["pretraining_objective"],
+        fine_tuning_strategy=info["fine_tuning_strategy"],
+        n_epochs_run=info["n_epochs_run"],
+        final_loss=info["final_loss"],
+        model_version=_model_version,
+    )
+
+
+@app.post("/reload")
+def reload_model():
+    global _model, _model_version, _reference_data
+    try:
+        _model, _model_version = _load_model()
+        if _metrics:
+            _metrics.set_model_version(_model_version)
+            _metrics.set_model_info(
+                model_name="pre-training-fine-tuning",
+                model_version=_model_version,
+                model_type="transformer",
+            )
+        _reference_data = _load_reference_data()
+        logger.info("Model reloaded", model="pre-training-fine-tuning", version=_model_version)
+        return {"status": "reloaded", "model_version": _model_version, "training_mode": _model.training_mode}
+... (truncated) ...</code></pre></details>
+
+<h2>4. Monorepo Integration</h2>
+<p>This example is a first-class consumer of the shared <code>packages/ai-core</code> library.
+It reuses the following foundation modules instead of re-implementing infrastructure:</p>
+<div><span class="badge">ai_core.drift</span>
+<span class="badge">ai_core.fastapi_middleware</span>
+<span class="badge">ai_core.logging</span>
+<span class="badge">ai_core.metrics</span>
+<span class="badge">ai_core.model_registry</span></div>
+<h3>How it plugs in</h3>
+<ul>
+  <li><strong>Configuration</strong> — 12-factor config from <code>ai_core.config</code>.</li>
+  <li><strong>Observability</strong> — structured logging + Prometheus metrics are wired in automatically.</li>
+  <li><strong>Validation</strong> — input schema validation prevents bad data reaching the model.</li>
+  <li><strong>Registry</strong> — trained artifacts are versioned and registered for reproducible serving.</li>
+  <li><strong>Serving</strong> — the FastAPI app mounts shared observability middleware for tracing &amp; metrics.</li>
+</ul>
+<p class="muted">Because every example shares <code>ai_core</code>, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.</p>
+
+</div>
+</body>
+</html>

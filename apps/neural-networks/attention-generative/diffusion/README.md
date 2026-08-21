@@ -23,29 +23,24 @@ DDPM gradually corrupts data with Gaussian noise over $T$ steps. The model learn
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+Forward diffusion noising step.
+  bar_alpha_t = 0.9 -> sqrt=0.949, sqrt(1-0.9)=0.316
+  x_0=1.0, epsilon=0.5
+  x_t = 0.949*1.0 + 0.316*0.5 = 1.107
+  Training predicts epsilon_theta from x_t, t.
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Diffusion Model diagram](./assets/diffusion.png)
+![Denoising Diffusion Probabilistic Model (DDPM) diagram](./assets/diffusion.png)
 
 Interactive forward/reverse process visualization; denoising trajectory viewer; noise schedule plot.
 
@@ -491,7 +486,7 @@ def train(
     logger.info("Loaded training data", n_samples=len(X), data_path=str(data_path))
 
     validator = DataValidator(create_diffusion_image_generation_schema())
-    validation = validator.validate(X.reshape(-1, 1))
+    validation = validator.validate(X)
     if not validation.valid:
         logger.error("Training data validation failed", errors=validation.errors)
         raise ValueError(f"Training data validation failed: {validation.errors}")

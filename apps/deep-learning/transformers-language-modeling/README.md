@@ -23,29 +23,24 @@ The Transformer uses stacked encoder-decoder blocks. Each block applies multi-he
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+Scaled dot-product attention (2 tokens, d_k=2).
+  Q=[1,0], K=[[1,0],[0,1]], V=[[1,2],[3,4]]
+  QK^T = [1,0]; /sqrt(2) = [0.707,0]
+  softmax = [0.67,0.33]
+  out = 0.67*[1,2] + 0.33*[3,4] = [1.67,2.67]
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Transformer diagram](./assets/transformers-language-modeling.png)
+![Transformer Architecture diagram](./assets/transformers-language-modeling.png)
 
 Interactive encoder-decoder diagram with attention head visualization and token probability explorer.
 
@@ -543,11 +538,11 @@ def train(
     model_dir: Path,
     data_path: Path | None = None,
     n_samples: int = 500,
-    d_model: int = 128,
+    d_model: int = 32,
     n_heads: int = 4,
-    n_encoder_layers: int = 2,
-    n_decoder_layers: int = 2,
-    d_ff: int = 512,
+    n_encoder_layers: int = 1,
+    n_decoder_layers: int = 1,
+    d_ff: int = 128,
     max_seq_len: int = 32,
     learning_rate: float = 0.001,
     n_iterations: int = 100,
@@ -650,11 +645,11 @@ def main():
     parser.add_argument("--model-dir", type=Path, default=Path(os.getenv("MODEL_DIR", "/models")))
     parser.add_argument("--data-path", type=Path, default=None)
     parser.add_argument("--n-samples", type=int, default=int(os.getenv("N_SAMPLES", "500")))
-    parser.add_argument("--d-model", type=int, default=int(os.getenv("D_MODEL", "128")))
+    parser.add_argument("--d-model", type=int, default=int(os.getenv("D_MODEL", "32")))
     parser.add_argument("--n-heads", type=int, default=int(os.getenv("N_HEADS", "4")))
-    parser.add_argument("--n-encoder-layers", type=int, default=int(os.getenv("N_ENCODER_LAYERS", "2")))
-    parser.add_argument("--n-decoder-layers", type=int, default=int(os.getenv("N_DECODER_LAYERS", "2")))
-    parser.add_argument("--d-ff", type=int, default=int(os.getenv("D_FF", "512")))
+    parser.add_argument("--n-encoder-layers", type=int, default=int(os.getenv("N_ENCODER_LAYERS", "1")))
+    parser.add_argument("--n-decoder-layers", type=int, default=int(os.getenv("N_DECODER_LAYERS", "1")))
+    parser.add_argument("--d-ff", type=int, default=int(os.getenv("D_FF", "128")))
     parser.add_argument("--max-seq-len", type=int, default=int(os.getenv("MAX_SEQ_LEN", "32")))
     parser.add_argument("--learning-rate", type=float, default=float(os.getenv("LEARNING_RATE", "0.001")))
     parser.add_argument("--n-iterations", type=int, default=int(os.getenv("N_ITERATIONS", "100")))

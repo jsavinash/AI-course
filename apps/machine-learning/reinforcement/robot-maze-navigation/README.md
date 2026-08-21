@@ -23,29 +23,24 @@ RL agents learn by interacting with an environment. The return $G_t$ is the disc
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+Q-learning update (robot maze, state s, action a).
+  alpha=0.1, gamma=0.9, Q(s,a)=0.50, reward r=1.0
+  max_a' Q(s',a') = 0.80
+  Q <- 0.50 + 0.1*(1.0 + 0.9*0.80 - 0.50)
+      = 0.50 + 0.1*(1.72-0.50) = 0.622
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Q-Learning diagram](./assets/robot-maze-navigation.png)
+![Reinforcement Learning (Q-Learning) diagram](./assets/robot-maze-navigation.png)
 
 Interactive grid world with agent path; Q-value heatmap; episode reward curves; epsilon-greedy action distribution.
 

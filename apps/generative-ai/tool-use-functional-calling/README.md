@@ -21,29 +21,22 @@ Tool-augmented models decompose complex queries into executable function calls. 
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+Tool routing.
+  logits = [2.1, 0.5, 1.3] -> softmax = [0.62,0.12,0.26]
+  argmax -> tool 0 invoked with parsed args; result fed back.
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Tool Use / Function Calls diagram](./assets/tool-use-functional-calling.png)
+![Tool Use and Functional Calling diagram](./assets/tool-use-functional-calling.png)
 
 Interactive tool call graph; argument parsing explorer; multi-step reasoning trace.
 

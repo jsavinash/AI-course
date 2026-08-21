@@ -21,29 +21,22 @@ Pre-training learns general representations from large unlabeled corpora. Masked
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+Masked language modeling.
+  Sequence: [The, cat, [MASK], on, the, [MASK]]
+  Model predicts masked tokens from context (MLM + NSP objectives).
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Pre-training (MLM) diagram](./assets/pre-training-fine-tuning.png)
+![Pre-training and Fine-Tuning diagram](./assets/pre-training-fine-tuning.png)
 
 Interactive MLM token prediction explorer; attention head visualization; layer-wise transfer analysis.
 

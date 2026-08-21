@@ -23,29 +23,23 @@ PINNs embed physical laws as soft constraints via automatic differentiation. The
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+PINN data-loss term.
+  u_theta(0.5,0.5)=0.90, true u=1.00
+  L_data = (0.90-1.00)^2 = 0.010
+  Total L = L_data + lambda*L_pde (PDE residual via autograd).
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Physics-Informed NN diagram](./assets/pinn-heat-equation.png)
+![Physics-Informed Neural Network (PINN) diagram](./assets/pinn-heat-equation.png)
 
 Interactive PDE solution comparison: PINN vs finite difference; residual heatmap; loss decomposition pie chart.
 
@@ -427,7 +421,7 @@ def train(
     logger.info("Generated PDE training data", n_samples=n_samples, alpha=alpha)
 
     validator = DataValidator(create_pinn_heat_equation_schema())
-    validation = validator.validate(X.reshape(-1, 1))
+    validation = validator.validate(X)
     if not validation.valid:
         logger.error("Training data validation failed", errors=validation.errors)
         raise ValueError(f"Training data validation failed: {validation.errors}")

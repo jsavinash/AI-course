@@ -25,22 +25,18 @@ Starting from the hypothesis $h(x) = wx + b$, we minimize the MSE loss. Taking p
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+Linear regression forward pass (house price from size, $1000s sqft).
+  Input   x (size) = 1.8
+  Weights w       = 120.0
+  Bias    b       = 35.0
+  y_hat = 120.0*1.8 + 35.0 = 251.0  -> predicted price $251k
+  Gradient: dL/dw = -2/n sum x(y_hat-y).
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]

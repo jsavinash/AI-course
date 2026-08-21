@@ -21,29 +21,22 @@ RAG combines retrieval with generation. Given a query $q$, the retriever finds t
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+RAG retrieval + generation.
+  sim(q,d) = q.d/(||q|| ||d||); top-k = argmax_{d} sim(q,d)
+  P(y|x) = sum_z P(y|x,z) P(z|x) over retrieved docs z.
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Retrieval-Augmented Gen diagram](./assets/retrieval-augmented-generation.png)
+![Retrieval-Augmented Generation (RAG) diagram](./assets/retrieval-augmented-generation.png)
 
 Interactive retrieval pipeline; relevance score distribution; context vs generation attention alignment.
 

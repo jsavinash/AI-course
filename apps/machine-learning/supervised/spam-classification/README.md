@@ -23,22 +23,17 @@ Logistic regression models $P(y=1|x)$ via the sigmoid function. Binary cross-ent
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+Logistic regression single-sample forward pass (spam classifier).
+  x = 2.0   w = 1.2   b = -1.0
+  z = w*x + b = 1.2*2.0 - 1.0 = 1.40
+  y_hat = sigma(z) = 1/(1+e^-1.40) = 0.802
+  => P(spam) = 0.80 (above 0.5 threshold -> spam).
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]

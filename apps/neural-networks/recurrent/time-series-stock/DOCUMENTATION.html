@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>time-series-stock — AI Example Documentation</title>
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$']], displayMath: [['$$','$$']] },
+    svg: { fontCache: 'global' } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root{
+  --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --border:#30363d;
+  --text:#e6edf3; --muted:#9da7b3; --accent:#58a6ff; --accent2:#bc8cff;
+  --green:#3fb950; --mono:'SFMono-Regular',Consolas,'Liberation Mono',monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.7;font-size:16px}
+.wrap{max-width:980px;margin:0 auto;padding:32px 20px 80px}
+header.hero{background:linear-gradient(135deg,#0d1117,#161b22);border-bottom:1px solid var(--border);
+  padding:36px 20px}
+header.hero .inner{max-width:980px;margin:0 auto}
+header.hero h1{margin:0 0 8px;font-size:30px}
+header.hero p{margin:0;color:var(--muted)}
+h2{margin-top:40px;padding-bottom:8px;border-bottom:1px solid var(--border);color:var(--accent)}
+h3{margin-top:28px;color:var(--accent2)}
+p{color:var(--text)}
+.muted{color:var(--muted)}
+.equation{background:var(--panel);border:1px solid var(--border);border-radius:8px;
+  padding:12px 16px;margin:12px 0;font-family:var(--mono);overflow-x:auto;color:#fff}
+.ascii{background:#010409;border:1px solid var(--border);border-radius:8px;padding:16px;
+  font-family:var(--mono);white-space:pre;overflow-x:auto;color:#7ee787;font-size:13px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:10px;
+  padding:16px 20px;margin:16px 0}
+table{border-collapse:collapse;width:100%;margin:16px 0;font-size:14px}
+th,td{border:1px solid var(--border);padding:8px 12px;text-align:left}
+th{background:var(--panel2)}
+code{background:#010409;border:1px solid var(--border);border-radius:4px;padding:1px 6px;
+  font-family:var(--mono);font-size:13px;color:#ffa657}
+pre{background:#010409;border:1px solid var(--border);border-radius:8px;padding:16px;
+  overflow-x:auto}
+pre code{background:none;border:none;padding:0;color:#c9d1d9;font-size:13px}
+details{border:1px solid var(--border);border-radius:8px;margin:12px 0;background:var(--panel)}
+summary{cursor:pointer;padding:12px 16px;font-weight:600;color:var(--accent)}
+details[open] summary{border-bottom:1px solid var(--border)}
+details pre{max-height:520px;overflow:auto;border:none;border-radius:0}
+.badge{display:inline-block;background:var(--panel2);border:1px solid var(--border);
+  border-radius:999px;padding:2px 10px;margin:2px;font-size:12px;color:var(--muted)}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px 0}
+.step{background:var(--panel2);border:1px solid var(--border);border-radius:8px;
+  padding:10px 14px;font-size:14px}
+.arrow{color:var(--accent)}
+img{border:1px solid var(--border);border-radius:8px;max-width:100%}
+ul li{margin:6px 0}
+</style>
+</head>
+<body>
+<header class="hero"><div class="inner">
+  <h1>time-series-stock</h1>
+  <p>Machine Learning Fundamentals — AI engineering example &middot; part of the MLOps monorepo</p>
+</div></header>
+<div class="wrap">
+
+<h2>1. Mathematical Foundations</h2>
+<p>This example is grounded in <strong>Machine Learning Fundamentals</strong>. The equations below
+drive every forward and backward pass in the implementation.</p>
+<div class="equation">$$\hat{y} = f(x; \theta)$$</div>
+<div class="equation">$$\mathcal{L}(\theta) = \frac{1}{n} \sum_{i=1}^{n} \ell(y_i, \hat{y}_i)$$</div>
+<div class="equation">$$\theta \leftarrow \theta - \alpha \nabla_\theta \mathcal{L}(\theta)$$</div>
+<h3>Derivation</h3>
+<p>Machine learning models learn parameters $\theta$ by minimizing a loss function $\mathcal{L}$. Gradient descent iteratively updates parameters in the direction of steepest descent. The learning rate $\alpha$ controls step size. Stochastic gradient descent (SGD) uses mini-batches for computational efficiency.</p>
+<h3>Worked Numerical Example</h3>
+<p class="muted">Concrete forward-pass / update evaluation using the algorithm's own equations:</p>
+<div class="ascii">RNN hidden-state update (one timestep).
+  h_{t-1}=0.30, x_t=0.50, W_hh=W_xh=0.5, b=0
+  pre = 0.5*0.30 + 0.5*0.50 = 0.40
+  h_t = tanh(0.40) = 0.380</div>
+<h3>Conceptual Diagram</h3>
+
+<div class="ascii">        Math concept (placeholder)
+   [ Input x ] --&gt; ( w · x + b ) --&gt; [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]</div>
+
+<img src="./assets/time-series-stock.png" width="520" alt="Machine Learning Fundamentals diagram">
+<p class="muted">Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.</p>
+
+<h2>2. Core Logic &amp; Architecture</h2>
+<p>The example follows a consistent <strong>data &rarr; train &rarr; evaluate &rarr; serve</strong>
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.</p>
+
+<div class="flow">
+  <span class="step">Raw dataset</span><span class="arrow">→</span>
+  <span class="step">load + validate (data.py)</span><span class="arrow">→</span>
+  <span class="step">fit / transform (model.py)</span><span class="arrow">→</span>
+  <span class="step">evaluate + persist (train.py)</span><span class="arrow">→</span>
+  <span class="step">serve (api.py)</span>
+</div>
+<h3>Primary Components</h3>
+<table>
+<thead><tr><th>Class</th><th>Public methods</th><th>Responsibility</th></tr></thead>
+<tbody><tr><td><code>PredictRequest</code></td><td>—</td><td></td></tr>
+<tr><td><code>PredictBulkRequest</code></td><td>—</td><td></td></tr>
+<tr><td><code>PredictResponse</code></td><td>—</td><td></td></tr>
+<tr><td><code>BulkPredictResponse</code></td><td>—</td><td></td></tr>
+<tr><td><code>StatsResponse</code></td><td>—</td><td></td></tr>
+<tr><td><code>StockMarketRNN</code></td><td>fit, predict, predict_proba, mse, rmse, mae, r2_score, evaluate, save, load, to_dict</td><td>RNN for stock price regression (many-to-one).
+
+Args:
+    n_features: Number of features per timestep (e.g., OHLCV = 5)
+    seq_len: Number of timesteps in input sequences
+    hidden_dim: Number of hidden units
+    learning_rate: Gradient descent step size
+    n_iterations: Number of training epochs
+    weight_decay: L2 regularization strength
+    clip_value: Maximum gradient norm
+    random_seed: Random seed for reproducibility</td></tr></tbody>
+</table>
+<h3>Data Flow</h3>
+<ol>
+  <li><strong>Load</strong> — <code>data.py</code> reads the source dataset and splits train/test.</li>
+  <li><strong>Validate</strong> — a Pydantic schema guards input shape/dtypes before training.</li>
+  <li><strong>Fit / Transform</strong> — <code>model.py</code> applies the mathematics from Section 1.</li>
+  <li><strong>Evaluate</strong> — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.</li>
+  <li><strong>Persist</strong> — weights/artifacts are saved and registered in the model registry.</li>
+  <li><strong>Serve</strong> — <code>api.py</code> exposes prediction endpoints with drift detection.</li>
+</ol>
+<h3>Design Patterns &amp; Performance</h3>
+<p>Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via <code>ai_core.validation</code>, structured JSON logging through <code>ai_core.logging</code>, Prometheus metrics from <code>ai_core.metrics</code>, and MLflow/model-registry persistence via <code>ai_core.model_registry</code>. The FastAPI service wraps the trained model with observability middleware from <code>ai_core.fastapi_middleware</code>.</p>
+
+<h2>3. Detailed Code Walkthrough</h2>
+<p>The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.</p>
+<div class="card"><h3><code>StockMarketRNN.fit(X, y, X_val, y_val)</code></h3><p>Train the RNN with BPTT.
+
+Args:
+    X: Feature sequences (n_samples, seq_len, n_features)
+    y: Target prices (n_samples,)
+
+Returns:
+    self</p></div>
+<div class="card"><h3><code>StockMarketRNN.predict(X)</code></h3><p>Predict stock prices for a batch of sequences.</p></div>
+<h3>Source Files</h3>
+<details><summary>model.py</summary>
+<pre><code>"""Recurrent neural network for stock market price prediction.
+
+A SimpleRNN (Elman network) trained with Backpropagation Through Time (BPTT).
+Built from scratch with NumPy, using the shared nn_utils.rnn.SimpleRNN base.
+
+Architecture:
+    Input (seq_len, n_features) -&gt; Hidden (hidden_dim, tanh) -&gt; Output (1, linear)
+
+Loss: Mean Squared Error (many-to-one: predicts next price at final timestep)
+
+The model learns temporal patterns in a sequence of feature vectors
+(e.g., normalized open/high/low/close/volume) and predicts the next price.
+"""
+
+from dataclasses import dataclass, field
+
+import numpy as np
+from ai_core.nn_utils.rnn import SimpleRNN
+
+
+@dataclass
+class StockMarketRNN:
+    """RNN for stock price regression (many-to-one).
+
+    Args:
+        n_features: Number of features per timestep (e.g., OHLCV = 5)
+        seq_len: Number of timesteps in input sequences
+        hidden_dim: Number of hidden units
+        learning_rate: Gradient descent step size
+        n_iterations: Number of training epochs
+        weight_decay: L2 regularization strength
+        clip_value: Maximum gradient norm
+        random_seed: Random seed for reproducibility
+    """
+
+    n_features: int = 5
+    seq_len: int = 20
+    hidden_dim: int = 32
+    learning_rate: float = 0.01
+    n_iterations: int = 300
+    weight_decay: float = 0.001
+    clip_value: float = 5.0
+    random_seed: int = 42
+
+    model: SimpleRNN | None = field(default=None, repr=False)
+    training_mode: str = "supervised"
+    loss_history: list[float] = field(default_factory=list)
+    y_mean_: float | None = None
+    y_std_: float | None = None
+
+    def fit(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        X_val: np.ndarray | None = None,
+        y_val: np.ndarray | None = None,
+    ) -&gt; "StockMarketRNN":
+        """Train the RNN with BPTT.
+
+        Args:
+            X: Feature sequences (n_samples, seq_len, n_features)
+            y: Target prices (n_samples,)
+
+        Returns:
+            self
+        """
+        y = np.asarray(y, dtype=float).flatten()
+        self.y_mean_ = float(y.mean())
+        self.y_std_ = float(y.std()) if y.std() &gt; 1e-8 else 1.0
+        y_norm = (y - self.y_mean_) / self.y_std_
+
+        self.model = SimpleRNN(
+            input_dim=self.n_features,
+            hidden_dim=self.hidden_dim,
+            output_dim=1,
+            output_activation="linear",
+            learning_rate=self.learning_rate,
+            weight_decay=self.weight_decay,
+            clip_value=self.clip_value,
+            random_seed=self.random_seed,
+            output_loss="mse",
+        )
+        self.model.fit(X, y_norm, n_iterations=self.n_iterations)
+        self.loss_history = self.model.loss_history
+        return self
+
+    def predict(self, X: np.ndarray) -&gt; np.ndarray:
+        """Predict stock prices for a batch of sequences."""
+        preds_norm = self.model.predict_proba(X).flatten()
+        return preds_norm * self.y_std_ + self.y_mean_
+
+    def predict_proba(self, X: np.ndarray) -&gt; np.ndarray:
+        """Alias for predict (returns normalized then denormalized predictions)."""
+        return self.predict(X)
+
+    def mse(self, X: np.ndarray, y: np.ndarray) -&gt; float:
+        return float(np.mean((self.predict(X) - y) ** 2))
+
+    def rmse(self, X: np.ndarray, y: np.ndarray) -&gt; float:
+        return float(np.sqrt(self.mse(X, y)))
+
+    def mae(self, X: np.ndarray, y: np.ndarray) -&gt; float:
+        return float(np.mean(np.abs(self.predict(X) - y)))
+
+    def r2_score(self, X: np.ndarray, y: np.ndarray) -&gt; float:
+        y_pred = self.predict(X)
+        ss_res = np.sum((y - y_pred) ** 2)
+        ss_tot = np.sum((y - np.mean(y)) ** 2)
+        if ss_tot == 0:
+            return 1.0 if ss_res == 0 else 0.0
+        return float(1 - ss_res / ss_tot)
+
+    def evaluate(self, X: np.ndarray, y: np.ndarray) -&gt; dict[str, float]:
+        return {
+            "mse": self.mse(X, y),
+            "rmse": self.rmse(X, y),
+            "mae": self.mae(X, y),
+            "r2": self.r2_score(X, y),
+        }
+
+    def save(self, path: str) -&gt; None:
+        if self.model is None:
+            raise ValueError("Cannot save untrained model")
+        self.model.save(path)
+        np.savez(
+            path + ".norm.npz",
+            y_mean=np.array([self.y_mean_ or 0.0]),
+            y_std=np.array([self.y_std_ or 1.0]),
+        )
+
+    @classmethod
+    def load(cls, path: str) -&gt; "StockMarketRNN":
+        model = SimpleRNN.load(path)
+        y_mean = 0.0
+        y_std = 1.0
+        try:
+            norm_data = np.load(path + ".norm.npz")
+            y_mean = float(norm_data["y_mean"].item())
+            y_std = float(norm_data["y_std"].item())
+        except FileNotFoundError:
+            pass
+
+        obj = cls(
+            n_features=model.input_dim,
+            seq_len=20,
+            hidden_dim=model.hidden_dim,
+            learning_rate=model.learning_rate,
+            weight_decay=model.weight_decay,
+            clip_value=model.clip_value,
+            random_seed=model.random_seed,
+        )
+        obj.model = model
+        obj.loss_history = model.loss_history
+        obj.y_mean_ = y_mean
+        obj.y_std_ = y_std
+        return obj
+
+    def to_dict(self) -&gt; dict:
+        return {
+            "n_features": self.n_features,
+            "seq_len": self.seq_len,
+            "hidden_dim": self.hidden_dim,
+            "learning_rate": self.learning_rate,
+            "n_iterations": self.n_iterations,
+            "weight_decay": self.weight_decay,
+            "random_seed": self.random_seed,
+            "training_mode": self.training_mode,
+            "n_epochs_run": len(self.loss_history),
+            "final_loss": self.loss_history[-1] if self.loss_history else 0.0,
+        }</code></pre></details>
+<details><summary>train.py</summary>
+<pre><code>"""Training pipeline for stock market prediction (RNN)."""
+
+import argparse
+import os
+from pathlib import Path
+
+from ai_core.logging import get_logger, setup_logging
+from ai_core.model_registry import ModelRegistry
+from ai_core.validation import DataValidator, create_stock_prediction_schema
+
+from time_series_stock.data import (
+    N_FEATURES,
+    SEQ_LEN,
+    load_training_data,
+    save_training_data,
+    train_test_split,
+)
+from time_series_stock.model import StockMarketRNN
+
+logger = get_logger(__name__)
+
+
+def train(
+    model_dir: Path,
+    data_path: Path | None = None,
+    n_samples: int = 500,
+    n_features: int = N_FEATURES,
+    seq_len: int = SEQ_LEN,
+    hidden_dim: int = 32,
+    learning_rate: float = 0.01,
+    n_iterations: int = 300,
+    weight_decay: float = 0.001,
+    clip_value: float = 5.0,
+    model_version: str = "1.0.0",
+    register_to_mlflow: bool = False,
+    test_size: float = 0.2,
+    random_seed: int = 42,
+) -&gt; dict:
+    X, y = load_training_data(data_path, n_samples=n_samples, random_seed=random_seed)
+    logger.info("Loaded training data", n_samples=len(X), data_path=str(data_path))
+
+    validator = DataValidator(create_stock_prediction_schema())
+    X_flat = X[:, 0, :].reshape(-1, n_features)
+    validation = validator.validate(X_flat)
+    if not validation.valid:
+        logger.error("Training data validation failed", errors=validation.errors)
+        raise ValueError(f"Training data validation failed: {validation.errors}")
+    logger.info("Training data validated", stats=validation.stats)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_seed=random_seed
+    )
+    logger.info("Data split", n_train=len(X_train), n_test=len(X_test), test_size=test_size)
+
+    model_dir.mkdir(parents=True, exist_ok=True)
+    save_training_data(X, y, model_dir / "training_data.npz")
+
+    model = StockMarketRNN(
+        n_features=n_features,
+        seq_len=seq_len,
+        hidden_dim=hidden_dim,
+        learning_rate=learning_rate,
+        n_iterations=n_iterations,
+        weight_decay=weight_decay,
+        clip_value=clip_value,
+        random_seed=random_seed,
+    )
+    model.fit(X_train, y_train, X_val=X_test, y_val=y_test)
+
+    train_metrics = model.evaluate(X_train, y_train)
+    test_metrics = model.evaluate(X_test, y_test)
+
+    logger.info(
+        "Training complete",
+        training_mode=model.training_mode,
+        n_epochs=len(model.loss_history),
+        final_loss=model.loss_history[-1] if model.loss_history else 0.0,
+        train_metrics=train_metrics,
+        test_metrics=test_metrics,
+    )
+
+    model_path = model_dir / f"stock_market_model_v{model_version}.npz"
+    model.save(str(model_path))
+
+    _save_chart(model, model_dir, model_version)
+
+    metrics = {
+        **test_metrics,
+        "training_mode": "supervised",
+        "n_epochs_run": float(len(model.loss_history)),
+        "final_loss": model.loss_history[-1] if model.loss_history else 0.0,
+        "train_mse": train_metrics["mse"],
+        "n_train_samples": float(len(X_train)),
+        "n_test_samples": float(len(X_test)),
+        "hidden_dim": float(hidden_dim),
+        "learning_rate": float(learning_rate),
+        "n_features": float(n_features),
+    }
+
+    registry = ModelRegistry(base_dir=model_dir)
+    registry.save_model(
+        model_name="stock-market-prediction",
+        model_version=model_version,
+        model_type="rnn_sequence_regression",
+        metrics=metrics,
+        parameters={
+            "n_features": n_features,
+            "seq_len": seq_len,
+            "hidden_dim": hidden_dim,
+            "learning_rate": learning_rate,
+            "n_iterations": n_iterations,
+            "weight_decay": weight_decay,
+            "random_seed": random_seed,
+        },
+        artifacts={
+            f"stock_market_model_v{model_version}.npz": model_path,
+            "training_data.npz": model_dir / "training_data.npz",
+        },
+        tags={"framework": "numpy", "task": "stock_prediction", "model_type": "simple_rnn"},
+    )
+
+    if register_to_mlflow:
+        registry.log_to_mlflow(
+            model_name="stock-market-prediction",
+            model_version=model_version,
+            metrics=metrics,
+            params={
+                "n_features": n_features,
+                "seq_len": seq_len,
+                "hidden_dim": hidden_dim,
+                "learning_rate": learning_rate,
+                "n_iterations": n_iterations,
+                "weight_decay": weight_decay,
+                "random_seed": random_seed,
+            },
+            artifacts={
+                "model": str(model_path),
+                "chart": str(model_dir / f"stock_v{model_version}.png"),
+            },
+            tags={"model_type": "stock_prediction", "framework": "numpy"},
+        )
+        logger.info(
+            "Registered model to MLflow", model="stock-market-prediction", version=model_version
+        )
+
+    return metrics
+
+
+def _save_chart(model: StockMarketRNN, output_dir: Path, version: str) -&gt; None:
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    if not model.loss_history:
+        return
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.plot(model.loss_history, color="steelblue", linewidth=1.5)
+    ax.set_xlabel("Training Epoch")
+    ax.set_ylabel("Loss (MSE)")
+    ax.set_title("Stock Market Prediction RNN Training Loss")
+    ax.grid(True, alpha=0.3)
+    ax.set_yscale("log")
+
+    plt.tight_layout()
+    chart_path = output_dir / f"stock_v{version}.png"
+    plt.savefig(str(chart_path), dpi=100)
+    plt.close()
+    logger.info("Chart saved", path=str(chart_path))
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Train stock market prediction RNN")
+    parser.add_argument("--model-dir", type=Path, default=Path(os.getenv("MODEL_DIR", "/models")))
+    parser.add_argument("--data-path", type=Path, default=None)
+    parser.add_argument("--n-samples", type=int, default=int(os.getenv("N_SAMPLES", "500")))
+    parser.add_argument(
+        "--n-features", type=int, default=int(os.getenv("N_FEATURES", str(N_FEATURES)))
+    )
+    parser.add_argument("--seq-len", type=int, default=int(os.getenv("SEQ_LEN", str(SEQ_LEN))))
+    parser.add_argument("--hidden-dim", type=int, default=int(os.getenv("HIDDEN_DIM", "32")))
+    parser.add_argument(
+        "--learning-rate", type=float, default=float(os.getenv("LEARNING_RATE", "0.01"))
+    )
+    parser.add_argument("--n-iterations", type=int, default=int(os.getenv("N_ITERATIONS", "300")))
+    parser.add_argument(
+        "--weight-decay", type=float, default=float(os.getenv("WEIGHT_DECAY", "0.001"))
+    )
+    parser.add_argument("--model-version", type=str, default=os.getenv("MODEL_VERSION", "1.0.0"))
+    parser.add_argument("--test-size", type=float, default=float(os.getenv("TEST_SIZE", "0.2")))
+    parser.add_argument("--random-seed", type=int, default=int(os.getenv("RANDOM_SEED", "42")))
+    parser.add_argument(
+        "--register-mlflow",
+        action="store_true",
+        default=os.getenv("REGISTER_MLFLOW", "false").lower() == "true",
+    )
+    parser.add_argument("--log-level", type=str, default=os.getenv("LOG_LEVEL", "INFO"))
+    args = parser.parse_args()
+
+    setup_logging(args.log_level)
+    args.model_dir.mkdir(parents=True, exist_ok=True)
+
+    metrics = train(
+        model_dir=args.model_dir,
+        data_path=args.data_path,
+        n_samples=args.n_samples,
+        n_features=args.n_features,
+        seq_len=args.seq_len,
+        hidden_dim=args.hidden_dim,
+        learning_rate=args.learning_rate,
+        n_iterations=args.n_iterations,
+        weight_decay=args.weight_decay,
+        model_version=args.model_version,
+        register_to_mlflow=args.register_mlflow,
+        test_size=args.test_size,
+        random_seed=args.random_seed,
+    )
+
+    logger.info("Training finished", metrics=metrics, model_dir=str(args.model_dir))
+
+
+if __name__ == "__main__":
+    main()</code></pre></details>
+<details><summary>data.py</summary>
+<pre><code>"""Data loading and preprocessing for stock market prediction (RNN).
+
+Generates synthetic financial time-series feature sequences for price prediction.
+"""
+
+from pathlib import Path
+
+import numpy as np
+
+N_FEATURES = 5  # normalized open, high, low, close, volume
+SEQ_LEN = 20
+
+DEFAULT_N_SAMPLES = 500
+
+
+def generate_synthetic_data(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -&gt; tuple[np.ndarray, np.ndarray]:
+    """Generate synthetic stock price feature sequences.
+
+    Each sample is a sequence of SEQ_LEN timesteps, each with 5 features
+    (normalized open, high, low, close, volume). The target is the next
+    closing price (derived from the sequence trend).
+
+    Returns:
+        X: (n_samples, SEQ_LEN, N_FEATURES) feature sequences
+        y: (n_samples,) target prices
+    """
+    rng = np.random.default_rng(random_seed)
+
+    X = np.zeros((n_samples, SEQ_LEN, N_FEATURES))
+    y = np.zeros(n_samples)
+
+    for i in range(n_samples):
+        # Random walk base price
+        base_price = rng.uniform(50, 200)
+        prices = [base_price]
+        for _ in range(SEQ_LEN):
+            change = rng.normal(0, 0.02)
+            prices.append(prices[-1] * (1 + change))
+
+        prices = np.array(prices)
+
+        # Normalize features to [0, 1] using rolling window
+        window = prices[:SEQ_LEN]
+        w_min = window.min()
+        w_max = window.max()
+        w_range = w_max - w_min if w_max - w_min &gt; 1e-8 else 1.0
+
+        for t in range(SEQ_LEN):
+            o = prices[t] if t == 0 else prices[t - 1]
+            h = max(prices[t], prices[t - 1] if t &gt; 0 else prices[t])
+            lo = min(prices[t], prices[t - 1] if t &gt; 0 else prices[t])
+            c = prices[t]
+            v = rng.uniform(0.3, 0.9)  # normalized volume
+
+            X[i, t, 0] = (o - w_min) / w_range  # open
+            X[i, t, 1] = (h - w_min) / w_range  # high
+            X[i, t, 2] = (lo - w_min) / w_range  # low
+            X[i, t, 3] = (c - w_min) / w_range  # close
+            X[i, t, 4] = v  # volume
+
+        # Target: actual next closing price (next step after sequence)
+        y[i] = prices[SEQ_LEN]
+
+    # Shuffle
+    perm = rng.permutation(n_samples)
+    return X[perm], y[perm]
+
+
+def load_training_data(
+    data_path: Path | None = None,
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -&gt; tuple[np.ndarray, np.ndarray]:
+    if data_path and Path(data_path).exists():
+        data = np.load(data_path, allow_pickle=True)
+        return data["X"], data["y"]
+    return generate_synthetic_data(n_samples=n_samples, random_seed=random_seed)
+
+
+def train_test_split(
+    X: np.ndarray, y: np.ndarray, test_size: float = 0.2, random_seed: int | None = None
+) -&gt; tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    n = len(X)
+    n_test = max(1, int(n * test_size))
+
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+
+    test_idx = indices[:n_test]
+    train_idx = indices[n_test:]
+
+    return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
+
+
+def save_training_data(X: np.ndarray, y: np.ndarray, path: Path) -&gt; None:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(path, X=X, y=y)</code></pre></details>
+<details><summary>api.py</summary>
+<pre><code>"""Serving API for stock market prediction (RNN)."""
+
+import os
+import time
+from contextlib import asynccontextmanager
+from pathlib import Path
+
+import numpy as np
+from ai_core.drift import DriftDetector
+from ai_core.fastapi_middleware import add_observability_middleware
+from ai_core.logging import get_logger, setup_logging
+from ai_core.metrics import MetricsCollector
+from ai_core.model_registry import ModelRegistry
+from ai_core.validation import DataValidator, create_stock_prediction_schema
+from fastapi import FastAPI, HTTPException, Response
+from pydantic import BaseModel, Field
+
+from time_series_stock.data import N_FEATURES, SEQ_LEN, generate_synthetic_data
+from time_series_stock.model import StockMarketRNN
+
+logger = get_logger(__name__)
+
+MODEL_DIR = Path(os.getenv("MODEL_DIR", "/models"))
+MODEL_VERSION = os.getenv("MODEL_VERSION", "latest")
+METRICS_PORT = int(os.getenv("STOCK_PREDICTION_METRICS_PORT", "8017"))
+DRIFT_THRESHOLD = float(os.getenv("DRIFT_THRESHOLD", "0.2"))
+
+
+class PredictRequest(BaseModel):
+    feature_sequences: list[list[float]] = Field(..., min_length=1, max_length=SEQ_LEN)
+
+
+class PredictBulkRequest(BaseModel):
+    requests: list[list[list[float]]] = Field(..., min_length=1, max_length=50)
+
+
+class PredictResponse(BaseModel):
+    predicted_price: float
+    model_version: str
+    training_mode: str
+
+
+class BulkPredictResponse(BaseModel):
+    predictions: list[PredictResponse]
+    model_version: str
+
+
+class StatsResponse(BaseModel):
+    n_features: int
+    seq_len: int
+    hidden_dim: int
+    training_mode: str
+    n_epochs_run: int
+    final_loss: float
+    model_version: str
+
+
+_model: StockMarketRNN | None = None
+_model_version: str = "unknown"
+_metrics: MetricsCollector | None = None
+_validator: DataValidator | None = None
+_drift_detector: DriftDetector | None = None
+_reference_data: np.ndarray | None = None
+_recent_predictions: list[list[float]] = []
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global _model, _model_version, _metrics, _validator, _drift_detector, _reference_data
+
+    setup_logging(os.getenv("LOG_LEVEL", "INFO"))
+    _metrics = MetricsCollector("stock_market_prediction", port=METRICS_PORT)
+    app.state.metrics = _metrics
+
+    _validator = DataValidator(create_stock_prediction_schema())
+    _drift_detector = DriftDetector(
+        feature_names=[f"step_{i}" for i in range(N_FEATURES)],
+        feature_types={f"step_{i}": "float" for i in range(N_FEATURES)},
+        psi_threshold=DRIFT_THRESHOLD,
+    )
+
+    _model, _model_version = _load_model()
+    _metrics.set_model_version(_model_version)
+    _metrics.set_model_info(
+        model_name="stock-market-prediction",
+        model_version=_model_version,
+        model_type="rnn_sequence_regression",
+    )
+
+    _reference_data = _load_reference_data()
+    logger.info("Model loaded", model="stock-market-prediction", version=_model_version)
+
+    yield
+    logger.info("Shutting down stock-market-prediction API")
+
+
+def _load_model() -&gt; tuple[StockMarketRNN, str]:
+    registry = ModelRegistry(base_dir=MODEL_DIR)
+    try:
+        if MODEL_VERSION == "latest":
+            models = registry.list_models()
+            sm_models = [m for m in models if m.get("model_name") == "stock-market-prediction"]
+            if sm_models:
+                sm_models.sort(key=lambda m: m["model_version"], reverse=True)
+                latest = sm_models[0]
+                model_dir = Path(latest["artifact_path"])
+                npz_files = list(model_dir.glob("stock_market_model_*.npz")) + list(
+                    model_dir.glob("*.npz")
+                )
+                if npz_files:
+                    return StockMarketRNN.load(str(npz_files[0])), latest["model_version"]
+        else:
+            model_dir = MODEL_DIR / "stock-market-prediction" / MODEL_VERSION
+            if model_dir.exists():
+                npz_files = list(model_dir.glob("stock_market_model_*.npz")) + list(
+                    model_dir.glob("*.npz")
+                )
+                if npz_files:
+                    return StockMarketRNN.load(str(npz_files[0])), MODEL_VERSION
+    except Exception as e:
+        logger.warning(f"Registry lookup failed: {e}")
+
+    npz_path = MODEL_DIR / "stock_market_model.npz"
+    if npz_path.exists():
+        return StockMarketRNN.load(str(npz_path)), "legacy"
+
+    candidate_paths = [
+        Path("/app/artifacts/models/stock_market_model_v1.0.0.npz"),
+        Path(__file__).resolve().parents[3]
+        / "artifacts"
+        / "models"
+        / "stock_market_model_v1.0.0.npz",
+    ]
+    for p in candidate_paths:
+        if p.exists():
+            logger.info("Loading bundled baseline model", path=str(p))
+            return StockMarketRNN.load(str(p)), "1.0.0-bundled"
+
+    logger.warning("No pre-existing model found. Initializing baseline RNN model.")
+    X_base, y_base = generate_synthetic_data(n_samples=100, random_seed=42)
+    model = StockMarketRNN(
+        n_features=N_FEATURES,
+        seq_len=SEQ_LEN,
+        hidden_dim=32,
+        learning_rate=0.01,
+        n_iterations=100,
+        random_seed=42,
+    )
+    model.fit(X_base, y_base)
+    return model, "1.0.0-baseline"
+
+
+def _load_reference_data() -&gt; np.ndarray | None:
+    X_base, _ = generate_synthetic_data(n_samples=100, random_seed=42)
+    # Flatten first timestep features for drift detection
+    return X_base[:, 0, :].reshape(-1, N_FEATURES)
+
+
+app = FastAPI(
+    title="Stock Market Prediction API",
+    description="RNN for stock price prediction from temporal feature sequences",
+    version="1.0.0",
+    lifespan=lifespan,
+)
+
+add_observability_middleware(app)
+
+
+@app.get("/")
+def read_root():
+    return {
+        "service": "stock-market-prediction-api",
+        "version": "1.0.0",
+        "model_version": _model_version,
+        "training_mode": _model.training_mode if _model else "unknown",
+        "n_features": N_FEATURES,
+        "seq_len": SEQ_LEN,
+        "endpoints": {
+            "health": "/health",
+            "predict": "POST /predict",
+            "predict/bulk": "POST /predict/bulk",
+            "stats": "GET /stats",
+            "drift": "GET /drift",
+            "metrics": "/metrics",
+        },
+    }
+
+
+@app.get("/health")
+def health_check():
+    if _model is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+    return {
+        "status": "healthy",
+        "model_loaded": True,
+        "model_version": _model_version,
+        "training_mode": _model.training_mode if _model else "unknown",
+    }
+
+
+@app.get("/metrics")
+def metrics():
+    from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+@app.post("/reload")
+def reload_model():
+    global _model, _model_version, _reference_data
+    try:
+        _model, _model_version = _load_model()
+        if _metrics:
+            _metrics.set_model_version(_model_version)
+            _metrics.set_model_info(
+                model_name="stock-market-prediction",
+                model_version=_model_version,
+                model_type="rnn_sequence_regression",
+            )
+        _reference_data = _load_reference_data()
+        logger.info(
+            "Model reloaded dynamically", model="stock-market-prediction", version=_model_version
+        )
+        return {"status": "reloaded", "model_version": _model_version}
+    except Exception as e:
+        logger.exception("Model reload failed", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Reload failed: {e}") from e
+
+
+@app.get("/drift")
+def drift_check():
+    if _drift_detector is None or _reference_data is None:
+        raise HTTPException(status_code=503, detail="Drift detection not available")
+    if len(_recent_predictions) &lt; 10:
+        return {
+            "total_features": N_FEATURES,
+            "drifted_features": 0,
+            "drift_ratio": 0.0,
+            "drifted": [],
+            "all_results": [],
+        }
+    current = np.array(_recent_predictions[-100:])
+    results = _drift_detector.detect_drift(_reference_data, current)
+    summary = _drift_detector.summarize(results)
+    if _metrics:
+        _metrics.set_drift_ratio(summary["drift_ratio"])
+    return summary
+
+
+@app.get("/stats", response_model=StatsResponse)
+def get_stats():
+    if _model is None or _model.model is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+    return StatsResponse(
+        n_features=N_FEATURES,
+        seq_len=SEQ_LEN,
+        hidden_dim=_model.hidden_dim,
+        training_mode=_model.training_mode,
+        n_epochs_run=len(_model.loss_history),
+        final_loss=_model.loss_history[-1] if _model.loss_history else 0.0,
+        model_version=_model_version,
+    )
+
+
+def _compute_prediction(feature_sequences: list[list[float]]) -&gt; PredictResponse:
+    if _model is None or _metrics is None or _validator is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+
+    X = np.array([feature_sequences])
+
+    # Validate
+    X_flat = X.reshape(-1, N_FEATURES)
+    validation = _validator.validate(X_flat)
+    if not validation.valid:
+        raise HTTPException(status_code=422, detail=validation.errors)
+
+    start = time.time()
+    try:
+        price = float(_model.predict(X)[0])
+        duration = time.time() - start
+        _metrics.record_prediction(model_version=_model_version, duration=duration)
+
+        flat = [v for frame in feature_sequences for v in frame]
+        _recent_predictions.append(flat)
+        if len(_recent_predictions) &gt; 1000:
+            _recent_predictions.pop(0)
+
+        return PredictResponse(
+            predicted_price=round(price, 2),
+            model_version=_model_version,
+            training_mode=_model.training_mode,
+        )
+    except Exception as e:
+        _metrics.record_error(model_version=_model_version, error_type="prediction")
+        logger.exception("Prediction failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Prediction failed") from e
+
+
+@app.post("/predict", response_model=PredictResponse)
+def predict(body: PredictRequest):
+    return _compute_prediction(body.feature_sequences)
+
+
+@app.post("/predict/bulk", response_model=BulkPredictResponse)
+def predict_bulk(body: PredictBulkRequest):
+    global _recent_predictions
+    if _model is None or _metrics is None or _validator is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+    if len(body.requests) &lt; 1 or len(body.requests) &gt; 50:
+        raise HTTPException(status_code=422, detail="Batch size must be between 1 and 50")
+
+    predictions = []
+    for feature_seq in body.requests:
+        predictions.append(_compute_prediction(feature_seq))
+
+    return BulkPredictResponse(predictions=predictions, model_version=_model_version)</code></pre></details>
+
+<h2>4. Monorepo Integration</h2>
+<p>This example is a first-class consumer of the shared <code>packages/ai-core</code> library.
+It reuses the following foundation modules instead of re-implementing infrastructure:</p>
+<div><span class="badge">ai_core.drift</span>
+<span class="badge">ai_core.fastapi_middleware</span>
+<span class="badge">ai_core.logging</span>
+<span class="badge">ai_core.metrics</span>
+<span class="badge">ai_core.model_registry</span>
+<span class="badge">ai_core.nn_utils</span>
+<span class="badge">ai_core.validation</span></div>
+<h3>How it plugs in</h3>
+<ul>
+  <li><strong>Configuration</strong> — 12-factor config from <code>ai_core.config</code>.</li>
+  <li><strong>Observability</strong> — structured logging + Prometheus metrics are wired in automatically.</li>
+  <li><strong>Validation</strong> — input schema validation prevents bad data reaching the model.</li>
+  <li><strong>Registry</strong> — trained artifacts are versioned and registered for reproducible serving.</li>
+  <li><strong>Serving</strong> — the FastAPI app mounts shared observability middleware for tracing &amp; metrics.</li>
+</ul>
+<p class="muted">Because every example shares <code>ai_core</code>, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.</p>
+
+</div>
+</body>
+</html>

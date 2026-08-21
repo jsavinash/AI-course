@@ -21,29 +21,23 @@ Matrix factorization decomposes the user-item interaction matrix into latent fac
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+Matrix-factorization prediction (user-item rating).
+  mu=3.5, b_u=0.3, b_i=-0.2, q_i.p_u = 0.4
+  r_hat_ui = 3.5 + 0.3 - 0.2 + 0.4 = 4.0
+  Cosine sim(u,v) = (u.v)/(||u|| ||v||) ranks neighbours.
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Collaborative Filtering diagram](./assets/recommendation-engine.png)
+![Recommendation Engine (Collaborative Filtering) diagram](./assets/recommendation-engine.png)
 
 Interactive embedding scatter plot; recommendation coverage vs diversity trade-off; top-k recall curve.
 

@@ -21,29 +21,21 @@ Self-supervised learning creates labels from the data itself via pretext tasks. 
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+InfoNCE (see self example): pull positive pair, push negatives.
+  L = -log[ exp(sim(z_i,z_j)/tau) / sum_k exp(sim(z_i,z_k)/tau) ].
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Self-Supervised diagram](./assets/self-supervised-monitoring.png)
+![Self-Supervised Learning diagram](./assets/self-supervised-monitoring.png)
 
 Interactive augmentation preview; contrastive embedding t-SNE; similarity matrix heatmap.
 

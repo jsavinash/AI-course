@@ -21,29 +21,22 @@ Semi-supervised learning leverages unlabeled data by enforcing consistency. Give
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+Semi-supervised consistency loss.
+  L = L_sup + lambda_t * MSE(f(x'), f(x))
+  Augmented view x' should match f(x); ramp lambda_t over training.
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Semi-Supervised diagram](./assets/semi-supervised-email.png)
+![Semi-Supervised Learning diagram](./assets/semi-supervised-email.png)
 
 Interactive pseudo-label confidence distribution; labeled vs unlabeled loss curves; decision boundary animation.
 

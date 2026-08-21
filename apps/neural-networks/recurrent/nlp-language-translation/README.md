@@ -21,29 +21,23 @@ Machine learning models learn parameters $\theta$ by minimizing a loss function 
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+Gradient-descent parameter update.
+  theta = 1.00, learning rate alpha = 0.10, gradient = -0.50
+  theta <- 1.00 - 0.10*(-0.50) = 1.05
+  Loss L(theta) decreases each step.
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Neural Network diagram](./assets/nlp-language-translation.png)
+![Machine Learning Fundamentals diagram](./assets/nlp-language-translation.png)
 
 Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
 
@@ -348,7 +342,7 @@ def train(
     logger.info("Loaded training data", n_samples=len(X), data_path=str(data_path))
 
     validator = DataValidator(create_language_translation_schema())
-    validation = validator.validate(X.reshape(-1, 1))
+    validation = validator.validate(X)
     if not validation.valid:
         logger.error("Training data validation failed", errors=validation.errors)
         raise ValueError(f"Training data validation failed: {validation.errors}")

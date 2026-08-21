@@ -25,29 +25,22 @@ Scaled dot-product attention computes compatibility between queries and keys. Sc
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+Scaled dot-product attention (see transformer example).
+  out = softmax(QK^T/sqrt(d_k)) V; positional encodings
+  PE(pos,2i)=sin(pos/10000^{2i/d}) inject order.
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Self-Attention diagram](./assets/attention-mechanism.png)
+![Attention Mechanism diagram](./assets/attention-mechanism.png)
 
 Interactive attention heatmap viewer; multi-head attention flow diagram; position encoding visualizer.
 
@@ -617,7 +610,7 @@ def train(
     logger.info("Generated sequence data", n_samples=n_samples, seq_len=SEQ_LEN)
 
     validator = DataValidator(create_attention_mechanism_schema())
-    validation = validator.validate(X.reshape(-1, 1))
+    validation = validator.validate(X.reshape(X.shape[0], -1))
     if not validation.valid:
         logger.error("Training data validation failed", errors=validation.errors)
         raise ValueError(f"Training data validation failed: {validation.errors}")
@@ -769,8 +762,8 @@ def generate_synthetic_data(
         y: (n_samples, seq_len, output_dim) target sequence
     """
     rng = np.random.default_rng(random_seed)
-    X = rng.normal(0, 1, (n_samples, seq_len, input_dim)).astype(np.float32)
-    y = rng.normal(0, 1, (n_samples, seq_len, output_dim)).astype(np.float32)
+    X = rng.uniform(-1, 1, (n_samples, seq_len, input_dim)).astype(np.float32)
+    y = rng.uniform(-1, 1, (n_samples, seq_len, output_dim)).astype(np.float32)
 
     return X, y
 
@@ -821,6 +814,7 @@ import os
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Annotated
 
 import numpy as np
 from ai_core.drift import DriftDetector
@@ -843,7 +837,7 @@ METRICS_PORT = int(os.getenv("ATTENTION_METRICS_PORT", "8012"))
 DRIFT_THRESHOLD = float(os.getenv("DRIFT_THRESHOLD", "0.2"))
 
 class PredictRequest(BaseModel):
-    input_sequence: list[list[float]] = Field(..., min_length=1, max_length=1)
+    input_sequence: list[Annotated[list[float], Field(min_length=SEQ_LEN * INPUT_DIM, max_length=SEQ_LEN * INPUT_DIM)]] = Field(..., min_length=1, max_length=1)
     attention_type: str | None = None
 
 class PredictResponse(BaseModel):
@@ -1066,7 +1060,7 @@ def predict(body: PredictRequest):
     try:
         X_reshaped = X.reshape(1, SEQ_LEN, INPUT_DIM) if X.size >= SEQ_LEN * INPUT_DIM else X.reshape(1, X.shape[1] // INPUT_DIM, INPUT_DIM)
 
-        if body.attention_type and body.attention_type != _model.attention_type:
+        if body.attention_type and body.attention_type in ("soft_additive", "self", "multi_head", "hard") and body.attention_type != _model.attention_type:
             _model.attention_type = body.attention_type
 
         output, attn_weights = _model.predict(X_reshaped)

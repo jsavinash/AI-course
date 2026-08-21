@@ -21,29 +21,23 @@ Image generation models learn to synthesize realistic images. GANs use adversari
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+Spiking neuron membrane update.
+  tau_m dV/dt = -(V - V_rest) + R_m I
+  V=0.5, V_rest=0, I=1.0, tau=10 -> dV/dt = 0.05
+  If V >= V_th=1.0 emit spike and reset to V_reset.
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Image Generation diagram](./assets/snn-image-classification.png)
+![Image Generation (GAN/VAE/Diffusion) diagram](./assets/snn-image-classification.png)
 
 Interactive latent space explorer; denoising trajectory viewer; FID score vs training steps.
 
@@ -546,7 +540,7 @@ def train(
     logger.info("Generated image data", n_samples=n_samples)
 
     validator = DataValidator(create_snn_image_classification_schema())
-    validation = validator.validate(X.reshape(-1, 1))
+    validation = validator.validate(X)
     if not validation.valid:
         logger.error("Training data validation failed", errors=validation.errors)
         raise ValueError(f"Training data validation failed: {validation.errors}")

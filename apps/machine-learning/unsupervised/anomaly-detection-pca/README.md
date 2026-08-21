@@ -25,29 +25,24 @@ PCA finds orthogonal directions of maximum variance. By computing the SVD of cen
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+PCA projection + reconstruction (anomaly detection).
+  Centered X = [[1,1],[-1,-1],[1,-1],[-1,1]]
+  Cov Sigma = [[1,0],[0,1]]; top PC v = [0.707,0.707]
+  Reduced x' = X.v = [1.41,-1.41,0,-0]  (1-D)
+  Recon error ||X - X_recon||^2 = 0 for inliers; large for anomalies.
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![PCA diagram](./assets/anomaly-detection-pca.png)
+![Anomaly Detection / PCA diagram](./assets/anomaly-detection-pca.png)
 
 Interactive 2D/3D PCA projection; explained variance scree plot; anomaly score distribution.
 

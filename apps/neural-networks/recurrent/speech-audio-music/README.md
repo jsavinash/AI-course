@@ -21,29 +21,23 @@ Machine learning models learn parameters $\theta$ by minimizing a loss function 
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+RNN hidden-state update (one timestep).
+  h_{t-1}=0.30, x_t=0.50, W_hh=W_xh=0.5, b=0
+  pre = 0.5*0.30 + 0.5*0.50 = 0.40
+  h_t = tanh(0.40) = 0.380
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Neural Network diagram](./assets/speech-audio-music.png)
+![Machine Learning Fundamentals diagram](./assets/speech-audio-music.png)
 
 Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
 
@@ -360,7 +354,7 @@ def train(
     logger.info("Loaded training data", n_samples=len(X), data_path=str(data_path))
 
     validator = DataValidator(create_music_generation_schema())
-    validation = validator.validate(X.reshape(-1, 1))
+    validation = validator.validate(X)
     if not validation.valid:
         logger.error("Training data validation failed", errors=validation.errors)
         raise ValueError(f"Training data validation failed: {validation.errors}")

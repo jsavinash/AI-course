@@ -23,29 +23,24 @@ The Transformer uses stacked encoder-decoder blocks. Each block applies multi-he
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+Scaled dot-product attention (2 tokens, d_k=2).
+  Q=[1,0], K=[[1,0],[0,1]], V=[[1,2],[3,4]]
+  QK^T = [1,0]; /sqrt(2) = [0.707,0]
+  softmax = [0.67,0.33]
+  out = 0.67*[1,2] + 0.33*[3,4] = [1.67,2.67]
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Transformer diagram](./assets/transformers.png)
+![Transformer Architecture diagram](./assets/transformers.png)
 
 Interactive encoder-decoder diagram with attention head visualization and token probability explorer.
 
@@ -574,7 +569,7 @@ def train(
     logger.info("Loaded training data", n_samples=len(X), data_path=str(data_path))
 
     validator = DataValidator(create_transformer_language_modeling_schema())
-    validation = validator.validate(X.reshape(-1, 1))
+    validation = validator.validate(X)
     if not validation.valid:
         logger.error("Training data validation failed", errors=validation.errors)
         raise ValueError(f"Training data validation failed: {validation.errors}")

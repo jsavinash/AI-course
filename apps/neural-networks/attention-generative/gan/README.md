@@ -23,29 +23,24 @@ GANs consist of two networks competing in a minimax game. The discriminator $D$ 
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+GAN discriminator loss (one step).
+  D(x)=0.90 (real), D(G(z))=0.20 (fake)
+  L_D = -[log 0.90 + log(1-0.20)]
+       = -[(-0.105) + (-0.223)] = 0.328
+  Generator minimises -log D(G(z)).
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Generative Adversarial Net diagram](./assets/gan.png)
+![Generative Adversarial Network (GAN) diagram](./assets/gan.png)
 
 Interactive GAN training dashboard: generator/discriminator loss curves, sample evolution grid, decision boundary.
 
@@ -498,7 +493,7 @@ def train(
     logger.info("Loaded training data", n_samples=len(X), data_path=str(data_path))
 
     validator = DataValidator(create_gan_image_generation_schema())
-    validation = validator.validate(X.reshape(-1, 1))
+    validation = validator.validate(X)
     if not validation.valid:
         logger.error("Training data validation failed", errors=validation.errors)
         raise ValueError(f"Training data validation failed: {validation.errors}")

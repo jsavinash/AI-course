@@ -23,29 +23,24 @@ Capsule Networks replace scalar neurons with vector capsules. The squash functio
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+CapsNet squash function.
+  s = [1.5,1.5]  -> ||s|| = 2.12
+  v = (||s||^2/(1+||s||^2)) * (s/||s||)
+    = (4.5/5.5) * (0.707,0.707) = (0.578,0.578)
+  length 0.818 encodes entity presence probability.
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Capsule Network diagram](./assets/capsnet-text-recognition.png)
+![Capsule Neural Network (CapsNet) diagram](./assets/capsnet-text-recognition.png)
 
 Interactive capsule routing diagram; pose matrix heatmap; reconstruction error vs capsule size.
 
@@ -317,7 +312,7 @@ def train(
 
     if "classification" in ("classification", "binary_classification"):
         validator = DataValidator(create_text_char_recognition_schema())
-        validation = validator.validate(X.reshape(-1, 1))
+        validation = validator.validate(X)
         if not validation.valid:
             logger.error("Training data validation failed", errors=validation.errors)
             raise ValueError(f"Training data validation failed: {validation.errors}")

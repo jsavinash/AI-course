@@ -23,29 +23,24 @@ Feedforward networks learn hierarchical feature representations. Each layer comp
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+Feed-forward classification forward pass (3-class digit).
+  z = Wx + b = [1.1, 0.4, -0.3]
+  exp(z) = [3.00, 1.49, 0.74];  sum = 5.23
+  y_hat = softmax(z) = [0.574, 0.285, 0.142]
+  predicted class = argmax = 0 (highest probability).
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Classification diagram](./assets/pattern-recognition-digits.png)
+![Digit Recognition / Classification diagram](./assets/pattern-recognition-digits.png)
 
 Interactive decision boundary; feature visualization for hidden layers; confusion matrix explorer.
 

@@ -21,29 +21,24 @@ K-Means partitions data into $k$ clusters by minimizing within-cluster sum of sq
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+K-Means assignment + centroid update (k=2).
+  Points {0,0},{1,0},{8,8},{9,8}; init mu0=(0,0), mu1=(9,8)
+  Assign: {0,0},{1,0}->C0 ; {8,8},{9,8}->C1
+  Update mu0 = mean(C0) = (0.5,0); mu1 = mean(C1) = (8.5,8)
+  Objective J drops after each EM step.
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![K-Means Clustering diagram](./assets/market-segmentation.png)
+![Market Segmentation (K-Means) diagram](./assets/market-segmentation.png)
 
 Interactive elbow method plot; cluster visualization with centroids; silhouette score explorer.
 

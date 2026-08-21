@@ -21,29 +21,21 @@ Image generation models learn to synthesize realistic images. GANs use adversari
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+Image synthesis objective (diffusion/VAE/GAN blend).
+  L_simple = E||epsilon - epsilon_theta(x_t,t)||^2 (diffusion term).
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Image Generation diagram](./assets/image-generation.png)
+![Image Generation (GAN/VAE/Diffusion) diagram](./assets/image-generation.png)
 
 Interactive latent space explorer; denoising trajectory viewer; FID score vs training steps.
 

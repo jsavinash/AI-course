@@ -23,29 +23,24 @@ VAEs learn a probabilistic latent space via the Evidence Lower Bound (ELBO). The
 
 ### Worked Numerical Example
 
-$$z = w \cdot x + b$$
+Concrete forward-pass / update evaluation using the algorithm's own equations:
 
-Illustrative forward-pass evaluation (scalar example):
-
-Input  x        = 12.0   (e.g. pizza diameter, inches)
-Weights w       =  0.85
-Bias    b       =  0.30
----------------------------------
-z = w*x + b
-  = 0.85 * 12.0 + 0.30
-  = 10.20 + 0.30
-  = 10.50   <- model output
+VAE KL term (1-D latent).
+  mu=0.1, sigma=1.0
+  KL = 0.5*(1 + log(1^2) - 0.1^2 - 1^2)
+     = 0.5*(1 + 0 - 0.01 - 1) = -0.005 ~ 0
+  ELBO = Reconstruction - KL.
 
 ### Conceptual Diagram
 
-        Core transformation flow
+        Math concept (placeholder)
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
                        |
                   [ prediction ]
 
-![Variational Autoencoder diagram](./assets/vae.png)
+![Variational Autoencoder (VAE) diagram](./assets/vae.png)
 
 Interactive latent space explorer: traverse 2D latent manifold; sample generation with sliders; KL divergence monitor.
 
@@ -487,7 +482,7 @@ def train(
     logger.info("Loaded training data", n_samples=len(X), data_path=str(data_path))
 
     validator = DataValidator(create_vae_data_generation_schema())
-    validation = validator.validate(X.reshape(-1, 1))
+    validation = validator.validate(X)
     if not validation.valid:
         logger.error("Training data validation failed", errors=validation.errors)
         raise ValueError(f"Training data validation failed: {validation.errors}")
