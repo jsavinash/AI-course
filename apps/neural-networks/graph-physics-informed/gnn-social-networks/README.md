@@ -45,7 +45,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Graph Neural Network diagram](./assets/gnn-social-networks.png)
 
 Interactive graph with animated message passing; node embedding t-SNE projection; attention weight heatmap.
 

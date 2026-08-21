@@ -43,7 +43,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Tool Use / Function Calls diagram](./assets/tool-use-functional-calling.png)
 
 Interactive tool call graph; argument parsing explorer; multi-step reasoning trace.
 

@@ -43,7 +43,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Video Generation diagram](./assets/video-generation.png)
 
 Interactive frame-by-frame playback with generated vs real overlay; optical flow visualization; temporal consistency score.
 

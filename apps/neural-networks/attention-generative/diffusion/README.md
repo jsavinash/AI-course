@@ -45,7 +45,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Diffusion Model diagram](./assets/diffusion.png)
 
 Interactive forward/reverse process visualization; denoising trajectory viewer; noise schedule plot.
 

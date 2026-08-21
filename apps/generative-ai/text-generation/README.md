@@ -43,7 +43,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Text Generation diagram](./assets/text-generation.png)
 
 Interactive temperature slider; generated text preview; perplexity vs context length.
 

@@ -45,7 +45,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Q-Learning diagram](./assets/robot-maze-navigation.png)
 
 Interactive grid world with agent path; Q-value heatmap; episode reward curves; epsilon-greedy action distribution.
 

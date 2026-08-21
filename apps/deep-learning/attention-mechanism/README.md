@@ -47,7 +47,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Self-Attention diagram](./assets/attention-mechanism.png)
 
 Interactive attention heatmap viewer; multi-head attention flow diagram; position encoding visualizer.
 

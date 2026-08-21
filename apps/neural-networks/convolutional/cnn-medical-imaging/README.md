@@ -47,7 +47,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Convolutional Network diagram](./assets/cnn-medical-imaging.png)
 
 Interactive filter visualization; feature map heatmap; receptive field calculator; Grad-CAM overlay.
 

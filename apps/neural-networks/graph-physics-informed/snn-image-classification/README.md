@@ -43,7 +43,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Image Generation diagram](./assets/snn-image-classification.png)
 
 Interactive latent space explorer; denoising trajectory viewer; FID score vs training steps.
 

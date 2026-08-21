@@ -43,7 +43,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Neural Network diagram](./assets/nlp-language-translation.png)
 
 Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
 

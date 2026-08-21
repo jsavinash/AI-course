@@ -41,7 +41,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Prompt Engineering diagram](./assets/prompt-engineering.png)
 
 Interactive prompt comparison table; generation diversity vs prompt length; token probability explorer.
 

@@ -45,7 +45,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Physics-Informed NN diagram](./assets/pinn-heat-equation.png)
 
 Interactive PDE solution comparison: PINN vs finite difference; residual heatmap; loss decomposition pie chart.
 

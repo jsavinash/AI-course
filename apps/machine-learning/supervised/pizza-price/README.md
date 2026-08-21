@@ -47,7 +47,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Linear Regression diagram](./assets/pizza-price.png)
 
 Interactive scatter plot with regression line, showing loss descent over iterations.
 

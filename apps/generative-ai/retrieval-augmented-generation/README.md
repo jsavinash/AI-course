@@ -43,7 +43,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Retrieval-Augmented Gen diagram](./assets/retrieval-augmented-generation.png)
 
 Interactive retrieval pipeline; relevance score distribution; context vs generation attention alignment.
 

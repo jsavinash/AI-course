@@ -43,7 +43,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Semi-Supervised diagram](./assets/semi-supervised-email.png)
 
 Interactive pseudo-label confidence distribution; labeled vs unlabeled loss curves; decision boundary animation.
 

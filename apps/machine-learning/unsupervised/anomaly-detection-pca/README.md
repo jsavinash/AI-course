@@ -47,7 +47,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![PCA diagram](./assets/anomaly-detection-pca.png)
 
 Interactive 2D/3D PCA projection; explained variance scree plot; anomaly score distribution.
 

@@ -1,0 +1,267 @@
+{
+  "apps/deep-learning/attention-mechanism": {
+    "slug": "attention-mechanism",
+    "title": "Self-Attention",
+    "image": "assets/attention-mechanism.png"
+  },
+  "apps/deep-learning/large-language-model": {
+    "slug": "large-language-model",
+    "title": "Neural Network",
+    "image": "assets/large-language-model.png"
+  },
+  "apps/deep-learning/multimodal-llm": {
+    "slug": "multimodal-llm",
+    "title": "Multimodal Learning",
+    "image": "assets/multimodal-llm.png"
+  },
+  "apps/deep-learning/pre-training-fine-tuning": {
+    "slug": "pre-training-fine-tuning",
+    "title": "Pre-training (MLM)",
+    "image": "assets/pre-training-fine-tuning.png"
+  },
+  "apps/deep-learning/transfer-learning": {
+    "slug": "transfer-learning",
+    "title": "Transfer Learning",
+    "image": "assets/transfer-learning.png"
+  },
+  "apps/deep-learning/transformers-language-modeling": {
+    "slug": "transformers-language-modeling",
+    "title": "Transformer",
+    "image": "assets/transformers-language-modeling.png"
+  },
+  "apps/generative-ai/code-generation": {
+    "slug": "code-generation",
+    "title": "Code Generation",
+    "image": "assets/code-generation.png"
+  },
+  "apps/generative-ai/image-generation": {
+    "slug": "image-generation",
+    "title": "Image Generation",
+    "image": "assets/image-generation.png"
+  },
+  "apps/generative-ai/prompt-engineering": {
+    "slug": "prompt-engineering",
+    "title": "Prompt Engineering",
+    "image": "assets/prompt-engineering.png"
+  },
+  "apps/generative-ai/retrieval-augmented-generation": {
+    "slug": "retrieval-augmented-generation",
+    "title": "Retrieval-Augmented Gen",
+    "image": "assets/retrieval-augmented-generation.png"
+  },
+  "apps/generative-ai/text-generation": {
+    "slug": "text-generation",
+    "title": "Text Generation",
+    "image": "assets/text-generation.png"
+  },
+  "apps/generative-ai/tool-use-functional-calling": {
+    "slug": "tool-use-functional-calling",
+    "title": "Tool Use / Function Calls",
+    "image": "assets/tool-use-functional-calling.png"
+  },
+  "apps/generative-ai/video-generation": {
+    "slug": "video-generation",
+    "title": "Video Generation",
+    "image": "assets/video-generation.png"
+  },
+  "apps/machine-learning/reinforcement/robot-maze-navigation": {
+    "slug": "robot-maze-navigation",
+    "title": "Q-Learning",
+    "image": "assets/robot-maze-navigation.png"
+  },
+  "apps/machine-learning/self-supervised/self-supervised-monitoring": {
+    "slug": "self-supervised-monitoring",
+    "title": "Self-Supervised",
+    "image": "assets/self-supervised-monitoring.png"
+  },
+  "apps/machine-learning/semi-supervised/semi-supervised-email": {
+    "slug": "semi-supervised-email",
+    "title": "Semi-Supervised",
+    "image": "assets/semi-supervised-email.png"
+  },
+  "apps/machine-learning/supervised/pizza-price": {
+    "slug": "pizza-price",
+    "title": "Linear Regression",
+    "image": "assets/pizza-price.png"
+  },
+  "apps/machine-learning/supervised/spam-classification": {
+    "slug": "spam-classification",
+    "title": "Logistic Regression",
+    "image": "assets/spam-classification.png"
+  },
+  "apps/machine-learning/unsupervised/anomaly-detection-pca": {
+    "slug": "anomaly-detection-pca",
+    "title": "PCA",
+    "image": "assets/anomaly-detection-pca.png"
+  },
+  "apps/machine-learning/unsupervised/market-segmentation": {
+    "slug": "market-segmentation",
+    "title": "K-Means Clustering",
+    "image": "assets/market-segmentation.png"
+  },
+  "apps/machine-learning/unsupervised/recommendation-engine": {
+    "slug": "recommendation-engine",
+    "title": "Collaborative Filtering",
+    "image": "assets/recommendation-engine.png"
+  },
+  "apps/neural-networks/attention-generative/diffusion": {
+    "slug": "diffusion",
+    "title": "Diffusion Model",
+    "image": "assets/diffusion.png"
+  },
+  "apps/neural-networks/attention-generative/gan": {
+    "slug": "gan",
+    "title": "Generative Adversarial Net",
+    "image": "assets/gan.png"
+  },
+  "apps/neural-networks/attention-generative/transformers": {
+    "slug": "transformers",
+    "title": "Transformer",
+    "image": "assets/transformers.png"
+  },
+  "apps/neural-networks/attention-generative/vae": {
+    "slug": "vae",
+    "title": "Variational Autoencoder",
+    "image": "assets/vae.png"
+  },
+  "apps/neural-networks/convolutional/advanced-generative-art": {
+    "slug": "advanced-generative-art",
+    "title": "Neural Network",
+    "image": "assets/advanced-generative-art.png"
+  },
+  "apps/neural-networks/convolutional/advanced-semantic-segmentation": {
+    "slug": "advanced-semantic-segmentation",
+    "title": "Neural Network",
+    "image": "assets/advanced-semantic-segmentation.png"
+  },
+  "apps/neural-networks/convolutional/advanced-super-resolution": {
+    "slug": "advanced-super-resolution",
+    "title": "Neural Network",
+    "image": "assets/advanced-super-resolution.png"
+  },
+  "apps/neural-networks/convolutional/capsnet-autonomous-driving": {
+    "slug": "capsnet-autonomous-driving",
+    "title": "Capsule Network",
+    "image": "assets/capsnet-autonomous-driving.png"
+  },
+  "apps/neural-networks/convolutional/capsnet-medical-scan": {
+    "slug": "capsnet-medical-scan",
+    "title": "Capsule Network",
+    "image": "assets/capsnet-medical-scan.png"
+  },
+  "apps/neural-networks/convolutional/capsnet-text-recognition": {
+    "slug": "capsnet-text-recognition",
+    "title": "Capsule Network",
+    "image": "assets/capsnet-text-recognition.png"
+  },
+  "apps/neural-networks/convolutional/cnn-facial-recognition": {
+    "slug": "cnn-facial-recognition",
+    "title": "Convolutional Network",
+    "image": "assets/cnn-facial-recognition.png"
+  },
+  "apps/neural-networks/convolutional/cnn-medical-imaging": {
+    "slug": "cnn-medical-imaging",
+    "title": "Convolutional Network",
+    "image": "assets/cnn-medical-imaging.png"
+  },
+  "apps/neural-networks/convolutional/cnn-video-surveillance": {
+    "slug": "cnn-video-surveillance",
+    "title": "Convolutional Network",
+    "image": "assets/cnn-video-surveillance.png"
+  },
+  "apps/neural-networks/feedforward/anomaly-detection-fraud": {
+    "slug": "anomaly-detection-fraud",
+    "title": "Autoencoder Anomaly",
+    "image": "assets/anomaly-detection-fraud.png"
+  },
+  "apps/neural-networks/feedforward/classification-email-spam": {
+    "slug": "classification-email-spam",
+    "title": "Logistic Regression",
+    "image": "assets/classification-email-spam.png"
+  },
+  "apps/neural-networks/feedforward/pattern-recognition-digits": {
+    "slug": "pattern-recognition-digits",
+    "title": "Classification",
+    "image": "assets/pattern-recognition-digits.png"
+  },
+  "apps/neural-networks/feedforward/regression-house-price": {
+    "slug": "regression-house-price",
+    "title": "Linear Regression",
+    "image": "assets/regression-house-price.png"
+  },
+  "apps/neural-networks/graph-physics-informed/gnn-social-networks": {
+    "slug": "gnn-social-networks",
+    "title": "Graph Neural Network",
+    "image": "assets/gnn-social-networks.png"
+  },
+  "apps/neural-networks/graph-physics-informed/pinn-heat-equation": {
+    "slug": "pinn-heat-equation",
+    "title": "Physics-Informed NN",
+    "image": "assets/pinn-heat-equation.png"
+  },
+  "apps/neural-networks/graph-physics-informed/snn-image-classification": {
+    "slug": "snn-image-classification",
+    "title": "Image Generation",
+    "image": "assets/snn-image-classification.png"
+  },
+  "apps/neural-networks/recurrent/nlp-language-translation": {
+    "slug": "nlp-language-translation",
+    "title": "Neural Network",
+    "image": "assets/nlp-language-translation.png"
+  },
+  "apps/neural-networks/recurrent/nlp-sentiment-analysis": {
+    "slug": "nlp-sentiment-analysis",
+    "title": "Neural Network",
+    "image": "assets/nlp-sentiment-analysis.png"
+  },
+  "apps/neural-networks/recurrent/nlp-text-generation": {
+    "slug": "nlp-text-generation",
+    "title": "Text Generation",
+    "image": "assets/nlp-text-generation.png"
+  },
+  "apps/neural-networks/recurrent/speech-audio-music": {
+    "slug": "speech-audio-music",
+    "title": "Neural Network",
+    "image": "assets/speech-audio-music.png"
+  },
+  "apps/neural-networks/recurrent/speech-audio-recognition": {
+    "slug": "speech-audio-recognition",
+    "title": "Neural Network",
+    "image": "assets/speech-audio-recognition.png"
+  },
+  "apps/neural-networks/recurrent/time-series-stock": {
+    "slug": "time-series-stock",
+    "title": "Neural Network",
+    "image": "assets/time-series-stock.png"
+  },
+  "apps/neural-networks/recurrent/time-series-weather": {
+    "slug": "time-series-weather",
+    "title": "Neural Network",
+    "image": "assets/time-series-weather.png"
+  },
+  "apps/neural-networks/recurrent/vision-image-captioning": {
+    "slug": "vision-image-captioning",
+    "title": "Image Generation",
+    "image": "assets/vision-image-captioning.png"
+  },
+  "apps/neural-networks/unsupervised/autoencoders-dimensionality-reduction": {
+    "slug": "autoencoders-dimensionality-reduction",
+    "title": "Code Generation",
+    "image": "assets/autoencoders-dimensionality-reduction.png"
+  },
+  "apps/neural-networks/unsupervised/deep-belief-networks": {
+    "slug": "deep-belief-networks",
+    "title": "Neural Network",
+    "image": "assets/deep-belief-networks.png"
+  },
+  "apps/neural-networks/unsupervised/restricted-boltzmann-machines": {
+    "slug": "restricted-boltzmann-machines",
+    "title": "Neural Network",
+    "image": "assets/restricted-boltzmann-machines.png"
+  },
+  "apps/neural-networks/unsupervised/self-organizing-maps": {
+    "slug": "self-organizing-maps",
+    "title": "Self-Organizing Map",
+    "image": "assets/self-organizing-maps.png"
+  }
+}

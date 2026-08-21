@@ -43,7 +43,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Transfer Learning diagram](./assets/transfer-learning.png)
 
 Interactive feature reuse heatmap; layer freezing/unfreezing timeline; teacher vs student probability comparison.
 

@@ -43,7 +43,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Self-Supervised diagram](./assets/self-supervised-monitoring.png)
 
 Interactive augmentation preview; contrastive embedding t-SNE; similarity matrix heatmap.
 

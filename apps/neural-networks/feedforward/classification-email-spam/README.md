@@ -45,7 +45,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Logistic Regression diagram](./assets/classification-email-spam.png)
 
 Sigmoid curve with decision boundary overlay; ROC and precision-recall curves.
 

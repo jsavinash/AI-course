@@ -43,7 +43,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Self-Organizing Map diagram](./assets/self-organizing-maps.png)
 
 Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
 

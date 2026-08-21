@@ -43,7 +43,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![K-Means Clustering diagram](./assets/market-segmentation.png)
 
 Interactive elbow method plot; cluster visualization with centroids; silhouette score explorer.
 

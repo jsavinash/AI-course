@@ -45,7 +45,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Variational Autoencoder diagram](./assets/vae.png)
 
 Interactive latent space explorer: traverse 2D latent manifold; sample generation with sliders; KL divergence monitor.
 

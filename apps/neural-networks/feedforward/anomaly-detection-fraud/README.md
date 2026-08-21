@@ -45,7 +45,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Autoencoder Anomaly diagram](./assets/anomaly-detection-fraud.png)
 
 Interactive latent space traversal; reconstruction error vs latent dimension; bottleneck visualization.
 

@@ -45,7 +45,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Transformer diagram](./assets/transformers-language-modeling.png)
 
 Interactive encoder-decoder diagram with attention head visualization and token probability explorer.
 

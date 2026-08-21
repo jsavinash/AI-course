@@ -43,7 +43,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Pre-training (MLM) diagram](./assets/pre-training-fine-tuning.png)
 
 Interactive MLM token prediction explorer; attention head visualization; layer-wise transfer analysis.
 

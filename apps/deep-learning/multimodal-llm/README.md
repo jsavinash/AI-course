@@ -43,7 +43,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Multimodal Learning diagram](./assets/multimodal-llm.png)
 
 Interactive embedding alignment plot; cross-attention weight heatmap; modality contribution explorer.
 

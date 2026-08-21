@@ -43,7 +43,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Collaborative Filtering diagram](./assets/recommendation-engine.png)
 
 Interactive embedding scatter plot; recommendation coverage vs diversity trade-off; top-k recall curve.
 

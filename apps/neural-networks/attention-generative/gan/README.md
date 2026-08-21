@@ -45,7 +45,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Generative Adversarial Net diagram](./assets/gan.png)
 
 Interactive GAN training dashboard: generator/discriminator loss curves, sample evolution grid, decision boundary.
 

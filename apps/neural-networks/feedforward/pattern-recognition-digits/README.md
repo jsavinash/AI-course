@@ -45,7 +45,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Classification diagram](./assets/pattern-recognition-digits.png)
 
 Interactive decision boundary; feature visualization for hidden layers; confusion matrix explorer.
 

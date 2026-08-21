@@ -45,7 +45,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Capsule Network diagram](./assets/capsnet-medical-scan.png)
 
 Interactive capsule routing diagram; pose matrix heatmap; reconstruction error vs capsule size.
 

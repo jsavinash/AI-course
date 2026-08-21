@@ -41,7 +41,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math & architecture diagram](./assets/math-concept.png)
+![Code Generation diagram](./assets/autoencoders-dimensionality-reduction.png)
 
 Interactive code completion demo; token probability heatmap; beam search tree explorer.
 
