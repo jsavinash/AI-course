@@ -15,6 +15,7 @@ from mlops_shared.logging import get_logger, setup_logging
 from mlops_shared.metrics import MetricsCollector
 from mlops_shared.model_registry import ModelRegistry
 from pydantic import BaseModel, Field
+from typing import Any
 
 from tool_use_and_functional_calling.data import (
     DEFAULT_N_SAMPLES,
@@ -23,13 +24,13 @@ from tool_use_and_functional_calling.data import (
     get_limitations,
     get_tool_by_name,
 )
-from tool_use_and_functional_calling.model import ToolCall, ToolResult, ToolUseModel
+from tool_use_and_functional_calling.model import ToolCall, ToolResult, ToolSpec, ToolUseModel
 
 logger = get_logger(__name__)
 
 MODEL_DIR = Path(os.getenv("MODEL_DIR", "/models"))
 MODEL_VERSION = os.getenv("MODEL_VERSION", "latest")
-METRICS_PORT = int(os.getenv("TOOL_USE_METRICS_PORT", "8015"))
+METRICS_PORT = int(os.getenv("TOOL_USE_METRICS_PORT", "9025"))
 DRIFT_THRESHOLD = float(os.getenv("DRIFT_THRESHOLD", "0.2"))
 
 
@@ -76,6 +77,12 @@ class StatsResponse(BaseModel):
     n_tool_results: int
     n_executions: int
     model_version: str
+
+
+InvokeResponse.model_rebuild()
+RegisterToolRequest.model_rebuild()
+ExecuteToolRequest.model_rebuild()
+ExecuteToolResponse.model_rebuild()
 
 
 _model: ToolUseModel | None = None
@@ -266,8 +273,8 @@ def get_tool_detail(tool_name: str):
 def register_tool(body: RegisterToolRequest):
     if _model is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
-    tool = ToolUseModel(
-        model_id=_model.model_id,
+    tool = ToolSpec(
+        name=body.name,
         description=body.description,
         parameters=body.parameters,
         return_type=body.return_type,

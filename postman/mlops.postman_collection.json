@@ -1,7 +1,7 @@
 {
     "info": {
         "name": "MLOps Monorepo APIs",
-        "description": "Postman collection for the MLOps monorepo serving APIs:\n\n- **Pizza Price Prediction API** (Linear Regression) - predicts pizza price from diameter\n- **Spam Email Classification API** (Logistic Regression) - classifies emails as SPAM or NOT spam\n- **Market Segmentation API** (K-Means Clustering) - segments customers into behavioral groups\n- **Recommendation Engine API** (Apriori) - generates product recommendations from transaction patterns\n- **Anomaly Detection API** (PCA) - detects anomalous server metrics using dimensionality reduction\n- **Robot Maze Navigation API** (Q-Learning) - navigates a robot through a maze using reinforcement learning\n\n## Setup\n\n1. Run the APIs locally:\n   ```bash\n   make serve-all   # Starts all APIs on ports 8000-8005\n   ```\n   Or individually:\n   ```bash\n   make serve-pizza                  # http://localhost:8000\n   make serve-spam                   # http://localhost:8001\n   make serve-market-segmentation    # http://localhost:8002\n   make serve-recommendation-engine  # http://localhost:8003\n   make serve-anomaly-detection      # http://localhost:8004\n   make serve-robot-maze             # http://localhost:8005\n   ```\n2. Or port-forward from Kubernetes:\n   ```bash\n   make k8s-port-forward-pizza       # http://localhost:8080\n   make k8s-port-forward-spam        # http://localhost:8081\n   ```\n3. Update the collection variables to match your environment.",
+        "description": "Postman collection for the MLOps monorepo serving APIs (27 total services):\n\n## ML/RL/NN APIs (ports 8000-8019)\n- **Pizza Price Prediction API** (Linear Regression) - predicts pizza price from diameter\n- **Spam Email Classification API** (Logistic Regression) - classifies emails as SPAM or NOT spam\n- **Market Segmentation API** (K-Means Clustering) - segments customers into behavioral groups\n- **Recommendation Engine API** (Apriori) - generates product recommendations from transaction patterns\n- **Anomaly Detection API** (PCA) - detects anomalous server metrics using dimensionality reduction\n- **Robot Maze Navigation API** (Q-Learning) - navigates a robot through a maze using reinforcement learning\n- **Semi-Supervised Email Classification API** (Self-Training) - classifies emails with limited labeled data\n- **Self-Supervised Monitoring API** (Contrastive Learning) - detects anomalies without labels\n- **Email Spam Detection NN** (Feedforward NN) - neural network spam classifier\n- **House Price Prediction NN** (Feedforward NN) - neural network regressor\n- **Credit Card Fraud Detection NN** (Feedforward NN) - fraud detection neural network\n- **Handwritten Digit Recognition NN** (Feedforward NN) - digit classifier\n- **Language Translation RNN** (Seq2Seq RNN) - translates text between languages\n- **Sentiment Analysis RNN** (LSTM) - classifies text sentiment\n- **Text Generation RNN** (Transformer RNN) - autoregressive text generation\n- **Speech Recognition RNN** (LSTM) - converts speech to text\n- **Music Generation RNN** (LSTM) - generates musical sequences\n- **Stock Market Prediction RNN** (LSTM) - predicts stock prices\n- **Weather Forecasting RNN** (LSTM) - forecasts weather\n- **Image Captioning RNN** (Attention RNN) - generates captions for images\n\n## Generative-AI APIs (ports 8020-8026)\n- **Code Generation API** (Transformer) - code completion, text-to-code, refactoring, bug scanning, test generation\n- **Image Generation API** (Diffusion + VAE) - text-to-image generation\n- **Prompt Engineering API** (Template-based) - zero-shot, few-shot, chain-of-thought, self-ask, least-to-most prompting\n- **Retrieval-Augmented Generation API** (RAG) - TF-IDF retrieval with grounded generation\n- **Text Generation API** (Transformer) - autoregressive generation with temperature/top-k/top-p sampling\n- **Tool Use and Functional Calling API** (Function Calling) - stock prices, weather, calculator, order status, SQL queries\n- **Video Generation API** (Spatiotemporal Diffusion) - text-to-video and image-to-video generation\n\n## Setup\n\n1. Run all APIs locally:\n   ```bash\n   make serve-all   # Starts all 27 APIs on ports 8000-8026\n   ```\n   Or individually:\n   ```bash\n   make serve-pizza                     # http://localhost:8000\n   make serve-spam                      # http://localhost:8001\n   make serve-code-generation           # http://localhost:8020\n   make serve-prompt-engineering        # http://localhost:8022\n   make serve-tool-use                  # http://localhost:8025\n   ```\n2. Or port-forward from Kubernetes:\n   ```bash\n   make k8s-port-forward-pizza          # http://localhost:8080\n   make k8s-port-forward-spam           # http://localhost:8081\n   ```\n3. Update the collection variables to match your environment.",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "variable": [
@@ -38,6 +38,41 @@
         {
             "key": "semi_supervised_email_base_url",
             "value": "http://localhost:8006",
+            "type": "string"
+        },
+        {
+            "key": "code_generation_base_url",
+            "value": "http://localhost:8020",
+            "type": "string"
+        },
+        {
+            "key": "image_generation_base_url",
+            "value": "http://localhost:8021",
+            "type": "string"
+        },
+        {
+            "key": "prompt_engineering_base_url",
+            "value": "http://localhost:8022",
+            "type": "string"
+        },
+        {
+            "key": "rag_base_url",
+            "value": "http://localhost:8023",
+            "type": "string"
+        },
+        {
+            "key": "text_gen_base_url",
+            "value": "http://localhost:8024",
+            "type": "string"
+        },
+        {
+            "key": "tool_use_base_url",
+            "value": "http://localhost:8025",
+            "type": "string"
+        },
+        {
+            "key": "video_generation_base_url",
+            "value": "http://localhost:8026",
             "type": "string"
         }
     ],
@@ -1369,7 +1404,992 @@
                     },
                     "response": []
                 }
+             ]
+         },
+         {
+            "name": "Code Generation API (Generative-AI - Transformer)",
+            "item": [
+                {
+                    "name": "Root - Service Info",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{code_generation_base_url}}/",
+                            "host": ["{{code_generation_base_url}}"],
+                            "path": [""]
+                        },
+                        "description": "Returns service information, model version, and available endpoints."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{code_generation_base_url}}/health",
+                            "host": ["{{code_generation_base_url}}"],
+                            "path": ["health"]
+                        },
+                        "description": "Kubernetes liveness/readiness probe. Returns 503 if the model is not loaded."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Code Completion",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"code\": \"def hello():\\n    \",\n  \"max_tokens\": 50\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{code_generation_base_url}}/complete",
+                            "host": ["{{code_generation_base_url}}"],
+                            "path": ["complete"]
+                        },
+                        "description": "Complete code given a partial code snippet."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Text-to-Code",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"description\": \"Write a function to sort a list\",\n  \"language\": \"python\"\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{code_generation_base_url}}/text-to-code",
+                            "host": ["{{code_generation_base_url}}"],
+                            "path": ["text-to-code"]
+                        },
+                        "description": "Generate code from natural language description."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Refactor Code",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"code\": \"for i in range(len(arr)):\\n    print(arr[i])\"\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{code_generation_base_url}}/refactor",
+                            "host": ["{{code_generation_base_url}}"],
+                            "path": ["refactor"]
+                        },
+                        "description": "Refactor code to improve readability and performance."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Scan for Bugs",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"code\": \"x = input()\\nprint(x / 0)\"\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{code_generation_base_url}}/scan-bugs",
+                            "host": ["{{code_generation_base_url}}"],
+                            "path": ["scan-bugs"]
+                        },
+                        "description": "Scan code for potential bugs and vulnerabilities."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Generate Tests",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"code\": \"def add(a, b):\\n    return a + b\"\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{code_generation_base_url}}/generate-tests",
+                            "host": ["{{code_generation_base_url}}"],
+                            "path": ["generate-tests"]
+                        },
+                        "description": "Generate unit tests for a given code snippet."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Drift Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{code_generation_base_url}}/drift",
+                            "host": ["{{code_generation_base_url}}"],
+                            "path": ["drift"]
+                        },
+                        "description": "Check for data drift between reference training data and recent predictions."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Metrics",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{code_generation_base_url}}/metrics",
+                            "host": ["{{code_generation_base_url}}"],
+                            "path": ["metrics"]
+                        },
+                        "description": "Prometheus metrics endpoint."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reload Model",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{code_generation_base_url}}/reload",
+                            "host": ["{{code_generation_base_url}}"],
+                            "path": ["reload"]
+                        },
+                        "description": "Dynamically reload the model from disk/registry without restarting the server."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Image Generation API (Generative-AI - Diffusion + VAE)",
+            "item": [
+                {
+                    "name": "Root - Service Info",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{image_generation_base_url}}/",
+                            "host": ["{{image_generation_base_url}}"],
+                            "path": [""]
+                        },
+                        "description": "Returns service information, model version, and available endpoints."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{image_generation_base_url}}/health",
+                            "host": ["{{image_generation_base_url}}"],
+                            "path": ["health"]
+                        },
+                        "description": "Kubernetes liveness/readiness probe. Returns 503 if the model is not loaded."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Generate Image",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"prompt\": \"A cat wearing a spacesuit on Mars\",\n  \"n_steps\": 50\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{image_generation_base_url}}/generate",
+                            "host": ["{{image_generation_base_url}}"],
+                            "path": ["generate"]
+                        },
+                        "description": "Generate an image from a text prompt using diffusion model."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{image_generation_base_url}}/stats",
+                            "host": ["{{image_generation_base_url}}"],
+                            "path": ["stats"]
+                        },
+                        "description": "Get model statistics (img_size, latent_dim, n_diffusion_steps, n_iterations)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Drift Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{image_generation_base_url}}/drift",
+                            "host": ["{{image_generation_base_url}}"],
+                            "path": ["drift"]
+                        },
+                        "description": "Check for data drift between reference training data and recent predictions."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Metrics",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{image_generation_base_url}}/metrics",
+                            "host": ["{{image_generation_base_url}}"],
+                            "path": ["metrics"]
+                        },
+                        "description": "Prometheus metrics endpoint."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Prompt Engineering API (Generative-AI - Template-based)",
+            "item": [
+                {
+                    "name": "Root - Service Info",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{prompt_engineering_base_url}}/",
+                            "host": ["{{prompt_engineering_base_url}}"],
+                            "path": [""]
+                        },
+                        "description": "Returns service information, available techniques, and endpoints."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{prompt_engineering_base_url}}/health",
+                            "host": ["{{prompt_engineering_base_url}}"],
+                            "path": ["health"]
+                        },
+                        "description": "Kubernetes liveness/readiness probe. Returns 503 if the model is not loaded."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Generate Prompt (Zero-Shot)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"template_id\": \"default\",\n  \"technique\": \"zero-shot\",\n  \"input_text\": \"Explain quantum computing\"\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{prompt_engineering_base_url}}/generate",
+                            "host": ["{{prompt_engineering_base_url}}"],
+                            "path": ["generate"]
+                        },
+                        "description": "Generate a prompt using the specified template and technique. Techniques: zero-shot, few-shot, chain-of-thought, self-ask, least-to-most, meta-prompting, context-amplification, iterative."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Generate Prompt (Chain-of-Thought)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"template_id\": \"default\",\n  \"technique\": \"chain-of-thought\",\n  \"input_text\": \"Solve: A train travels 60 mph for 2 hours, then 40 mph for 3 hours. What is the total distance?\"\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{prompt_engineering_base_url}}/generate",
+                            "host": ["{{prompt_engineering_base_url}}"],
+                            "path": ["generate"]
+                        },
+                        "description": "Generate a prompt using chain-of-thought technique to show step-by-step reasoning."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Evaluate Prompt",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"prompt\": \"Explain quantum computing step by step\",\n  \"response\": \"Quantum computing uses qubits...\",\n  \"expected\": \"Quantum computing uses quantum mechanics...\"\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{prompt_engineering_base_url}}/evaluate",
+                            "host": ["{{prompt_engineering_base_url}}"],
+                            "path": ["evaluate"]
+                        },
+                        "description": "Evaluate prompt response quality (relevance, clarity, completeness, accuracy)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Optimize Prompt",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"base_prompt\": \"Explain AI\",\n  \"responses\": [\n    {\"response\": \"AI is artificial intelligence\", \"expected\": \"AI refers to artificial intelligence\"},\n    {\"response\": \"AI mimics human intelligence\", \"expected\": \"AI simulates human cognitive functions\"}\n  ]\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{prompt_engineering_base_url}}/optimize",
+                            "host": ["{{prompt_engineering_base_url}}"],
+                            "path": ["optimize"]
+                        },
+                        "description": "Optimize a prompt based on multiple response-evaluation pairs."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{prompt_engineering_base_url}}/stats",
+                            "host": ["{{prompt_engineering_base_url}}"],
+                            "path": ["stats"]
+                        },
+                        "description": "Get model statistics (n_templates, n_techniques, current_technique, n_history_entries)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Metrics",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{prompt_engineering_base_url}}/metrics",
+                            "host": ["{{prompt_engineering_base_url}}"],
+                            "path": ["metrics"]
+                        },
+                        "description": "Prometheus metrics endpoint."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Retrieval-Augmented Generation API (Generative-AI - RAG)",
+            "item": [
+                {
+                    "name": "Root - Service Info",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{rag_base_url}}/",
+                            "host": ["{{rag_base_url}}"],
+                            "path": [""]
+                        },
+                        "description": "Returns service information, model version, and available endpoints."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{rag_base_url}}/health",
+                            "host": ["{{rag_base_url}}"],
+                            "path": ["health"]
+                        },
+                        "description": "Kubernetes liveness/readiness probe. Returns 503 if the model is not loaded."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Query (RAG)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"query\": \"What is machine learning?\",\n  \"top_k\": 3\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{rag_base_url}}/query",
+                            "host": ["{{rag_base_url}}"],
+                            "path": ["query"]
+                        },
+                        "description": "Query the RAG system. Retrieves relevant documents and generates a grounded response."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Index Documents",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"documents\": [\n    {\"id\": \"1\", \"title\": \"ML Intro\", \"content\": \"Machine learning is a subset of AI...\"},\n    {\"id\": \"2\", \"title\": \"Deep Learning\", \"content\": \"Deep learning uses neural networks...\"}\n  ]\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{rag_base_url}}/index",
+                            "host": ["{{rag_base_url}}"],
+                            "path": ["index"]
+                        },
+                        "description": "Index new documents into the RAG vector store."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Refresh Index",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{rag_base_url}}/refresh",
+                            "host": ["{{rag_base_url}}"],
+                            "path": ["refresh"]
+                        },
+                        "description": "Refresh the document index by re-chunking and re-embedding all documents."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{rag_base_url}}/stats",
+                            "host": ["{{rag_base_url}}"],
+                            "path": ["stats"]
+                        },
+                        "description": "Get RAG statistics (n_documents, n_chunks, chunk_size, overlap, top_k)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Drift Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{rag_base_url}}/drift",
+                            "host": ["{{rag_base_url}}"],
+                            "path": ["drift"]
+                        },
+                        "description": "Check for data drift between reference training data and recent predictions."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Metrics",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{rag_base_url}}/metrics",
+                            "host": ["{{rag_base_url}}"],
+                            "path": ["metrics"]
+                        },
+                        "description": "Prometheus metrics endpoint."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Text Generation API (Generative-AI - Transformer)",
+            "item": [
+                {
+                    "name": "Root - Service Info",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{text_gen_base_url}}/",
+                            "host": ["{{text_gen_base_url}}"],
+                            "path": [""]
+                        },
+                        "description": "Returns service information, model version, and available endpoints."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{text_gen_base_url}}/health",
+                            "host": ["{{text_gen_base_url}}"],
+                            "path": ["health"]
+                        },
+                        "description": "Kubernetes liveness/readiness probe. Returns 503 if the model is not loaded."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Generate Text",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"prompt\": \"Once upon a time\",\n  \"max_tokens\": 100,\n  \"temperature\": 0.8,\n  \"top_k\": 50,\n  \"top_p\": 0.9\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{text_gen_base_url}}/generate",
+                            "host": ["{{text_gen_base_url}}"],
+                            "path": ["generate"]
+                        },
+                        "description": "Generate text autoregressively from a seed prompt using transformer model with temperature/top-k/top-p sampling."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Evaluate Generation",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"prompt\": \"Once upon a time\",\n  \"generated\": \"Once upon a time, there was a brave knight...\",\n  \"reference\": \"Once upon a time, in a faraway kingdom...\"\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{text_gen_base_url}}/evaluate",
+                            "host": ["{{text_gen_base_url}}"],
+                            "path": ["evaluate"]
+                        },
+                        "description": "Evaluate generated text quality (perplexity, diversity, coherence)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{text_gen_base_url}}/stats",
+                            "host": ["{{text_gen_base_url}}"],
+                            "path": ["stats"]
+                        },
+                        "description": "Get model statistics (vocab_size, d_model, n_layers, temperature, top_k, top_p)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Metrics",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{text_gen_base_url}}/metrics",
+                            "host": ["{{text_gen_base_url}}"],
+                            "path": ["metrics"]
+                        },
+                        "description": "Prometheus metrics endpoint."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Tool Use and Functional Calling API (Generative-AI - Function Calling)",
+            "item": [
+                {
+                    "name": "Root - Service Info",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{tool_use_base_url}}/",
+                            "host": ["{{tool_use_base_url}}"],
+                            "path": [""]
+                        },
+                        "description": "Returns service information, registered tools, and available endpoints."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{tool_use_base_url}}/health",
+                            "host": ["{{tool_use_base_url}}"],
+                            "path": ["health"]
+                        },
+                        "description": "Kubernetes liveness/readiness probe. Returns 503 if the model is not loaded."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Invoke Tool Use (Stock Price)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"query\": \"What is the current TCS stock price?\"\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{tool_use_base_url}}/invoke",
+                            "host": ["{{tool_use_base_url}}"],
+                            "path": ["invoke"]
+                        },
+                        "description": "Run the full function-calling workflow. LLM decides to call get_stock_price tool with TCS argument."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Invoke Tool Use (Weather)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"query\": \"What is the weather in Mumbai?\"\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{tool_use_base_url}}/invoke",
+                            "host": ["{{tool_use_base_url}}"],
+                            "path": ["invoke"]
+                        },
+                        "description": "LLM calls get_weather tool with Mumbai argument."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Invoke Tool Use (Calculator)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"query\": \"Calculate 25 plus 37\"\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{tool_use_base_url}}/invoke",
+                            "host": ["{{tool_use_base_url}}"],
+                            "path": ["invoke"]
+                        },
+                        "description": "LLM calls calculator tool with operation=add, operand1=25, operand2=37."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Invoke Tool Use (SQL Query)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"query\": \"Select all users who signed up in the last 7 days\"\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{tool_use_base_url}}/invoke",
+                            "host": ["{{tool_use_base_url}}"],
+                            "path": ["invoke"]
+                        },
+                        "description": "LLM calls execute_sql_query tool with a read-only SELECT query."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List All Tools",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{tool_use_base_url}}/tools",
+                            "host": ["{{tool_use_base_url}}"],
+                            "path": ["tools"]
+                        },
+                        "description": "List all registered tools with their JSON schemas."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Tool Detail",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{tool_use_base_url}}/tools/get_stock_price",
+                            "host": ["{{tool_use_base_url}}"],
+                            "path": ["tools", "get_stock_price"]
+                        },
+                        "description": "Get detailed specification for a specific tool."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Register New Tool",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"get_currency_rate\",\n  \"description\": \"Get exchange rate between two currencies\",\n  \"parameters\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"from_currency\": {\"type\": \"string\"},\n      \"to_currency\": {\"type\": \"string\"}\n    },\n    \"required\": [\"from_currency\", \"to_currency\"]\n  },\n  \"return_type\": \"float\",\n  \"keywords\": [\"currency\", \"exchange\", \"rate\"]\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{tool_use_base_url}}/tools/register",
+                            "host": ["{{tool_use_base_url}}"],
+                            "path": ["tools", "register"]
+                        },
+                        "description": "Register a new tool dynamically."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Execute Tool Directly",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"tool_name\": \"calculator\",\n  \"arguments\": {\"operation\": \"add\", \"operand1\": 10, \"operand2\": 20}\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{tool_use_base_url}}/tools/execute",
+                            "host": ["{{tool_use_base_url}}"],
+                            "path": ["tools", "execute"]
+                        },
+                        "description": "Execute a specific tool directly with given arguments."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List Workflows",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{tool_use_base_url}}/workflows",
+                            "host": ["{{tool_use_base_url}}"],
+                            "path": ["workflows"]
+                        },
+                        "description": "List predefined tool-use workflows."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List Applications",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{tool_use_base_url}}/applications",
+                            "host": ["{{tool_use_base_url}}"],
+                            "path": ["applications"]
+                        },
+                        "description": "List real-world applications of function calling (customer support, travel, HR, SQL)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List Advantages",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{tool_use_base_url}}/advantages",
+                            "host": ["{{tool_use_base_url}}"],
+                            "path": ["advantages"]
+                        },
+                        "description": "List advantages of function calling (real-time data, reduced hallucinations, extended capabilities)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List Limitations",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{tool_use_base_url}}/limitations",
+                            "host": ["{{tool_use_base_url}}"],
+                            "path": ["limitations"]
+                        },
+                        "description": "List limitations of function calling (token cost, latency, security risks)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{tool_use_base_url}}/stats",
+                            "host": ["{{tool_use_base_url}}"],
+                            "path": ["stats"]
+                        },
+                        "description": "Get tool-use statistics (n_tools, n_tool_calls, n_tool_results, n_executions)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Metrics",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{tool_use_base_url}}/metrics",
+                            "host": ["{{tool_use_base_url}}"],
+                            "path": ["metrics"]
+                        },
+                        "description": "Prometheus metrics endpoint."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Video Generation API (Generative-AI - Spatiotemporal Diffusion)",
+            "item": [
+                {
+                    "name": "Root - Service Info",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{video_generation_base_url}}/",
+                            "host": ["{{video_generation_base_url}}"],
+                            "path": [""]
+                        },
+                        "description": "Returns service information, model version, and available endpoints."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{video_generation_base_url}}/health",
+                            "host": ["{{video_generation_base_url}}"],
+                            "path": ["health"]
+                        },
+                        "description": "Kubernetes liveness/readiness probe. Returns 503 if the model is not loaded."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Generate Video from Text",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"prompt\": \"A sunset over the ocean with waves crashing\",\n  \"n_frames\": 8,\n  \"fps\": 4\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{video_generation_base_url}}/generate",
+                            "host": ["{{video_generation_base_url}}"],
+                            "path": ["generate"]
+                        },
+                        "description": "Generate a video from a text prompt using spatiotemporal diffusion model."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Animate from Image",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"image\": \"base64_encoded_image_data\",\n  \"n_frames\": 8,\n  \"motion_strength\": 0.5\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{video_generation_base_url}}/animate",
+                            "host": ["{{video_generation_base_url}}"],
+                            "path": ["animate"]
+                        },
+                        "description": "Animate a static image into a short video clip."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{video_generation_base_url}}/stats",
+                            "host": ["{{video_generation_base_url}}"],
+                            "path": ["stats"]
+                        },
+                        "description": "Get model statistics (img_size, n_frames, latent_dim, n_diffusion_steps)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Metrics",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{video_generation_base_url}}/metrics",
+                            "host": ["{{video_generation_base_url}}"],
+                            "path": ["metrics"]
+                        },
+                        "description": "Prometheus metrics endpoint."
+                    },
+                    "response": []
+                }
             ]
         }
-    ]
-}
+     ]
+ }

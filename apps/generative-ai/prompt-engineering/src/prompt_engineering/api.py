@@ -13,6 +13,7 @@ from mlops_shared.logging import get_logger, setup_logging
 from mlops_shared.metrics import MetricsCollector
 from mlops_shared.model_registry import ModelRegistry
 from pydantic import BaseModel, Field
+from typing import Any
 
 from prompt_engineering.data import DEFAULT_VOCAB_SIZE
 from prompt_engineering.model import PromptEngineeringModel, PromptTemplate, PromptTechnique
@@ -21,7 +22,7 @@ logger = get_logger(__name__)
 
 MODEL_DIR = Path(os.getenv("MODEL_DIR", "/models"))
 MODEL_VERSION = os.getenv("MODEL_VERSION", "latest")
-METRICS_PORT = int(os.getenv("PROMPT_ENGINEERING_METRICS_PORT", "8014"))
+METRICS_PORT = int(os.getenv("PROMPT_ENGINEERING_METRICS_PORT", "9022"))
 DRIFT_THRESHOLD = float(os.getenv("DRIFT_THRESHOLD", "0.2"))
 
 
@@ -54,7 +55,7 @@ class EvaluateResponse(BaseModel):
 
 class OptimizeRequest(BaseModel):
     base_prompt: str = Field(..., min_length=1)
-    responses: list[tuple[str, str | None]] = Field(..., min_length=1)
+    responses: list[dict[str, str | None]] = Field(..., min_length=1)
 
 
 class OptimizeResponse(BaseModel):
@@ -70,8 +71,9 @@ class StatsResponse(BaseModel):
     n_techniques: int
     current_technique: str
     n_history_entries: int
-    model_version: str
 
+
+OptimizeResponse.model_rebuild()
 
 _model: PromptEngineeringModel | None = None
 _model_version: str = "unknown"

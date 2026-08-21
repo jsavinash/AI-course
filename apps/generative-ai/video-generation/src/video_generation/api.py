@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 
 MODEL_DIR = Path(os.getenv("MODEL_DIR", "/models"))
 MODEL_VERSION = os.getenv("MODEL_VERSION", "latest")
-METRICS_PORT = int(os.getenv("VIDEO_GENERATION_METRICS_PORT", "8017"))
+METRICS_PORT = int(os.getenv("VIDEO_GENERATION_METRICS_PORT", "9026"))
 DRIFT_THRESHOLD = float(os.getenv("DRIFT_THRESHOLD", "0.2"))
 
 

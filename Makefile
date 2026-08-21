@@ -112,8 +112,36 @@ train-weather-forecasting-rnn:
 train-image-captioning-rnn:
 	uv run python -m image_captioning.train --model-dir ./artifacts/models --model-version 1.0.0
 
+.PHONY: train-code-generation
+train-code-generation:
+	uv run python -m code_generation.train --model-dir ./artifacts/models --model-version 1.0.0
+
+.PHONY: train-image-generation
+train-image-generation:
+	uv run python -m image_generation.train --model-dir ./artifacts/models --model-version 1.0.0
+
+.PHONY: train-prompt-engineering
+train-prompt-engineering:
+	uv run python -m prompt_engineering.train --model-dir ./artifacts/models --model-version 1.0.0 --technique chain-of-thought
+
+.PHONY: train-retrieval-augmented-generation
+train-retrieval-augmented-generation:
+	uv run python -m retrieval_augmented_generation.train --model-dir ./artifacts/models --model-version 1.0.0
+
+.PHONY: train-text-gen
+train-text-gen:
+	uv run python -m text_gen.train --model-dir ./artifacts/models --model-version 1.0.0
+
+.PHONY: train-tool-use
+train-tool-use:
+	uv run python -m tool_use_and_functional_calling.train --model-dir ./artifacts/models --model-version 1.0.0 --n-tools 5
+
+.PHONY: train-video-generation
+train-video-generation:
+	uv run python -m video_generation.train --model-dir ./artifacts/models --model-version 1.0.0
+
 .PHONY: train-all
-train-all: train-pizza train-spam train-market-segmentation train-recommendation-engine train-anomaly-detection train-robot-maze train-semi-supervised-email train-self-supervised-monitoring train-email-spam-detection-nn train-house-price-prediction-nn train-credit-card-fraud-detection-nn train-handwritten-digit-recognition-nn train-language-translation-rnn train-sentiment-analysis-rnn train-text-generation-rnn train-speech-recognition-rnn train-music-generation-rnn train-stock-market-prediction-rnn train-weather-forecasting-rnn train-image-captioning-rnn
+train-all: train-pizza train-spam train-market-segmentation train-recommendation-engine train-anomaly-detection train-robot-maze train-semi-supervised-email train-self-supervised-monitoring train-email-spam-detection-nn train-house-price-prediction-nn train-credit-card-fraud-detection-nn train-handwritten-digit-recognition-nn train-language-translation-rnn train-sentiment-analysis-rnn train-text-generation-rnn train-speech-recognition-rnn train-music-generation-rnn train-stock-market-prediction-rnn train-weather-forecasting-rnn train-image-captioning-rnn train-code-generation train-image-generation train-prompt-engineering train-retrieval-augmented-generation train-text-gen train-tool-use train-video-generation
 
 .PHONY: serve-pizza
 serve-pizza:
@@ -194,6 +222,34 @@ serve-weather-forecasting-rnn:
 .PHONY: serve-image-captioning-rnn
 serve-image-captioning-rnn:
 	MODEL_DIR=./artifacts/models uv run uvicorn image_captioning.api:app --host 0.0.0.0 --port 8019
+
+.PHONY: serve-code-generation
+serve-code-generation:
+	MODEL_DIR=./artifacts/models uv run uvicorn code_generation.api:app --host 0.0.0.0 --port 8020
+
+.PHONY: serve-image-generation
+serve-image-generation:
+	MODEL_DIR=./artifacts/models uv run uvicorn image_generation.api:app --host 0.0.0.0 --port 8021
+
+.PHONY: serve-prompt-engineering
+serve-prompt-engineering:
+	MODEL_DIR=./artifacts/models uv run uvicorn prompt_engineering.api:app --host 0.0.0.0 --port 8022
+
+.PHONY: serve-retrieval-augmented-generation
+serve-retrieval-augmented-generation:
+	MODEL_DIR=./artifacts/models uv run uvicorn retrieval_augmented_generation.api:app --host 0.0.0.0 --port 8023
+
+.PHONY: serve-text-gen
+serve-text-gen:
+	MODEL_DIR=./artifacts/models uv run uvicorn text_gen.api:app --host 0.0.0.0 --port 8024
+
+.PHONY: serve-tool-use
+serve-tool-use:
+	MODEL_DIR=./artifacts/models uv run uvicorn tool_use_and_functional_calling.api:app --host 0.0.0.0 --port 8025
+
+.PHONY: serve-video-generation
+serve-video-generation:
+	MODEL_DIR=./artifacts/models uv run uvicorn video_generation.api:app --host 0.0.0.0 --port 8026
 
 .PHONY: serve-all
 serve-all:
@@ -320,6 +376,13 @@ help:
 	@echo "  make train-stock-market-prediction-rnn - Train stock-market-prediction RNN model locally"
 	@echo "  make train-weather-forecasting-rnn      - Train weather-forecasting RNN model locally"
 	@echo "  make train-image-captioning-rnn          - Train image-captioning RNN model locally"
+	@echo "  make train-code-generation               - Train code-generation model locally"
+	@echo "  make train-image-generation              - Train image-generation model locally"
+	@echo "  make train-prompt-engineering            - Train prompt-engineering model locally"
+	@echo "  make train-retrieval-augmented-generation - Train RAG model locally"
+	@echo "  make train-text-gen                      - Train text-gen (generative) model locally"
+	@echo "  make train-tool-use                      - Train tool-use model locally"
+	@echo "  make train-video-generation              - Train video-generation model locally"
 	@echo "  make train-all            - Train all models"
 	@echo "  make serve-pizza          - Run pizza-price API locally (port 8000)"
 	@echo "  make serve-spam           - Run spam-classification API locally (port 8001)"
@@ -341,6 +404,13 @@ help:
 	@echo "  make serve-stock-market-prediction-rnn - Run stock-market-prediction RNN API locally (port 8017)"
 	@echo "  make serve-weather-forecasting-rnn    - Run weather-forecasting RNN API locally (port 8018)"
 	@echo "  make serve-image-captioning-rnn       - Run image-captioning RNN API locally (port 8019)"
+	@echo "  make serve-code-generation            - Run code-generation API locally (port 8020)"
+	@echo "  make serve-image-generation           - Run image-generation API locally (port 8021)"
+	@echo "  make serve-prompt-engineering         - Run prompt-engineering API locally (port 8022)"
+	@echo "  make serve-retrieval-augmented-generation - Run RAG API locally (port 8023)"
+	@echo "  make serve-text-gen                   - Run text-gen (generative) API locally (port 8024)"
+	@echo "  make serve-tool-use                   - Run tool-use API locally (port 8025)"
+	@echo "  make serve-video-generation           - Run video-generation API locally (port 8026)"
 	@echo "  make serve-all            - Run all APIs locally"
 	@echo ""
 	@echo "Docker:"

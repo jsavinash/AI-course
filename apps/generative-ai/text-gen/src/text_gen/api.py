@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 
 MODEL_DIR = Path(os.getenv("MODEL_DIR", "/models"))
 MODEL_VERSION = os.getenv("MODEL_VERSION", "latest")
-METRICS_PORT = int(os.getenv("TEXT_GENERATION_METRICS_PORT", "8015"))
+METRICS_PORT = int(os.getenv("TEXT_GENERATION_METRICS_PORT", "9024"))
 DRIFT_THRESHOLD = float(os.getenv("DRIFT_THRESHOLD", "0.2"))
 
 
@@ -74,7 +74,7 @@ async def lifespan(app: FastAPI):
     global _model, _model_version, _metrics, _drift_detector, _reference_data
 
     setup_logging(os.getenv("LOG_LEVEL", "INFO"))
-    _metrics = MetricsCollector("text_generation", port=METRICS_PORT)
+    _metrics = MetricsCollector("text_gen_generative", port=METRICS_PORT)
     app.state.metrics = _metrics
 
     feature_names = [f"token_{i}" for i in range(DEFAULT_VOCAB_SIZE)]
