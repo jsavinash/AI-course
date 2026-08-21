@@ -34,7 +34,7 @@ z = w*x + b
 
 ### Conceptual Diagram
 
-        Math concept (placeholder)
+        Core transformation flow
    [ Input x ] --> ( w · x + b ) --> [ Output z ]
                        |
                   [ activation ]
