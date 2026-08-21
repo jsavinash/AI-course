@@ -45,7 +45,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math Explanation (placeholder)](./assets/math-concept.png)
+![Math & architecture diagram](./assets/math-concept.png)
 
 Interactive latent space explorer: traverse 2D latent manifold; sample generation with sliders; KL divergence monitor.
 

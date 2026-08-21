@@ -43,7 +43,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math Explanation (placeholder)](./assets/math-concept.png)
+![Math & architecture diagram](./assets/math-concept.png)
 
 Interactive elbow method plot; cluster visualization with centroids; silhouette score explorer.
 

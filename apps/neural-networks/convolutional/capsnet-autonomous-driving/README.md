@@ -45,7 +45,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math Explanation (placeholder)](./assets/math-concept.png)
+![Math & architecture diagram](./assets/math-concept.png)
 
 Interactive capsule routing diagram; pose matrix heatmap; reconstruction error vs capsule size.
 

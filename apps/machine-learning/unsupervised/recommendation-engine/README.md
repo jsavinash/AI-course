@@ -43,7 +43,7 @@ z = w*x + b
                        |
                   [ prediction ]
 
-![Math Explanation (placeholder)](./assets/math-concept.png)
+![Math & architecture diagram](./assets/math-concept.png)
 
 Interactive embedding scatter plot; recommendation coverage vs diversity trade-off; top-k recall curve.
 
