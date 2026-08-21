@@ -1,0 +1,26 @@
+[project]
+name = "text-char-recognition"
+version = "0.1.0"
+description = "Reads distorted captchas and complex handwritten text keeping part-to-whole relationships - CapsNet MLOps example"
+requires-python = ">=3.11"
+dependencies = [
+    "ai-core",
+    "numpy>=1.26.0",
+    "pandas>=2.2.0",
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "pydantic>=2.6.0",
+    "prometheus-client>=0.20.0",
+    "matplotlib>=3.7.0",
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+]
+
+[project.scripts]
+text_char_recognition-train = "text_char_recognition.train:main"
+
+[tool.uv.sources]
+ai-core = { workspace = true }
+
+[tool.uv]
+package = true

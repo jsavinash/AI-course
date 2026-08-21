@@ -4,7 +4,7 @@ version = "0.2.0"
 description = "Spam email classification - Logistic Regression MLOps example"
 requires-python = ">=3.11"
 dependencies = [
-    "mlops-shared",
+    "ai-core",
     "numpy>=1.26.0",
     "scikit-learn>=1.4.0",
     "fastapi>=0.110.0",
@@ -18,7 +18,7 @@ dependencies = [
 spam-train = "spam_classification.train:main"
 
 [tool.uv.sources]
-mlops-shared = { workspace = true }
+ai-core = { workspace = true }
 
 [tool.uv]
 package = true

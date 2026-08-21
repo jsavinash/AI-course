@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Retrieval-Augmented Generation (RAG) system from scratch: chunking, TF-IDF embeddings, vector search, prompt augmentation, and grounded generation using NumPy"
 requires-python = ">=3.11"
 dependencies = [
-    "mlops-shared",
+    "ai-core",
     "numpy>=1.26.0",
     "pandas>=2.2.0",
     "fastapi>=0.110.0",
@@ -20,7 +20,7 @@ dependencies = [
 rag-train = "retrieval_augmented_generation.train:main"
 
 [tool.uv.sources]
-mlops-shared = { workspace = true }
+ai-core = { workspace = true }
 
 [tool.uv]
 package = true

@@ -6,8 +6,8 @@ from code_generation.model import (
     CodeGenerationModel,
     CodeTokenizer,
     RefactoringModel,
-    TextToCodeModel,
     TestingAndDebuggingModel,
+    TextToCodeModel,
 )
 
 __all__ = [

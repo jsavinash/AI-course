@@ -167,8 +167,11 @@ class VectorDatabase:
         valid = [c for c in chunks if c.embedding is not None]
         if not valid:
             raise ValueError("No chunks with embeddings found to index.")
-        self.chunks = valid
-        self.embeddings = np.stack([c.embedding for c in valid])
+        embeddings_list: list[np.ndarray] = []
+        for c in valid:
+            assert c.embedding is not None
+            embeddings_list.append(c.embedding)
+        self.embeddings = np.stack(embeddings_list)
         self.dim = self.embeddings.shape[1]
         self._cache["indexed_at"] = len(valid)
 
@@ -322,7 +325,7 @@ class RAGModel:
         texts = [c.text for c in self.chunks]
         self.embedding_model.fit(texts)
         embeddings = self.embedding_model.encode(texts)
-        for chunk, emb in zip(self.chunks, embeddings):
+        for chunk, emb in zip(self.chunks, embeddings, strict=False):
             chunk.embedding = emb
         self.vector_db.index(self.chunks)
         self._cache["indexed_docs"] = len(documents)
@@ -362,7 +365,7 @@ class RAGModel:
         else:
             self.embedding_model.fit([c.text for c in self.chunks] + texts)
         embeddings = self.embedding_model.encode(texts)
-        for chunk, emb in zip(new_chunks, embeddings):
+        for chunk, emb in zip(new_chunks, embeddings, strict=False):
             chunk.embedding = emb
             self.chunks.append(chunk)
             self.vector_db.add(chunk)

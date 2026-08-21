@@ -4,8 +4,8 @@ import argparse
 import os
 from pathlib import Path
 
-from mlops_shared.logging import get_logger, setup_logging
-from mlops_shared.model_registry import ModelRegistry
+from ai_core.logging import get_logger, setup_logging
+from ai_core.model_registry import ModelRegistry
 
 from recommendation_engine.data import load_training_data, save_training_data
 from recommendation_engine.model import Apriori

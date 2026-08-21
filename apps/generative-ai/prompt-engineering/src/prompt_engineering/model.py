@@ -265,7 +265,7 @@ class PromptEngineeringModel:
     @classmethod
     def load(cls, path: str) -> "PromptEngineeringModel":
         import json
-        with open(path, "r") as f:
+        with open(path) as f:
             data = json.load(f)
         obj = cls(model_id=data["model_id"], base_model_name=data.get("base_model_name", "default"))
         obj._current_technique = data.get("current_technique", "zero-shot")

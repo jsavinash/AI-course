@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Robot Maze Navigation - Q-Learning Reinforcement Learning MLOps example"
 requires-python = ">=3.11"
 dependencies = [
-    "mlops-shared",
+    "ai-core",
     "numpy>=1.26.0",
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.29.0",
@@ -17,7 +17,7 @@ dependencies = [
 robot-maze-train = "robot_maze.train:main"
 
 [tool.uv.sources]
-mlops-shared = { workspace = true }
+ai-core = { workspace = true }
 
 [tool.uv]
 package = true

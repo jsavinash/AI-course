@@ -504,7 +504,7 @@ class CodeGenerationModel:
         n_samples = X_train.shape[0]
         rng = np.random.default_rng(self.random_seed)
         eps = 1e-12
-        for epoch in range(n_iterations):
+        for _epoch in range(n_iterations):
             perm = rng.permutation(n_samples)
             X_shuffled = X_train[perm]
             y_shuffled = y_train[perm]

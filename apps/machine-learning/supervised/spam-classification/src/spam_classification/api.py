@@ -7,13 +7,13 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import numpy as np
+from ai_core.drift import DriftDetector
+from ai_core.fastapi_middleware import add_observability_middleware
+from ai_core.logging import get_logger, setup_logging
+from ai_core.metrics import MetricsCollector
+from ai_core.model_registry import ModelRegistry
+from ai_core.validation import DataValidator, create_spam_schema
 from fastapi import FastAPI, HTTPException
-from mlops_shared.drift import DriftDetector
-from mlops_shared.fastapi_middleware import add_observability_middleware
-from mlops_shared.logging import get_logger, setup_logging
-from mlops_shared.metrics import MetricsCollector
-from mlops_shared.model_registry import ModelRegistry
-from mlops_shared.validation import DataValidator, create_spam_schema
 from pydantic import BaseModel, Field
 
 from spam_classification.data import FEATURE_NAMES

@@ -4,6 +4,8 @@ from pathlib import Path
 
 import numpy as np
 
+from code_generation.model import CodeTokenizer
+
 VOCAB_SIZE = 1000
 MAX_SEQ_LEN = 128
 DEFAULT_N_SAMPLES = 500

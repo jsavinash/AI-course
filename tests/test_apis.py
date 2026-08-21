@@ -45,8 +45,8 @@ from anomaly_detection.model import PCAAnomalyDetector
 from market_segmentation.model import KMeans
 from pizza_price.model import LinearRegression
 from recommendation_engine.model import Apriori
-from robot_maze.data import generate_maze, get_goal_positions, get_start_position
-from robot_maze.model import QLearningAgent
+from robot_maze_navigation.data import generate_maze, get_goal_positions, get_start_position
+from robot_maze_navigation.model import QLearningAgent
 from self_supervised_monitoring.data import generate_synthetic_data
 from self_supervised_monitoring.model import DenoisingAutoencoder
 from semi_supervised_email.data import load_training_data
@@ -177,8 +177,8 @@ ssm_model.fit(X_ssm[y_ssm == 0])  # Train on normal data only
 ssm_model.save(str(TEST_MODEL_DIR / "self_supervised_monitoring_model.npz"))
 
 # Train and save email spam detection NN model
-from email_spam_detection.data import generate_synthetic_data as generate_spam_data
-from email_spam_detection.model import SpamDetectionNN
+from classification_email_spam.data import generate_synthetic_data as generate_spam_data
+from classification_email_spam.model import SpamDetectionNN
 
 X_spam_nn, y_spam_nn = generate_spam_data(n_samples=200, random_seed=42)
 spam_nn_model = SpamDetectionNN(hidden_dim=16, learning_rate=0.01, n_iterations=300, random_seed=42)
@@ -186,8 +186,8 @@ spam_nn_model.fit(X_spam_nn, y_spam_nn)
 spam_nn_model.save(str(TEST_MODEL_DIR / "spam_detection_model.npz"))
 
 # Train and save house price prediction NN model
-from house_price_prediction.data import generate_synthetic_data as generate_house_data
-from house_price_prediction.model import HousePriceNN
+from regression_house_price.data import generate_synthetic_data as generate_house_data
+from regression_house_price.model import HousePriceNN
 
 X_house_nn, y_house_nn = generate_house_data(n_samples=200, random_seed=42)
 house_nn_model = HousePriceNN(hidden_dim=32, learning_rate=0.01, n_iterations=300, random_seed=42)
@@ -195,8 +195,8 @@ house_nn_model.fit(X_house_nn, y_house_nn)
 house_nn_model.save(str(TEST_MODEL_DIR / "house_price_model.npz"))
 
 # Train and save credit card fraud detection NN model
-from credit_card_fraud_detection.data import generate_synthetic_data as generate_fraud_data
-from credit_card_fraud_detection.model import FraudDetectionAutoencoder
+from anomaly_detection_fraud.data import generate_synthetic_data as generate_fraud_data
+from anomaly_detection_fraud.model import FraudDetectionAutoencoder
 
 X_fraud_nn, y_fraud_nn = generate_fraud_data(n_samples=400, random_seed=42)
 X_fraud_normal = X_fraud_nn[y_fraud_nn == 0]
@@ -207,8 +207,8 @@ fraud_nn_model.fit(X_fraud_normal)
 fraud_nn_model.save(str(TEST_MODEL_DIR / "fraud_detection_model.npz"))
 
 # Train and save handwritten digit recognition NN model
-from handwritten_digit_recognition.data import generate_synthetic_data as generate_digits
-from handwritten_digit_recognition.model import DigitRecognitionNN
+from pattern_recognition_digits.data import generate_synthetic_data as generate_digits
+from pattern_recognition_digits.model import DigitRecognitionNN
 
 X_digit_nn, y_digit_nn = generate_digits(n_samples=200, random_seed=42)
 digit_nn_model = DigitRecognitionNN(
@@ -218,8 +218,8 @@ digit_nn_model.fit(X_digit_nn, y_digit_nn)
 digit_nn_model.save(str(TEST_MODEL_DIR / "digit_recognition_model.npz"))
 
 # Train and save language translation RNN model
-from language_translation.data import generate_synthetic_data as generate_translation_data
-from language_translation.model import LanguageTranslationRNN
+from nlp_language_translation.data import generate_synthetic_data as generate_translation_data
+from nlp_language_translation.model import LanguageTranslationRNN
 
 X_translation, y_translation = generate_translation_data(n_samples=50, random_seed=42)
 translation_model = LanguageTranslationRNN(
@@ -229,8 +229,8 @@ translation_model.fit(X_translation, y_translation)
 translation_model.save(str(TEST_MODEL_DIR / "language_translation_model.npz"))
 
 # Train and save sentiment analysis RNN model
-from sentiment_analysis.data import generate_synthetic_data as generate_sentiment_data
-from sentiment_analysis.model import SentimentAnalysisRNN
+from nlp_sentiment_analysis.data import generate_synthetic_data as generate_sentiment_data
+from nlp_sentiment_analysis.model import SentimentAnalysisRNN
 
 X_sentiment, y_sentiment = generate_sentiment_data(n_samples=50, random_seed=42)
 sentiment_model = SentimentAnalysisRNN(
@@ -240,8 +240,8 @@ sentiment_model.fit(X_sentiment, y_sentiment)
 sentiment_model.save(str(TEST_MODEL_DIR / "sentiment_analysis_model.npz"))
 
 # Train and save text generation RNN model
-from text_generation.data import generate_synthetic_data as generate_text_data
-from text_generation.model import TextGenerationRNN
+from nlp_text_generation.data import generate_synthetic_data as generate_text_data
+from nlp_text_generation.model import TextGenerationRNN
 
 X_text = generate_text_data(n_samples=50, random_seed=42)
 text_model = TextGenerationRNN(
@@ -251,8 +251,8 @@ text_model.fit(X_text)
 text_model.save(str(TEST_MODEL_DIR / "text_generation_model.npz"))
 
 # Train and save speech recognition RNN model
-from speech_recognition.data import generate_synthetic_data as generate_speech_data
-from speech_recognition.model import SpeechRecognitionRNN
+from speech_audio_recognition.data import generate_synthetic_data as generate_speech_data
+from speech_audio_recognition.model import SpeechRecognitionRNN
 
 X_speech, y_speech = generate_speech_data(n_samples=50, random_seed=42)
 speech_model = SpeechRecognitionRNN(
@@ -268,8 +268,8 @@ speech_model.fit(X_speech, y_speech)
 speech_model.save(str(TEST_MODEL_DIR / "speech_recognition_model.npz"))
 
 # Train and save music generation RNN model
-from music_generation.data import generate_synthetic_data as generate_music_data
-from music_generation.model import MusicGenerationRNN
+from speech_audio_music.data import generate_synthetic_data as generate_music_data
+from speech_audio_music.model import MusicGenerationRNN
 
 X_music = generate_music_data(n_samples=50, random_seed=42)
 music_model = MusicGenerationRNN(
@@ -279,8 +279,8 @@ music_model.fit(X_music)
 music_model.save(str(TEST_MODEL_DIR / "music_generation_model.npz"))
 
 # Train and save stock market prediction RNN model
-from stock_market_prediction.data import generate_synthetic_data as generate_stock_data
-from stock_market_prediction.model import StockMarketRNN
+from time_series_stock.data import generate_synthetic_data as generate_stock_data
+from time_series_stock.model import StockMarketRNN
 
 X_stock, y_stock = generate_stock_data(n_samples=50, random_seed=42)
 stock_model = StockMarketRNN(
@@ -290,8 +290,8 @@ stock_model.fit(X_stock, y_stock)
 stock_model.save(str(TEST_MODEL_DIR / "stock_market_model.npz"))
 
 # Train and save weather forecasting RNN model
-from weather_forecasting.data import generate_synthetic_data as generate_weather_data
-from weather_forecasting.model import WeatherForecastingRNN
+from time_series_weather.data import generate_synthetic_data as generate_weather_data
+from time_series_weather.model import WeatherForecastingRNN
 
 X_weather, y_weather = generate_weather_data(n_samples=50, random_seed=42)
 weather_model = WeatherForecastingRNN(
@@ -301,8 +301,8 @@ weather_model.fit(X_weather, y_weather)
 weather_model.save(str(TEST_MODEL_DIR / "weather_forecasting_model.npz"))
 
 # Train and save image captioning RNN model
-from image_captioning.data import generate_synthetic_data as generate_image_data
-from image_captioning.model import ImageCaptioningRNN
+from vision_image_captioning.data import generate_synthetic_data as generate_image_data
+from vision_image_captioning.model import ImageCaptioningRNN
 
 X_image, y_image = generate_image_data(n_samples=50, random_seed=42)
 image_model = ImageCaptioningRNN(
@@ -318,8 +318,8 @@ image_model.fit(X_image, y_image)
 image_model.save(str(TEST_MODEL_DIR / "image_captioning_model.npz"))
 
 # Train and save medical imaging CNN model
-from medical_imaging.data import generate_synthetic_data as generate_medical_data
-from medical_imaging.model import MedicalImagingCNN
+from cnn_medical_imaging.data import generate_synthetic_data as generate_medical_data
+from cnn_medical_imaging.model import MedicalImagingCNN
 
 X_medical, y_medical = generate_medical_data(n_samples=200, random_seed=42)
 medical_model = MedicalImagingCNN(
@@ -330,8 +330,8 @@ medical_model.fit(X_medical, y_medical)
 medical_model.save(str(TEST_MODEL_DIR / "medical_imaging_model.npz"))
 
 # Train and save facial recognition CNN model
-from facial_recognition.data import generate_synthetic_data as generate_face_data
-from facial_recognition.model import FacialRecognitionCNN
+from cnn_facial_recognition.data import generate_synthetic_data as generate_face_data
+from cnn_facial_recognition.model import FacialRecognitionCNN
 
 X_face, y_face = generate_face_data(n_samples=200, random_seed=42)
 face_model = FacialRecognitionCNN(
@@ -342,8 +342,8 @@ face_model.fit(X_face, y_face)
 face_model.save(str(TEST_MODEL_DIR / "facial_recognition_model.npz"))
 
 # Train and save video surveillance CNN model
-from video_surveillance.data import generate_synthetic_data as generate_surv_data
-from video_surveillance.model import VideoSurveillanceCNN
+from cnn_video_surveillance.data import generate_synthetic_data as generate_surv_data
+from cnn_video_surveillance.model import VideoSurveillanceCNN
 
 X_surv, y_surv = generate_surv_data(n_samples=200, random_seed=42)
 surv_model = VideoSurveillanceCNN(
@@ -354,8 +354,8 @@ surv_model.fit(X_surv, y_surv)
 surv_model.save(str(TEST_MODEL_DIR / "video_surveillance_model.npz"))
 
 # Train and save image super-resolution DN model
-from image_super_resolution.data import generate_synthetic_data as generate_sr_data
-from image_super_resolution.model import ImageSuperResolutionDN
+from advanced_super_resolution.data import generate_synthetic_data as generate_sr_data
+from advanced_super_resolution.model import ImageSuperResolutionDN
 
 X_sr, y_sr = generate_sr_data(n_samples=50, random_seed=42)
 sr_model = ImageSuperResolutionDN(
@@ -365,8 +365,8 @@ sr_model.fit(X_sr, y_sr)
 sr_model.save(str(TEST_MODEL_DIR / "image_super_resolution_model.npz"))
 
 # Train and save semantic segmentation DN model
-from semantic_segmentation.data import generate_synthetic_data as generate_seg_data
-from semantic_segmentation.model import SemanticSegmentationDN
+from advanced_semantic_segmentation.data import generate_synthetic_data as generate_seg_data
+from advanced_semantic_segmentation.model import SemanticSegmentationDN
 
 X_seg, y_seg = generate_seg_data(n_samples=50, random_seed=42)
 seg_model = SemanticSegmentationDN(
@@ -376,8 +376,8 @@ seg_model.fit(X_seg, y_seg)
 seg_model.save(str(TEST_MODEL_DIR / "semantic_segmentation_model.npz"))
 
 # Train and save generative art DN model
-from generative_art.data import generate_synthetic_data as generate_art_data
-from generative_art.model import GenerativeArtDN
+from advanced_generative_art.data import generate_synthetic_data as generate_art_data
+from advanced_generative_art.model import GenerativeArtDN
 
 X_art, y_art = generate_art_data(n_samples=50, random_seed=42)
 art_model = GenerativeArtDN(
@@ -387,8 +387,8 @@ art_model.fit(X_art, y_art)
 art_model.save(str(TEST_MODEL_DIR / "generative_art_model.npz"))
 
 # Train and save autonomous driving CapsNet model
-from autonomous_driving.data import generate_synthetic_data as generate_ad_data
-from autonomous_driving.model import AutonomousDrivingCapsNet
+from capsnet_autonomous_driving.data import generate_synthetic_data as generate_ad_data
+from capsnet_autonomous_driving.model import AutonomousDrivingCapsNet
 
 X_ad, y_ad = generate_ad_data(n_samples=200, random_seed=42)
 ad_model = AutonomousDrivingCapsNet(
@@ -398,8 +398,8 @@ ad_model.fit(X_ad, y_ad)
 ad_model.save(str(TEST_MODEL_DIR / "autonomous_driving_model.npz"))
 
 # Train and save medical scan analysis CapsNet model
-from medical_scan_analysis.data import generate_synthetic_data as generate_msa_data
-from medical_scan_analysis.model import MedicalScanAnalysisCapsNet
+from capsnet_medical_scan.data import generate_synthetic_data as generate_msa_data
+from capsnet_medical_scan.model import MedicalScanAnalysisCapsNet
 
 X_msa, y_msa = generate_msa_data(n_samples=200, random_seed=42)
 msa_model = MedicalScanAnalysisCapsNet(
@@ -409,8 +409,8 @@ msa_model.fit(X_msa, y_msa)
 msa_model.save(str(TEST_MODEL_DIR / "medical_scan_analysis_model.npz"))
 
 # Train and save text/char recognition CapsNet model
-from text_char_recognition.data import generate_synthetic_data as generate_tcr_data
-from text_char_recognition.model import TextCharRecognitionCapsNet
+from capsnet_text_recognition.data import generate_synthetic_data as generate_tcr_data
+from capsnet_text_recognition.model import TextCharRecognitionCapsNet
 
 X_tcr, y_tcr = generate_tcr_data(n_samples=360, random_seed=42)
 tcr_model = TextCharRecognitionCapsNet(
@@ -420,35 +420,35 @@ tcr_model.fit(X_tcr, y_tcr)
 tcr_model.save(str(TEST_MODEL_DIR / "text_char_recognition_model.npz"))
 
 # Now import APIs (they read MODEL_DIR at import time)
+from advanced_generative_art.api import app as generative_art_app
+from advanced_semantic_segmentation.api import app as semantic_segmentation_app
+from advanced_super_resolution.api import app as image_super_resolution_app
 from anomaly_detection.api import app as anomaly_app
-from autonomous_driving.api import app as autonomous_driving_app
-from credit_card_fraud_detection.api import app as fraud_nn_app
-from email_spam_detection.api import app as spam_nn_app
-from facial_recognition.api import app as facial_recognition_app
-from generative_art.api import app as generative_art_app
-from handwritten_digit_recognition.api import app as digit_nn_app
-from house_price_prediction.api import app as house_nn_app
-from image_captioning.api import app as image_captioning_app
-from image_super_resolution.api import app as image_super_resolution_app
-from language_translation.api import app as translation_app
+from anomaly_detection_fraud.api import app as fraud_nn_app
+from capsnet_autonomous_driving.api import app as autonomous_driving_app
+from capsnet_medical_scan.api import app as medical_scan_analysis_app
+from capsnet_text_recognition.api import app as text_char_recognition_app
+from classification_email_spam.api import app as spam_nn_app
+from cnn_facial_recognition.api import app as facial_recognition_app
+from cnn_medical_imaging.api import app as medical_imaging_app
+from cnn_video_surveillance.api import app as video_surveillance_app
 from market_segmentation.api import app as market_app
-from medical_imaging.api import app as medical_imaging_app
-from medical_scan_analysis.api import app as medical_scan_analysis_app
-from music_generation.api import app as music_app
+from nlp_language_translation.api import app as translation_app
+from nlp_sentiment_analysis.api import app as sentiment_app
+from nlp_text_generation.api import app as text_gen_app
+from pattern_recognition_digits.api import app as digit_nn_app
 from pizza_price.api import app as pizza_app
 from recommendation_engine.api import app as rec_app
-from robot_maze.api import app as robot_maze_app
+from regression_house_price.api import app as house_nn_app
+from robot_maze_navigation.api import app as robot_maze_app
 from self_supervised_monitoring.api import app as ss_monitoring_app
-from semantic_segmentation.api import app as semantic_segmentation_app
 from semi_supervised_email.api import app as ss_email_app
-from sentiment_analysis.api import app as sentiment_app
 from spam_classification.api import app as spam_app
-from speech_recognition.api import app as speech_app
-from stock_market_prediction.api import app as stock_app
-from text_char_recognition.api import app as text_char_recognition_app
-from text_generation.api import app as text_gen_app
-from video_surveillance.api import app as video_surveillance_app
-from weather_forecasting.api import app as weather_app
+from speech_audio_music.api import app as music_app
+from speech_audio_recognition.api import app as speech_app
+from time_series_stock.api import app as stock_app
+from time_series_weather.api import app as weather_app
+from vision_image_captioning.api import app as image_captioning_app
 
 # Make sure the test module directory is in sys.path
 sys.path.insert(0, str(TEST_MODEL_DIR))
@@ -1234,7 +1234,7 @@ class TestHandwrittenDigitRecognitionNNAPI:
 
     def _make_digit_features(self, digit: int = 0) -> list[float]:
         """Create 64 pixel features for a digit."""
-        from handwritten_digit_recognition.data import _create_digit_template
+        from pattern_recognition_digits.data import _create_digit_template
 
         return _create_digit_template(digit).tolist()
 

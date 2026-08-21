@@ -14,8 +14,8 @@ import os
 from pathlib import Path
 from typing import Any
 
-from mlops_shared.logging import get_logger, setup_logging
-from mlops_shared.model_registry import ModelRegistry
+from ai_core.logging import get_logger, setup_logging
+from ai_core.model_registry import ModelRegistry
 
 from retrieval_augmented_generation.data import (
     DEFAULT_CHUNK_SIZE,

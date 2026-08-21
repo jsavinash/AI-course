@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Prompt Engineering implementation with various techniques (zero-shot, few-shot, chain-of-thought, self-ask, least-to-most, meta-prompting, context-amplification, iterative) from scratch using NumPy"
 requires-python = ">=3.11"
 dependencies = [
-    "mlops-shared",
+    "ai-core",
     "numpy>=1.26.0",
     "pandas>=2.2.0",
     "fastapi>=0.110.0",
@@ -20,7 +20,7 @@ dependencies = [
 prompt_engineering-train = "prompt_engineering.train:main"
 
 [tool.uv.sources]
-mlops-shared = { workspace = true }
+ai-core = { workspace = true }
 
 [tool.uv]
 package = true

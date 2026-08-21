@@ -3,28 +3,28 @@
 import numpy as np
 import pytest
 from anomaly_detection.model import PCAAnomalyDetector
-from credit_card_fraud_detection.model import FraudDetectionAutoencoder
-from email_spam_detection.model import SpamDetectionNN
-from handwritten_digit_recognition.data import generate_synthetic_data as generate_digits
-from handwritten_digit_recognition.model import DigitRecognitionNN
-from house_price_prediction.model import HousePriceNN
-from image_captioning.model import ImageCaptioningRNN
-from language_translation.model import LanguageTranslationRNN
+from anomaly_detection_fraud.model import FraudDetectionAutoencoder
+from classification_email_spam.model import SpamDetectionNN
 from market_segmentation.model import KMeans
-from music_generation.model import MusicGenerationRNN
+from nlp_language_translation.model import LanguageTranslationRNN
+from nlp_sentiment_analysis.model import SentimentAnalysisRNN
+from nlp_text_generation.model import TextGenerationRNN
+from pattern_recognition_digits.data import generate_synthetic_data as generate_digits
+from pattern_recognition_digits.model import DigitRecognitionNN
 from pizza_price.model import LinearRegression
 from recommendation_engine.model import Apriori
-from robot_maze.model import QLearningAgent
+from regression_house_price.model import HousePriceNN
+from robot_maze_navigation.model import QLearningAgent
 from self_supervised_monitoring.data import generate_synthetic_data
 from self_supervised_monitoring.model import DenoisingAutoencoder
 from semi_supervised_email.data import load_training_data
 from semi_supervised_email.model import SelfTrainingClassifier
-from sentiment_analysis.model import SentimentAnalysisRNN
 from spam_classification.model import LogisticRegression
-from speech_recognition.model import SpeechRecognitionRNN
-from stock_market_prediction.model import StockMarketRNN
-from text_generation.model import TextGenerationRNN
-from weather_forecasting.model import WeatherForecastingRNN
+from speech_audio_music.model import MusicGenerationRNN
+from speech_audio_recognition.model import SpeechRecognitionRNN
+from time_series_stock.model import StockMarketRNN
+from time_series_weather.model import WeatherForecastingRNN
+from vision_image_captioning.model import ImageCaptioningRNN
 
 
 class TestPizzaLinearRegression:
@@ -484,7 +484,7 @@ class TestRobotMazeNavigation:
     """Tests for the robot maze navigation Q-learning model."""
 
     def _make_maze(self, size: int = 6, seed: int = 42) -> tuple[np.ndarray, int, int]:
-        from robot_maze.data import generate_maze, get_start_position
+        from robot_maze_navigation.data import generate_maze, get_start_position
 
         maze = generate_maze(size, size, seed)
         n_states = maze.shape[0] * maze.shape[1]
@@ -522,7 +522,7 @@ class TestRobotMazeNavigation:
     def test_train_online_improves_reward(self):
         """Test that online training improves episode rewards over time."""
         maze, n_states, start_idx = self._make_maze()
-        from robot_maze.data import get_goal_positions
+        from robot_maze_navigation.data import get_goal_positions
 
         agent = QLearningAgent(n_states=n_states, n_actions=4, epsilon_decay=0.99, seed=42)
         start_pos = (start_idx // maze.shape[1], start_idx % maze.shape[1])
@@ -539,7 +539,7 @@ class TestRobotMazeNavigation:
     def test_train_offline_improves_q_values(self):
         """Test that offline training updates Q-values from dataset."""
         maze, n_states, start_idx = self._make_maze()
-        from robot_maze.data import generate_transitions
+        from robot_maze_navigation.data import generate_transitions
 
         agent = QLearningAgent(n_states=n_states, n_actions=4, seed=42)
 
@@ -554,7 +554,7 @@ class TestRobotMazeNavigation:
     def test_solve_maze_returns_path(self):
         """Test that solve_maze returns a valid path."""
         maze, n_states, start_idx = self._make_maze()
-        from robot_maze.data import get_goal_positions
+        from robot_maze_navigation.data import get_goal_positions
 
         agent = QLearningAgent(n_states=n_states, n_actions=4, seed=42)
         start_pos = (start_idx // maze.shape[1], start_idx % maze.shape[1])
@@ -573,7 +573,7 @@ class TestRobotMazeNavigation:
     def test_evaluate_returns_metrics(self):
         """Test that evaluate returns success_rate and other metrics."""
         maze, n_states, start_idx = self._make_maze()
-        from robot_maze.data import get_goal_positions
+        from robot_maze_navigation.data import get_goal_positions
 
         agent = QLearningAgent(n_states=n_states, n_actions=4, seed=42)
         start_pos = (start_idx // maze.shape[1], start_idx % maze.shape[1])
@@ -609,7 +609,7 @@ class TestRobotMazeNavigation:
     def test_positive_negative_reinforcement(self):
         """Test that positive and negative reinforcement produce correct reward values."""
         maze, n_states, start_idx = self._make_maze()
-        from robot_maze.data import get_goal_positions, get_reward
+        from robot_maze_navigation.data import get_goal_positions, get_reward
 
         goal_positions = get_goal_positions(maze)
         start = get_goal_positions(maze)[0]
@@ -920,7 +920,7 @@ class TestSpamDetectionNN:
     """Tests for the email spam detection feedforward neural network."""
 
     def _make_data(self, n_samples: int = 200, seed: int = 42) -> tuple[np.ndarray, np.ndarray]:
-        from email_spam_detection.data import generate_synthetic_data
+        from classification_email_spam.data import generate_synthetic_data
 
         return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
 
@@ -1002,7 +1002,7 @@ class TestHousePriceNN:
     """Tests for the house price prediction feedforward neural network."""
 
     def _make_data(self, n_samples: int = 200, seed: int = 42) -> tuple[np.ndarray, np.ndarray]:
-        from house_price_prediction.data import generate_synthetic_data
+        from regression_house_price.data import generate_synthetic_data
 
         return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
 
@@ -1081,7 +1081,7 @@ class TestFraudDetectionAutoencoder:
     """Tests for the credit card fraud detection autoencoder."""
 
     def _make_data(self, n_samples: int = 500, seed: int = 42) -> tuple[np.ndarray, np.ndarray]:
-        from credit_card_fraud_detection.data import generate_synthetic_data
+        from anomaly_detection_fraud.data import generate_synthetic_data
 
         return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
 
@@ -1290,7 +1290,7 @@ class TestLanguageTranslationRNN:
     """Tests for the language translation RNN model."""
 
     def _make_data(self, n_samples=200, seed=42):
-        from language_translation.data import generate_synthetic_data
+        from nlp_language_translation.data import generate_synthetic_data
 
         return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
 
@@ -1393,7 +1393,7 @@ class TestSentimentAnalysisRNN:
     """Tests for the sentiment analysis RNN model."""
 
     def _make_data(self, n_samples=100, seed=42):
-        from sentiment_analysis.data import generate_synthetic_data
+        from nlp_sentiment_analysis.data import generate_synthetic_data
 
         return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
 
@@ -1498,7 +1498,7 @@ class TestTextGenerationRNN:
     """Tests for the text generation RNN language model."""
 
     def _make_data(self, n_samples=50, seed=42):
-        from text_generation.data import generate_synthetic_data
+        from nlp_text_generation.data import generate_synthetic_data
 
         return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
 
@@ -1615,7 +1615,7 @@ class TestSpeechRecognitionRNN:
     """Tests for the speech recognition RNN model."""
 
     def _make_data(self, n_samples=50, seed=42):
-        from speech_recognition.data import generate_synthetic_data
+        from speech_audio_recognition.data import generate_synthetic_data
 
         return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
 
@@ -1725,7 +1725,7 @@ class TestMusicGenerationRNN:
     """Tests for the music generation RNN language model."""
 
     def _make_data(self, n_samples=50, seed=42):
-        from music_generation.data import generate_synthetic_data
+        from speech_audio_music.data import generate_synthetic_data
 
         return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
 
@@ -1811,7 +1811,7 @@ class TestStockMarketRNN:
     """Tests for the stock market prediction RNN model."""
 
     def _make_data(self, n_samples=50, seed=42):
-        from stock_market_prediction.data import generate_synthetic_data
+        from time_series_stock.data import generate_synthetic_data
 
         return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
 
@@ -1900,7 +1900,7 @@ class TestWeatherForecastingRNN:
     """Tests for the weather forecasting RNN model."""
 
     def _make_data(self, n_samples=50, seed=42):
-        from weather_forecasting.data import generate_synthetic_data
+        from time_series_weather.data import generate_synthetic_data
 
         return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
 
@@ -1987,7 +1987,7 @@ class TestImageCaptioningRNN:
     """Tests for the image captioning RNN model."""
 
     def _make_data(self, n_samples=50, seed=42):
-        from image_captioning.data import generate_synthetic_data
+        from vision_image_captioning.data import generate_synthetic_data
 
         return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
 
@@ -2067,12 +2067,12 @@ class TestMedicalImagingCNN:
     """Tests for the medical imaging CNN model."""
 
     def _make_data(self, n_samples=60, seed=42):
-        from medical_imaging.data import generate_synthetic_data
+        from cnn_medical_imaging.data import generate_synthetic_data
 
         return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
 
     def test_training_converges(self):
-        from medical_imaging.model import MedicalImagingCNN
+        from cnn_medical_imaging.model import MedicalImagingCNN
 
         X, y = self._make_data(n_samples=50)
         model = MedicalImagingCNN(
@@ -2083,8 +2083,8 @@ class TestMedicalImagingCNN:
         assert model.training_mode == "supervised"
 
     def test_predict_returns_valid_classes(self):
-        from medical_imaging.data import N_CLASSES
-        from medical_imaging.model import MedicalImagingCNN
+        from cnn_medical_imaging.data import N_CLASSES
+        from cnn_medical_imaging.model import MedicalImagingCNN
 
         X, y = self._make_data(n_samples=50)
         model = MedicalImagingCNN(
@@ -2096,7 +2096,7 @@ class TestMedicalImagingCNN:
         assert all(0 <= p < N_CLASSES for p in preds)
 
     def test_evaluate_returns_metrics(self):
-        from medical_imaging.model import MedicalImagingCNN
+        from cnn_medical_imaging.model import MedicalImagingCNN
 
         X, y = self._make_data(n_samples=50)
         model = MedicalImagingCNN(
@@ -2108,7 +2108,7 @@ class TestMedicalImagingCNN:
         assert 0.0 <= metrics["accuracy"] <= 1.0
 
     def test_save_load_roundtrip(self, tmp_path):
-        from medical_imaging.model import MedicalImagingCNN
+        from cnn_medical_imaging.model import MedicalImagingCNN
 
         X, y = self._make_data(n_samples=50)
         model = MedicalImagingCNN(
@@ -2121,7 +2121,7 @@ class TestMedicalImagingCNN:
         np.testing.assert_allclose(model.predict_proba(X[:5]), loaded.predict_proba(X[:5]))
 
     def test_to_dict_returns_metadata(self):
-        from medical_imaging.model import MedicalImagingCNN
+        from cnn_medical_imaging.model import MedicalImagingCNN
 
         X, y = self._make_data(n_samples=50)
         model = MedicalImagingCNN(
@@ -2138,12 +2138,12 @@ class TestFacialRecognitionCNN:
     """Tests for the facial recognition CNN model."""
 
     def _make_data(self, n_samples=60, seed=42):
-        from facial_recognition.data import generate_synthetic_data
+        from cnn_facial_recognition.data import generate_synthetic_data
 
         return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
 
     def test_training_converges(self):
-        from facial_recognition.model import FacialRecognitionCNN
+        from cnn_facial_recognition.model import FacialRecognitionCNN
 
         X, y = self._make_data(n_samples=50)
         model = FacialRecognitionCNN(
@@ -2154,7 +2154,7 @@ class TestFacialRecognitionCNN:
         assert model.training_mode == "supervised"
 
     def test_predict_returns_binary(self):
-        from facial_recognition.model import FacialRecognitionCNN
+        from cnn_facial_recognition.model import FacialRecognitionCNN
 
         X, y = self._make_data(n_samples=50)
         model = FacialRecognitionCNN(
@@ -2166,7 +2166,7 @@ class TestFacialRecognitionCNN:
         assert all(p in (0, 1) for p in preds)
 
     def test_evaluate_returns_metrics(self):
-        from facial_recognition.model import FacialRecognitionCNN
+        from cnn_facial_recognition.model import FacialRecognitionCNN
 
         X, y = self._make_data(n_samples=50)
         model = FacialRecognitionCNN(
@@ -2177,7 +2177,7 @@ class TestFacialRecognitionCNN:
         assert "accuracy" in metrics
 
     def test_save_load_roundtrip(self, tmp_path):
-        from facial_recognition.model import FacialRecognitionCNN
+        from cnn_facial_recognition.model import FacialRecognitionCNN
 
         X, y = self._make_data(n_samples=50)
         model = FacialRecognitionCNN(
@@ -2190,7 +2190,7 @@ class TestFacialRecognitionCNN:
         np.testing.assert_allclose(model.predict_proba(X[:5]), loaded.predict_proba(X[:5]))
 
     def test_to_dict_returns_metadata(self):
-        from facial_recognition.model import FacialRecognitionCNN
+        from cnn_facial_recognition.model import FacialRecognitionCNN
 
         X, y = self._make_data(n_samples=50)
         model = FacialRecognitionCNN(
@@ -2206,12 +2206,12 @@ class TestVideoSurveillanceCNN:
     """Tests for the video surveillance CNN model."""
 
     def _make_data(self, n_samples=60, seed=42):
-        from video_surveillance.data import generate_synthetic_data
+        from cnn_video_surveillance.data import generate_synthetic_data
 
         return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
 
     def test_training_converges(self):
-        from video_surveillance.model import VideoSurveillanceCNN
+        from cnn_video_surveillance.model import VideoSurveillanceCNN
 
         X, y = self._make_data(n_samples=50)
         model = VideoSurveillanceCNN(
@@ -2221,7 +2221,7 @@ class TestVideoSurveillanceCNN:
         assert len(model.loss_history) > 0
 
     def test_predict_returns_valid_classes(self):
-        from video_surveillance.model import VideoSurveillanceCNN
+        from cnn_video_surveillance.model import VideoSurveillanceCNN
 
         X, y = self._make_data(n_samples=50)
         model = VideoSurveillanceCNN(
@@ -2232,7 +2232,7 @@ class TestVideoSurveillanceCNN:
         assert preds.shape == (10,)
 
     def test_evaluate_returns_metrics(self):
-        from video_surveillance.model import VideoSurveillanceCNN
+        from cnn_video_surveillance.model import VideoSurveillanceCNN
 
         X, y = self._make_data(n_samples=50)
         model = VideoSurveillanceCNN(
@@ -2243,7 +2243,7 @@ class TestVideoSurveillanceCNN:
         assert "accuracy" in metrics
 
     def test_save_load_roundtrip(self, tmp_path):
-        from video_surveillance.model import VideoSurveillanceCNN
+        from cnn_video_surveillance.model import VideoSurveillanceCNN
 
         X, y = self._make_data(n_samples=50)
         model = VideoSurveillanceCNN(
@@ -2260,12 +2260,12 @@ class TestImageSuperResolutionDN:
     """Tests for the image super-resolution deconvolutional network."""
 
     def _make_data(self, n_samples=20, seed=42):
-        from image_super_resolution.data import generate_synthetic_data
+        from advanced_super_resolution.data import generate_synthetic_data
 
         return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
 
     def test_training_produces_loss_history(self):
-        from image_super_resolution.model import ImageSuperResolutionDN
+        from advanced_super_resolution.model import ImageSuperResolutionDN
 
         X, y = self._make_data(n_samples=10)
         model = ImageSuperResolutionDN(
@@ -2276,7 +2276,7 @@ class TestImageSuperResolutionDN:
         assert model.training_mode == "supervised"
 
     def test_predict_returns_image(self):
-        from image_super_resolution.model import ImageSuperResolutionDN
+        from advanced_super_resolution.model import ImageSuperResolutionDN
 
         X, y = self._make_data(n_samples=10)
         model = ImageSuperResolutionDN(
@@ -2287,7 +2287,7 @@ class TestImageSuperResolutionDN:
         assert preds.shape[0] == 5
 
     def test_evaluate_returns_metrics(self):
-        from image_super_resolution.model import ImageSuperResolutionDN
+        from advanced_super_resolution.model import ImageSuperResolutionDN
 
         X, y = self._make_data(n_samples=10)
         model = ImageSuperResolutionDN(
@@ -2299,7 +2299,7 @@ class TestImageSuperResolutionDN:
         assert "rmse" in metrics
 
     def test_save_load_roundtrip(self, tmp_path):
-        from image_super_resolution.model import ImageSuperResolutionDN
+        from advanced_super_resolution.model import ImageSuperResolutionDN
 
         X, y = self._make_data(n_samples=10)
         model = ImageSuperResolutionDN(
@@ -2316,12 +2316,12 @@ class TestSemanticSegmentationDN:
     """Tests for the semantic segmentation deconvolutional network."""
 
     def _make_data(self, n_samples=20, seed=42):
-        from semantic_segmentation.data import generate_synthetic_data
+        from advanced_semantic_segmentation.data import generate_synthetic_data
 
         return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
 
     def test_training_produces_loss_history(self):
-        from semantic_segmentation.model import SemanticSegmentationDN
+        from advanced_semantic_segmentation.model import SemanticSegmentationDN
 
         X, y = self._make_data(n_samples=10)
         model = SemanticSegmentationDN(
@@ -2331,7 +2331,7 @@ class TestSemanticSegmentationDN:
         assert len(model.loss_history) > 0
 
     def test_predict_returns_mask(self):
-        from semantic_segmentation.model import SemanticSegmentationDN
+        from advanced_semantic_segmentation.model import SemanticSegmentationDN
 
         X, y = self._make_data(n_samples=10)
         model = SemanticSegmentationDN(
@@ -2342,7 +2342,7 @@ class TestSemanticSegmentationDN:
         assert preds.shape[0] == 5
 
     def test_evaluate_returns_metrics(self):
-        from semantic_segmentation.model import SemanticSegmentationDN
+        from advanced_semantic_segmentation.model import SemanticSegmentationDN
 
         X, y = self._make_data(n_samples=10)
         model = SemanticSegmentationDN(
@@ -2353,7 +2353,7 @@ class TestSemanticSegmentationDN:
         assert "mse" in metrics
 
     def test_save_load_roundtrip(self, tmp_path):
-        from semantic_segmentation.model import SemanticSegmentationDN
+        from advanced_semantic_segmentation.model import SemanticSegmentationDN
 
         X, y = self._make_data(n_samples=10)
         model = SemanticSegmentationDN(
@@ -2370,12 +2370,12 @@ class TestGenerativeArtDN:
     """Tests for the generative art deconvolutional network."""
 
     def _make_data(self, n_samples=20, seed=42):
-        from generative_art.data import generate_synthetic_data
+        from advanced_generative_art.data import generate_synthetic_data
 
         return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
 
     def test_training_produces_loss_history(self):
-        from generative_art.model import GenerativeArtDN
+        from advanced_generative_art.model import GenerativeArtDN
 
         X, y = self._make_data(n_samples=10)
         model = GenerativeArtDN(
@@ -2385,7 +2385,7 @@ class TestGenerativeArtDN:
         assert len(model.loss_history) > 0
 
     def test_predict_returns_image(self):
-        from generative_art.model import GenerativeArtDN
+        from advanced_generative_art.model import GenerativeArtDN
 
         X, y = self._make_data(n_samples=10)
         model = GenerativeArtDN(
@@ -2396,7 +2396,7 @@ class TestGenerativeArtDN:
         assert preds.shape[0] == 5
 
     def test_evaluate_returns_metrics(self):
-        from generative_art.model import GenerativeArtDN
+        from advanced_generative_art.model import GenerativeArtDN
 
         X, y = self._make_data(n_samples=10)
         model = GenerativeArtDN(
@@ -2407,7 +2407,7 @@ class TestGenerativeArtDN:
         assert "mse" in metrics
 
     def test_save_load_roundtrip(self, tmp_path):
-        from generative_art.model import GenerativeArtDN
+        from advanced_generative_art.model import GenerativeArtDN
 
         X, y = self._make_data(n_samples=10)
         model = GenerativeArtDN(
@@ -2424,12 +2424,12 @@ class TestAutonomousDrivingCapsNet:
     """Tests for the autonomous driving capsule network model."""
 
     def _make_data(self, n_samples=80, seed=42):
-        from autonomous_driving.data import generate_synthetic_data
+        from capsnet_autonomous_driving.data import generate_synthetic_data
 
         return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
 
     def test_training_converges(self):
-        from autonomous_driving.model import AutonomousDrivingCapsNet
+        from capsnet_autonomous_driving.model import AutonomousDrivingCapsNet
 
         X, y = self._make_data(n_samples=50)
         model = AutonomousDrivingCapsNet(
@@ -2440,7 +2440,7 @@ class TestAutonomousDrivingCapsNet:
         assert model.training_mode == "supervised"
 
     def test_predict_returns_valid_classes(self):
-        from autonomous_driving.model import AutonomousDrivingCapsNet
+        from capsnet_autonomous_driving.model import AutonomousDrivingCapsNet
 
         X, y = self._make_data(n_samples=50)
         model = AutonomousDrivingCapsNet(
@@ -2451,7 +2451,7 @@ class TestAutonomousDrivingCapsNet:
         assert preds.shape == (10,)
 
     def test_evaluate_returns_metrics(self):
-        from autonomous_driving.model import AutonomousDrivingCapsNet
+        from capsnet_autonomous_driving.model import AutonomousDrivingCapsNet
 
         X, y = self._make_data(n_samples=50)
         model = AutonomousDrivingCapsNet(
@@ -2462,7 +2462,7 @@ class TestAutonomousDrivingCapsNet:
         assert "accuracy" in metrics
 
     def test_save_load_roundtrip(self, tmp_path):
-        from autonomous_driving.model import AutonomousDrivingCapsNet
+        from capsnet_autonomous_driving.model import AutonomousDrivingCapsNet
 
         X, y = self._make_data(n_samples=50)
         model = AutonomousDrivingCapsNet(
@@ -2475,7 +2475,7 @@ class TestAutonomousDrivingCapsNet:
         np.testing.assert_allclose(model.predict_proba(X[:5]), loaded.predict_proba(X[:5]))
 
     def test_to_dict_returns_metadata(self):
-        from autonomous_driving.model import AutonomousDrivingCapsNet
+        from capsnet_autonomous_driving.model import AutonomousDrivingCapsNet
 
         X, y = self._make_data(n_samples=50)
         model = AutonomousDrivingCapsNet(
@@ -2491,12 +2491,12 @@ class TestMedicalScanAnalysisCapsNet:
     """Tests for the medical scan analysis capsule network model."""
 
     def _make_data(self, n_samples=80, seed=42):
-        from medical_scan_analysis.data import generate_synthetic_data
+        from capsnet_medical_scan.data import generate_synthetic_data
 
         return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
 
     def test_training_converges(self):
-        from medical_scan_analysis.model import MedicalScanAnalysisCapsNet
+        from capsnet_medical_scan.model import MedicalScanAnalysisCapsNet
 
         X, y = self._make_data(n_samples=50)
         model = MedicalScanAnalysisCapsNet(
@@ -2506,7 +2506,7 @@ class TestMedicalScanAnalysisCapsNet:
         assert len(model.loss_history) > 0
 
     def test_predict_returns_valid_classes(self):
-        from medical_scan_analysis.model import MedicalScanAnalysisCapsNet
+        from capsnet_medical_scan.model import MedicalScanAnalysisCapsNet
 
         X, y = self._make_data(n_samples=50)
         model = MedicalScanAnalysisCapsNet(
@@ -2517,7 +2517,7 @@ class TestMedicalScanAnalysisCapsNet:
         assert preds.shape == (10,)
 
     def test_evaluate_returns_metrics(self):
-        from medical_scan_analysis.model import MedicalScanAnalysisCapsNet
+        from capsnet_medical_scan.model import MedicalScanAnalysisCapsNet
 
         X, y = self._make_data(n_samples=50)
         model = MedicalScanAnalysisCapsNet(
@@ -2528,7 +2528,7 @@ class TestMedicalScanAnalysisCapsNet:
         assert "accuracy" in metrics
 
     def test_save_load_roundtrip(self, tmp_path):
-        from medical_scan_analysis.model import MedicalScanAnalysisCapsNet
+        from capsnet_medical_scan.model import MedicalScanAnalysisCapsNet
 
         X, y = self._make_data(n_samples=50)
         model = MedicalScanAnalysisCapsNet(
@@ -2545,12 +2545,12 @@ class TestTextCharRecognitionCapsNet:
     """Tests for the text/character recognition capsule network model."""
 
     def _make_data(self, n_samples=100, seed=42):
-        from text_char_recognition.data import generate_synthetic_data
+        from capsnet_text_recognition.data import generate_synthetic_data
 
         return generate_synthetic_data(n_samples=n_samples, random_seed=seed)
 
     def test_training_converges(self):
-        from text_char_recognition.model import TextCharRecognitionCapsNet
+        from capsnet_text_recognition.model import TextCharRecognitionCapsNet
 
         X, y = self._make_data(n_samples=80)
         model = TextCharRecognitionCapsNet(
@@ -2560,7 +2560,7 @@ class TestTextCharRecognitionCapsNet:
         assert len(model.loss_history) > 0
 
     def test_predict_returns_valid_classes(self):
-        from text_char_recognition.model import TextCharRecognitionCapsNet
+        from capsnet_text_recognition.model import TextCharRecognitionCapsNet
 
         X, y = self._make_data(n_samples=80)
         model = TextCharRecognitionCapsNet(

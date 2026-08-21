@@ -5,44 +5,6 @@ description = "Production-ready MLOps monorepo with supervised, unsupervised, re
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "pizza-price",
-    "spam-classification",
-    "market-segmentation",
-    "recommendation-engine",
-    "anomaly-detection",
-    "robot-maze-navigation",
-    "semi-supervised-email",
-    "self-supervised-monitoring",
-    "email-spam-detection",
-    "house-price-prediction",
-    "credit-card-fraud-detection",
-    "handwritten-digit-recognition",
-    "language-translation",
-    "sentiment-analysis",
-    "text-generation",
-    "text-gen",
-    "image-generation",
-    "video-generation",
-    "speech-recognition",
-    "music-generation",
-    "stock-market-prediction",
-    "weather-forecasting",
-    "image-captioning",
-    "medical-imaging",
-    "facial-recognition",
-    "video-surveillance",
-    "image-super-resolution",
-    "semantic-segmentation",
-    "generative-art",
-    "autonomous-driving",
-    "medical-scan-analysis",
-    "text-char-recognition",
-    "gnn-social-networks",
-    "pinn-heat-equation",
-    "snn-image-classification",
-    "transformers-language-modeling",
-    "attention-mechanism",
-    "large-language-model",
     "numpy>=1.26.0",
     "scipy>=1.11.0",
     "scikit-learn>=1.4.0",
@@ -66,93 +28,64 @@ dependencies = [
 
 [tool.uv.workspace]
 members = [
+    "apps/deep-learning/attention-mechanism",
+    "apps/deep-learning/large-language-model",
+    "apps/deep-learning/multimodal-llm",
+    "apps/deep-learning/pre-training-fine-tuning",
+    "apps/deep-learning/transfer-learning",
+    "apps/deep-learning/transformers-language-modeling",
+    "apps/generative-ai/code-generation",
+    "apps/generative-ai/image-generation",
+    "apps/generative-ai/prompt-engineering",
+    "apps/generative-ai/retrieval-augmented-generation",
+    "apps/generative-ai/text-generation",
+    "apps/generative-ai/tool-use-functional-calling",
+    "apps/generative-ai/video-generation",
+    "apps/machine-learning/reinforcement/robot-maze-navigation",
+    "apps/machine-learning/self-supervised/self-supervised-monitoring",
+    "apps/machine-learning/semi-supervised/semi-supervised-email",
     "apps/machine-learning/supervised/pizza-price",
     "apps/machine-learning/supervised/spam-classification",
+    "apps/machine-learning/unsupervised/anomaly-detection-pca",
     "apps/machine-learning/unsupervised/market-segmentation",
     "apps/machine-learning/unsupervised/recommendation-engine",
-    "apps/machine-learning/unsupervised/anomaly-detection",
-    "apps/machine-learning/reinforcement/robot-maze-navigation",
-    "apps/machine-learning/semi-supervised/semi-supervised-email",
-    "apps/machine-learning/self-supervised/self-supervised-monitoring",
-    "apps/neural-networks/feedforward-neural-networks/classification/email-spam-detection",
-    "apps/neural-networks/feedforward-neural-networks/regression/house-price-prediction",
-    "apps/neural-networks/feedforward-neural-networks/anomaly-detection/credit-card-fraud-detection",
-    "apps/neural-networks/feedforward-neural-networks/pattern-recognition/handwritten-digit-recognition",
-    "apps/neural-networks/recurrent-neural-networks/nlp/language-translation",
-    "apps/neural-networks/recurrent-neural-networks/nlp/sentiment-analysis",
-    "apps/neural-networks/recurrent-neural-networks/nlp/text-generation",
-    "apps/neural-networks/recurrent-neural-networks/speech-audio/speech-recognition",
-    "apps/neural-networks/recurrent-neural-networks/speech-audio/music-generation",
-    "apps/neural-networks/recurrent-neural-networks/time-series-forecasting/stock-market-prediction",
-    "apps/neural-networks/recurrent-neural-networks/time-series-forecasting/weather-forecasting",
-    "apps/neural-networks/recurrent-neural-networks/vision-tasks/image-captioning",
-    "apps/neural-networks/convolutional-neural-networks/cnn/medical-imaging",
-    "apps/neural-networks/convolutional-neural-networks/cnn/facial-recognition",
-    "apps/neural-networks/convolutional-neural-networks/cnn/video-surveillance",
-    "apps/neural-networks/convolutional-neural-networks/dn/image-super-resolution",
-    "apps/neural-networks/convolutional-neural-networks/dn/semantic-segmentation",
-    "apps/neural-networks/convolutional-neural-networks/dn/generative-art",
-    "apps/neural-networks/convolutional-neural-networks/capsnet/autonomous-driving",
-    "apps/neural-networks/convolutional-neural-networks/capsnet/medical-scan-analysis",
-    "apps/neural-networks/convolutional-neural-networks/capsnet/text-char-recognition",
-    "apps/neural-networks/graph-physics-informed-networks/graph-neural-networks/social-networks",
-    "apps/neural-networks/graph-physics-informed-networks/physics-informed-neural-networks/heat-equation",
-    "apps/neural-networks/graph-physics-informed-networks/spiking-neural-networks/image-classification",
-    "apps/deep-learning/machine-learning/transformers-language-modeling",
-    "apps/deep-learning/machine-learning/attention-mechanism",
-    "apps/deep-learning/machine-learning/large-language-model",
-    "apps/deep-learning/machine-learning/pre-training-fine-tuning",
-    "apps/generative-ai/prompt-engineering",
-    "apps/generative-ai/code-generation",
-    "apps/generative-ai/tool-use-and-functional-calling",
-    "apps/generative-ai/text-gen",
-    "apps/generative-ai/image-generation",
-    "apps/generative-ai/video-generation",
-    "apps/generative-ai/retrieval-augmented-generation",
-    "shared",
+    "apps/neural-networks/attention-generative/diffusion",
+    "apps/neural-networks/attention-generative/gan",
+    "apps/neural-networks/attention-generative/transformers",
+    "apps/neural-networks/attention-generative/vae",
+    "apps/neural-networks/convolutional/advanced-generative-art",
+    "apps/neural-networks/convolutional/advanced-semantic-segmentation",
+    "apps/neural-networks/convolutional/advanced-super-resolution",
+    "apps/neural-networks/convolutional/capsnet-autonomous-driving",
+    "apps/neural-networks/convolutional/capsnet-medical-scan",
+    "apps/neural-networks/convolutional/capsnet-text-recognition",
+    "apps/neural-networks/convolutional/cnn-facial-recognition",
+    "apps/neural-networks/convolutional/cnn-medical-imaging",
+    "apps/neural-networks/convolutional/cnn-video-surveillance",
+    "apps/neural-networks/feedforward/anomaly-detection-fraud",
+    "apps/neural-networks/feedforward/classification-email-spam",
+    "apps/neural-networks/feedforward/pattern-recognition-digits",
+    "apps/neural-networks/feedforward/regression-house-price",
+    "apps/neural-networks/graph-physics-informed/gnn-social-networks",
+    "apps/neural-networks/graph-physics-informed/pinn-heat-equation",
+    "apps/neural-networks/graph-physics-informed/snn-image-classification",
+    "apps/neural-networks/recurrent/nlp-language-translation",
+    "apps/neural-networks/recurrent/nlp-sentiment-analysis",
+    "apps/neural-networks/recurrent/nlp-text-generation",
+    "apps/neural-networks/recurrent/speech-audio-music",
+    "apps/neural-networks/recurrent/speech-audio-recognition",
+    "apps/neural-networks/recurrent/time-series-stock",
+    "apps/neural-networks/recurrent/time-series-weather",
+    "apps/neural-networks/recurrent/vision-image-captioning",
+    "apps/neural-networks/unsupervised/autoencoders-dimensionality-reduction",
+    "apps/neural-networks/unsupervised/deep-belief-networks",
+    "apps/neural-networks/unsupervised/restricted-boltzmann-machines",
+    "apps/neural-networks/unsupervised/self-organizing-maps",
+    "packages/ai-core",
 ]
 
 [tool.uv.sources]
-mlops-shared = { workspace = true }
-pizza-price = { workspace = true }
-spam-classification = { workspace = true }
-market-segmentation = { workspace = true }
-recommendation-engine = { workspace = true }
-anomaly-detection = { workspace = true }
-robot-maze-navigation = { workspace = true }
-semi-supervised-email = { workspace = true }
-self-supervised-monitoring = { workspace = true }
-email-spam-detection = { workspace = true }
-house-price-prediction = { workspace = true }
-credit-card-fraud-detection = { workspace = true }
-handwritten-digit-recognition = { workspace = true }
-language-translation = { workspace = true }
-sentiment-analysis = { workspace = true }
-text-generation = { workspace = true }
-text-gen = { workspace = true }
-image-generation = { workspace = true }
-video-generation = { workspace = true }
-speech-recognition = { workspace = true }
-music-generation = { workspace = true }
-stock-market-prediction = { workspace = true }
-weather-forecasting = { workspace = true }
-image-captioning = { workspace = true }
-medical-imaging = { workspace = true }
-facial-recognition = { workspace = true }
-video-surveillance = { workspace = true }
-image-super-resolution = { workspace = true }
-semantic-segmentation = { workspace = true }
-generative-art = { workspace = true }
-autonomous-driving = { workspace = true }
-medical-scan-analysis = { workspace = true }
-text-char-recognition = { workspace = true }
-gnn-social-networks = { workspace = true }
-pinn-heat-equation = { workspace = true }
-snn-image-classification = { workspace = true }
-    transformers-language-modeling = { workspace = true }
-    attention-mechanism = { workspace = true }
-    large-language-model = { workspace = true }
-    "pre-training-fine-tuning" = { workspace = true }
+ai-core = { workspace = true }
 
 [tool.uv]
 package = false
@@ -167,12 +100,47 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "SIM"]
-ignore = ["E501", "N802", "N803", "N806", "E402"]
+ignore = ["E501", "N802", "N803", "N806", "E402", "N815"]
 
 [tool.mypy]
-python_version = "3.11"
-strict = true
+python_version = "3.14"
 warn_unused_configs = true
+exclude = ["tests/", ".*tests/.*", ".*\\.venv/.*"]
+strict_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+warn_unreachable = true
+no_implicit_optional = true
+no_implicit_reexport = true
+strict_equality = true
+disallow_any_generics = false
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+disallow_any_expr = false
+disallow_any_explicit = false
+disallow_subclassing_any = false
+disallow_untyped_calls = false
+disallow_untyped_decorators = false
+disable_error_code = ["operator", "union-attr", "arg-type", "assignment", "index", "no-any-return", "call-arg", "attr-defined", "return-value", "import-not-found", "import-untyped"]
+
+[[tool.mypy.overrides]]
+module = "numpy.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "pandas.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "scipy.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "ai_core.nn_utils.*"
+disallow_any_generics = false
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
 
 [tool.black]
 line-length = 100

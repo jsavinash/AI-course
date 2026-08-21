@@ -4,11 +4,16 @@ import argparse
 import os
 from pathlib import Path
 
-from mlops_shared.logging import get_logger, setup_logging
-from mlops_shared.model_registry import ModelRegistry
-from mlops_shared.validation import DataValidator, create_transfer_learning_schema
+from ai_core.logging import get_logger, setup_logging
+from ai_core.model_registry import ModelRegistry
+from ai_core.validation import DataValidator, create_transfer_learning_schema
 
-from transfer_learning.data import generate_synthetic_data, load_dataset, save_dataset, train_test_split
+from transfer_learning.data import (
+    generate_synthetic_data,
+    load_dataset,
+    save_dataset,
+    train_test_split,
+)
 from transfer_learning.model import TransferLearningModel
 
 logger = get_logger(__name__)
@@ -72,7 +77,7 @@ def train(
     )
 
     logger.info("Starting transfer learning training", freeze_base=freeze_base, fine_tune_layers=fine_tune_layers)
-    training_info = model.fit(X_train, y_train, n_iterations=n_iterations, fine_tune_at=fine_tune_at)
+    model.fit(X_train, y_train, n_iterations=n_iterations, fine_tune_at=fine_tune_at)
 
     test_metrics = model.evaluate(X_test, y_test)
     logger.info("Training complete", final_loss=model.loss_history[-1], test_accuracy=test_metrics["accuracy"])

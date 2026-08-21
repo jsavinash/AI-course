@@ -26,7 +26,6 @@ Args:
 """
 
 from dataclasses import dataclass, field
-from typing import Any
 
 import numpy as np
 
@@ -396,7 +395,7 @@ class BaseModel:
             layer.add_norm1.trainable = trainable
             layer.ffn.trainable = trainable
             layer.add_norm2.trainable = trainable
-        self.frozen = all(not l.trainable for l in self.layers)
+        self.frozen = all(not layer.trainable for layer in self.layers)
 
     def get_trainable_params_count(self) -> int:
         count = 0
@@ -505,7 +504,6 @@ class TransferLearningModel:
 
         n_samples = X_train.shape[0]
         rng = np.random.default_rng(self.random_seed)
-        eps = 1e-12
 
         if fine_tune_at is not None:
             self.base_model.set_top_layers_trainable(self.fine_tune_layers)
@@ -530,7 +528,7 @@ class TransferLearningModel:
                 dlogits[true_class] -= 1
                 dlogits = dlogits.reshape(1, -1)
 
-                dx = self.transfer_classifier.backward(dlogits)
+                self.transfer_classifier.backward(dlogits)
 
             avg_loss = total_loss / n_samples
             self.loss_history.append(avg_loss)

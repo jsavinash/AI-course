@@ -5,9 +5,9 @@ import os
 from pathlib import Path
 
 import numpy as np
-from mlops_shared.logging import get_logger, setup_logging
-from mlops_shared.model_registry import ModelRegistry
-from mlops_shared.validation import DataValidator, create_pizza_schema
+from ai_core.logging import get_logger, setup_logging
+from ai_core.model_registry import ModelRegistry
+from ai_core.validation import DataValidator, create_pizza_schema
 
 from pizza_price.data import load_training_data, save_training_data, train_test_split
 from pizza_price.model import LinearRegression

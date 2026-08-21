@@ -1,130 +1,567 @@
-# Prompt Engineering
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>prompt-engineering - AI App Documentation</title>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMath()"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+/* CSS styles here */
+</style>
+</head>
+<body>
+<section id="math" class="section math-section">
+<h2><span class="section-icon">∫</span> Mathematics &amp; Theory</h2>
+<p class="section-subtitle">Prompt Engineering — Underlying equations and derivations</p>
+<div class="math-content">
+<div class="equations"><div class="math-block">$$P(y|x, p) = \prod_{t=1}^{|y|} P(y_t | x, p, y_{<t})$$</div>
+<div class="math-block">$$\hat{p} = \arg\max_p \mathbb{E}_{x \sim \mathcal{D}} [\log P(y^* | x, p)]$$</div></div>
+<div class="derivation">
+<h3>Step-by-Step Derivation</h3>
+<p>Prompt engineering reformulates downstream tasks as language modeling. Given a prompt $p$, the model generates output $y$ autoregressively. Prompt tuning optimizes $p$ to maximize task-specific likelihood. Soft prompts are continuous embeddings optimized via gradient descent.</p>
+</div>
+<div class="viz-desc">
+<h3>Interactive Visualization</h3>
+<p>Interactive prompt comparison table; generation diversity vs prompt length; token probability explorer.</p>
+</div>
+</div>
+</section>
+<section id="architecture" class="section arch-section">
+<h2><span class="section-icon">⚙</span> Architecture</h2>
+<p class="section-subtitle">Model structure, data flow, and layer breakdown</p>
+<div class="arch-diagram">
+<h3>Class Hierarchy</h3>
+<pre class="ascii-diagram">  PromptTemplate
+  PromptTechnique
+  PromptExample
+  PromptEvaluator
+  PromptOptimizer
+  PromptEngineeringModel</pre>
+</div>
+<div class="mermaid-wrapper">
+<h3>Data Flow</h3>
+<pre class="mermaid">graph TD
+  A[Input Data] --> B[Preprocessing]
+  B --> C[Model Training]
+  C --> D[Evaluation]
+  D --> E[Model Registry]
+  E --> F[Serving API]</pre>
+</div>
+</section>
+<section id="api" class="section api-section">
+<h2><span class="section-icon">⚡</span> API Reference</h2>
+<p class="section-subtitle">FastAPI endpoints and model interfaces</p>
+<table class="api-table">
+<thead><tr><th>Method</th><th>Endpoint</th></tr></thead>
+<tbody><tr><td><code>GET</code></td><td><code>/</code></td></tr>
+<tr><td><code>GET</code></td><td><code>/health</code></td></tr>
+<tr><td><code>GET</code></td><td><code>/metrics</code></td></tr></tbody>
+</table>
+</section>
+<section id="usage" class="section usage-section">
+<h2><span class="section-icon">▶</span> Usage</h2>
+<p class="section-subtitle">Code examples and CLI commands</p>
+<h3>Training Script</h3>
+<div class="code-block-wrapper">
+<button class="copy-btn" onclick="copyCode('code-4191780049')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-4191780049"><code class="language-python">&quot;&quot;&quot;Training pipeline for Prompt Engineering.&quot;&quot;&quot;
 
-Prompt engineering is the process of creating clear and effective prompts that guide AI models to generate accurate responses. It mainly focuses on writing smart prompts for text-based AI tasks, especially NLP, to help the user and the model produce the required output.
+import argparse
+import os
+from pathlib import Path
 
-## Network Type
-Prompt Engineering with LLM-based Generation
+from ai_core.logging import get_logger, setup_logging
+from ai_core.model_registry import ModelRegistry
 
-## Architecture
+from prompt_engineering.data import load_prompt_dataset, save_dataset, train_test_split
+from prompt_engineering.model import (
+    PromptEngineeringModel,
+    PromptEvaluator,
+    PromptTemplate,
+)
 
-### Key Components
+logger = get_logger(__name__)
 
-1. **PromptTemplate**: Reusable prompt templates with placeholders for dynamic content rendering.
-2. **PromptTechnique**: Various prompting techniques (zero-shot, few-shot, chain-of-thought, self-ask, least-to-most, meta-prompting, context-amplification, iterative).
-3. **PromptEvaluator**: Evaluates prompt quality based on relevance, clarity, completeness, and accuracy metrics.
-4. **PromptOptimizer**: Optimizes prompts based on feedback and evaluation scores.
-5. **PromptEngineeringModel**: Main model that orchestrates templates, techniques, evaluation, and optimization.
 
-## What are Prompts?
+def train(
+    model_dir: Path,
+    data_path: Path | None = None,
+    n_samples: int = 500,
+    vocab_size: int = 1000,
+    model_id: str = &quot;prompt-engineering-v1&quot;,
+    base_model_name: str = &quot;default&quot;,
+    technique: str = &quot;zero-shot&quot;,
+    model_version: str = &quot;1.0.0&quot;,
+    register_to_mlflow: bool = False,
+    random_seed: int = 42,
+) -&gt; dict:
+    logger.info(&quot;Loading prompt dataset&quot;, n_samples=n_samples, technique=technique)
+    X, y = load_prompt_dataset(data_path=data_path, n_samples=n_samples, random_seed=random_seed)
 
-Prompts are short pieces of text that are used to provide context and guidance to machine learning models. When talking about the specific text AI tasks, also called NLP tasks, these prompts are useful in generating relevant outputs which are as close to the expected output itself. Precisely, these prompts help in generating accurate responses by:
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_seed=random_seed)
+    logger.info(&quot;Data split&quot;, n_train=len(X_train), n_test=len(X_test))
 
-- Adding on some additional guidance for the model.
-- Not generalizing a prompt too much.
-- Making sure the information added is not too much as that can confuse the model.
-- Making the user intent and purpose clear for the model to generate content in the relevant context only.
+    model_dir.mkdir(parents=True, exist_ok=True)
+    save_dataset(X, y, model_dir / &quot;training_data.npz&quot;)
 
-## How Prompt Engineering Works?
+    model = PromptEngineeringModel(model_id=model_id, base_model_name=base_model_name)
+    model._init()
 
-Imagine you're instructing a very talented but inexperienced assistant. You want them to complete a task effectively, so you need to provide clear instructions. Prompt engineering is similar - it's about crafting the right instructions, called prompts, to get the desired results from a large language model (LLM).
+    template = PromptTemplate(
+        template_id=&quot;default&quot;,
+        template_text=&quot;Analyze the following: {input_text}&quot;,
+        placeholders=[&quot;input_text&quot;],
+        technique=technique,
+    )
+    model.register_template(template)
+    model.set_technique(technique)
 
-Working of Prompt Engineering Involves:
+    prompt = model.generate_prompt(&quot;default&quot;, input_text=&quot;Sample prompt for testing&quot;)
+    logger.info(&quot;Generated prompt&quot;, prompt=prompt[:100])
 
-1. **Crafting the Prompt**: You design a prompt that specifies what you want the LLM to do. This can be a question, a statement, or even an example. The wording, phrasing, and context you include all play a role in guiding the LLM's response.
-2. **Understanding the LLM**: Different prompts work better with different LLMs. Some techniques involve giving the LLM minimal instructions (zero-shot prompting), while others provide more context or examples (few-shot prompting).
-3. **Refining the Prompt**: It's often a trial-and-error process. You might need to tweak the prompt based on the LLM's output to get the kind of response you're looking for.
+    evaluator = PromptEvaluator()
+    test_responses = [
+        (&quot;Sample response 1&quot;, &quot;Expected output 1&quot;),
+        (&quot;Sample response 2&quot;, &quot;Expected output 2&quot;),
+        (&quot;Sample response 3&quot;, &quot;Expected output 3&quot;),
+    ]
+    for response, expected in test_responses:
+        scores = model.evaluate_prompt(prompt, response, expected)
+        logger.info(&quot;Evaluation scores&quot;, scores=scores)
 
-## Applications of Prompt Engineering
+    avg_scores = evaluator.get_average_scores()
+    logger.info(&quot;Average evaluation scores&quot;, scores=avg_scores)
 
-Prompt engineering is used most heavily in text-based modeling, especially NLP. It adds context, meaning, and relevance to prompts, helping models generate better outputs. Some key applications include:
+    if len(test_responses) &gt; 0:
+        optimized_prompt = model.optimize_prompt(prompt, test_responses)
+        logger.info(&quot;Optimized prompt&quot;, optimized=optimized_prompt[:100])
 
-- **Language Translation**: It is the process of translating a piece of text from one language to another using relevant language models. Relevant prompts carefully engineered with information like the required script, dialect, and other features of source and target text can help in better response from the model.
-- **Question Answering Chatbots**: A Q/A bot is one of the most popular NLP categories to work on these days. It is used by institutional websites, and shopping sites among many others. Prompts on which an AI chatbot Model is trained can largely affect the kind of response a bot generates.
-- **Text Generation**: Such a task can have a multitude of applications and hence it again becomes critical to understand the exact dimension of the user's query. The text is generated for what purpose can largely change the tone, vocabulary as well as formation of the text.
+    model_path = model_dir / f&quot;prompt_engineering_v{model_version}.json&quot;
+    model.save(str(model_path))
 
-## What are Prompt Engineering Techniques?
+    metrics = {
+        &quot;n_samples&quot;: float(len(X)),
+        &quot;n_train&quot;: float(len(X_train)),
+        &quot;n_test&quot;: float(len(X_test)),
+        &quot;vocab_size&quot;: float(vocab_size),
+        &quot;technique&quot;: technique,
+        &quot;n_templates&quot;: float(len(model.templates)),
+        &quot;n_techniques&quot;: float(len(model.techniques)),
+        &quot;avg_relevance&quot;: avg_scores.get(&quot;relevance&quot;, 0.0),
+        &quot;avg_clarity&quot;: avg_scores.get(&quot;clarity&quot;, 0.0),
+        &quot;avg_completeness&quot;: avg_scores.get(&quot;completeness&quot;, 0.0),
+        &quot;avg_accuracy&quot;: avg_scores.get(&quot;accuracy&quot;, 0.0),
+    }
 
-The purpose of the prompt engineering is not limited to the drafting of prompts. It is a playground that has all the tools to adjust your way of working with the big language models (LLMs) with specific purposes in mind.
+    registry = ModelRegistry(base_dir=model_dir)
+    registry.save_model(
+        model_name=&quot;prompt-engineering&quot;,
+        model_version=model_version,
+        model_type=&quot;nlp&quot;,
+        metrics=metrics,
+        parameters={
+            &quot;model_id&quot;: model_id,
+            &quot;base_model_name&quot;: base_model_name,
+            &quot;technique&quot;: technique,
+            &quot;n_samples&quot;: n_samples,
+            &quot;vocab_size&quot;: vocab_size,
+            &quot;random_seed&quot;: random_seed,
+        },
+        artifacts={f&quot;prompt_engineering_v{model_version}.json&quot;: model_path, &quot;training_data.npz&quot;: model_dir / &quot;training_data.npz&quot;},
+        tags={&quot;framework&quot;: &quot;numpy&quot;, &quot;task&quot;: &quot;prompt_engineering&quot;, &quot;model_type&quot;: &quot;PromptEngineering&quot;},
+    )
 
-### Foundational Techniques
+    if register_to_mlflow:
+        registry.log_to_mlflow(
+            model_name=&quot;prompt-engineering&quot;,
+            model_version=model_version,
+            metrics=metrics,
+            params={&quot;model_id&quot;: model_id, &quot;technique&quot;: technique, &quot;n_samples&quot;: n_samples},
+            artifacts={&quot;model&quot;: str(model_path)},
+            tags={&quot;model_type&quot;: &quot;prompt_engineering&quot;, &quot;framework&quot;: &quot;numpy&quot;},
+        )
 
-- **Information Retrieval**: This entails the creation of prompts so that the LLM can get its knowledge base and give out what is relevant.
-- **Context Amplification**: Give supplementary context to the prompt in order to direct the understanding and attention of the LLM to its output.
-- **Summarization**: Induce the LLM to generalize or write summaries about complex themes.
-- **Reframing**: Rephrase your reminder to the LLM to consider a specific style or format for the output.
-- **Iterative Prompting**: Break down the complex tasks into smaller parts and then instruct the LLM sequentially in how to achieve the end result.
+    return metrics
 
-### Advanced Techniques
 
-- **Least to Most Prompting**: First, begin with prompts of general nature and then add facts to drive the LLM to make a highly specialized solution for intricate problems.
-- **Chain-of-Thought (CoT) Prompting**: Require the LLM to show the steps of its reasoning as well as the answer, leading to enlightenments for our understanding of its thinking.
-- **Self-Ask Prompting**: This thus entails chaining-of-thought (CoT) prompting, which involved the LLM being prompted to ask itself clarifying questions to get to a solution.
-- **Meta-Prompting**: This experimental method investigates designing a single, common prompt that can be used for diverse tasks by way of additional instructions.
+def main():
+    parser = argparse.ArgumentParser(description=&quot;Train Prompt Engineering Model&quot;)
+    parser.add_argument(&quot;--model-dir&quot;, type=Path, default=Path(os.getenv(&quot;MODEL_DIR&quot;, &quot;/models&quot;)))
+    parser.add_argument(&quot;--data-path&quot;, type=Path, default=None)
+    parser.add_argument(&quot;--n-samples&quot;, type=int, default=int(os.getenv(&quot;N_SAMPLES&quot;, &quot;500&quot;)))
+    parser.add_argument(&quot;--vocab-size&quot;, type=int, default=int(os.getenv(&quot;VOCAB_SIZE&quot;, &quot;1000&quot;)))
+    parser.add_argument(&quot;--model-id&quot;, type=str, default=os.getenv(&quot;MODEL_ID&quot;, &quot;prompt-engineering-v1&quot;))
+    parser.add_argument(&quot;--base-model-name&quot;, type=str, default=os.getenv(&quot;BASE_MODEL_NAME&quot;, &quot;default&quot;))
+    parser.add_argument(&quot;--technique&quot;, type=str, default=os.getenv(&quot;TECHNIQUE&quot;, &quot;zero-shot&quot;), choices=[&quot;zero-shot&quot;, &quot;few-shot&quot;, &quot;chain-of-thought&quot;, &quot;self-ask&quot;, &quot;least-to-most&quot;, &quot;meta-prompting&quot;, &quot;context-amplification&quot;, &quot;iterative&quot;])
+    parser.add_argument(&quot;--model-version&quot;, type=str, default=os.getenv(&quot;MODEL_VERSION&quot;, &quot;1.0.0&quot;))
+    parser.add_argument(&quot;--random-seed&quot;, type=int, default=int(os.getenv(&quot;RANDOM_SEED&quot;, &quot;42&quot;)))
+    parser.add_argument(&quot;--register-mlflow&quot;, action=&quot;store_true&quot;, default=os.getenv(&quot;REGISTER_MLFLOW&quot;, &quot;false&quot;).lower() == &quot;true&quot;)
+    parser.add_argument(&quot;--log-level&quot;, type=str, default=os.getenv(&quot;LOG_LEVEL&quot;, &quot;INFO&quot;))
+    args = parser.parse_args()
 
-## Prompt Engineering: Best Practices
+    setup_logging(args.log_level)
+    args.model_dir.mkdir(parents=True, exist_ok=True)
 
-Prompt engineering is a crucial task that requires balancing several factors carefully. A well-designed prompt can significantly improve a model's performance. So how do we ensure a prompt is right for the task? Here are the key points to remember:
+    metrics = train(
+        model_dir=args.model_dir,
+        data_path=args.data_path,
+        n_samples=args.n_samples,
+        vocab_size=args.vocab_size,
+        model_id=args.model_id,
+        base_model_name=args.base_model_name,
+        technique=args.technique,
+        model_version=args.model_version,
+        register_to_mlflow=args.register_mlflow,
+        random_seed=args.random_seed,
+    )
+    logger.info(&quot;Training finished&quot;, metrics=metrics, model_dir=str(args.model_dir))
 
-- **Begin with Objectives and Goals**: Always start with a clear purpose. The input you give, during training or in a conversation, directly affects the model's response. Knowing your goal beforehand helps guide the model effectively.
-- **Relevant and Specific Data Identification and Usage**: As clearly stated just like every prompt and its objective should be described clearly, similarly, only absolutely relevant data should be used to train a model. One should make sure there is no irrelevant or unnecessary data in the training.
-- **Focus on finding the Relevant Keywords**: Keywords strongly influence the model's understanding. Using the right keyword avoids misinterpretation, for example, mentioning "mathematics" ensures the model defines "planes" in the correct context.
-- **Make sure your prompts are simple and clear**: Use plain language and avoid complicated sentences. Clear prompts help the model generate accurate and meaningful responses.
-- **Test and Refine Your Prompts**: Evaluate your prompts with different test cases and adjust them based on the results. Continuous refinement improves the accuracy and reliability of outputs.
 
-By following the above best practices, you can create prompts that are tailored to your specific objectives and generate accurate and useful outputs.
+if __name__ == &quot;__main__&quot;:
+    main()</code></pre>
+</div><h3>API Server</h3>
+<div class="code-block-wrapper">
+<button class="copy-btn" onclick="copyCode('code-3018390077')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3018390077"><code class="language-python">&quot;&quot;&quot;Serving API for Prompt Engineering.&quot;&quot;&quot;
 
-## Advantages and Disadvantages of Prompt Engineering
+import os
+import time
+from contextlib import asynccontextmanager
+from pathlib import Path
+from typing import Any
 
-### Advantages
+import numpy as np
+from ai_core.drift import DriftDetector
+from ai_core.fastapi_middleware import add_observability_middleware
+from ai_core.logging import get_logger, setup_logging
+from ai_core.metrics import MetricsCollector
+from ai_core.model_registry import ModelRegistry
+from fastapi import FastAPI, HTTPException, Response
+from pydantic import BaseModel, Field
 
-- **Improved accuracy**: A relevant prompt, means better work by the AI model which in turn only means a refined response simulated for the situation with precision. It can also be considered very useful especially talking about the niche domains like healthcare.
-- **Enhanced user experience**: A better response only means a satisfied user who can easily get a response relevant to their problem without much of a hassle.
-- **Cost-effective**: The number of rounds needed to achieve a single accurate and satisfactory response reduces with one specific and neatly engineered prompt.
+from prompt_engineering.data import DEFAULT_VOCAB_SIZE
+from prompt_engineering.model import PromptEngineeringModel
 
-### Disadvantages
+logger = get_logger(__name__)
 
-**Difficulty in determining specificity**: Determining the right balance between specificity and generality can be challenging, as a prompt that is too specific may limit the range of responses generated, while a prompt that is too general may produce irrelevant responses.
+MODEL_DIR = Path(os.getenv(&quot;MODEL_DIR&quot;, &quot;/models&quot;))
+MODEL_VERSION = os.getenv(&quot;MODEL_VERSION&quot;, &quot;latest&quot;)
+METRICS_PORT = int(os.getenv(&quot;PROMPT_ENGINEERING_METRICS_PORT&quot;, &quot;9022&quot;))
+DRIFT_THRESHOLD = float(os.getenv(&quot;DRIFT_THRESHOLD&quot;, &quot;0.2&quot;))
 
-## Future of Prompt Engineering
 
-Prompt engineering is a very recently developing and upcoming technology and hence it can actually serve to be a very crucial part of most of the AI and NLP tasks and other areas as well. Here are some of the key areas where prompt engineering can actually help make great progress:
+class GenerateRequest(BaseModel):
+    template_id: str = Field(..., min_length=1)
+    technique: str = Field(default=&quot;zero-shot&quot;)
+    input_text: str = Field(..., min_length=1)
+    context: str | None = Field(default=None)
+    examples: list[dict[str, str]] | None = Field(default=None)
 
-1. **AI and NLP**: As AI and NLP technologies advance, one expects to see significant improvements in the accuracy and effectiveness of prompts. With more sophisticated algorithms and machine learning models, prompts will advance and be more particular to the specific use cases.
-2. **Integration with Other Technologies**: Prompt engineering is likely to become increasingly integrated with other technologies, such as virtual assistants, chatbots, and voice-enabled devices. This will enable users to interact with technology more seamlessly and effectively, improving the overall user experience.
-3. **Increased Automation and Efficiency**: We can also expect to see increased automation and efficiency in the process along with more advanced prompts, hence, streamlining the development of prompts, therefore improving outputs.
 
-## Training
+class GenerateResponse(BaseModel):
+    prompt: str
+    template_id: str
+    technique: str
+    model_version: str
 
-```bash
-prompt_engineering-train --model-dir ./artifacts/models --n-samples 500 --technique chain-of-thought
-```
 
-## Serving API
+class EvaluateRequest(BaseModel):
+    prompt: str = Field(..., min_length=1)
+    response: str = Field(..., min_length=1)
+    expected: str | None = Field(default=None)
 
-```bash
-uvicorn prompt_engineering.api:app --host 0.0.0.0 --port 8014
-```
 
-### Endpoints
-- `GET /` - Service info with available techniques
-- `GET /health` - Health check
-- `POST /generate` - Generate prompt using template and technique
-- `POST /evaluate` - Evaluate prompt response quality
-- `POST /optimize` - Optimize prompt based on feedback
-- `GET /stats` - Model statistics
-- `GET /metrics` - Prometheus metrics
+class EvaluateResponse(BaseModel):
+    scores: dict[str, float]
+    average_score: float
+    model_version: str
 
-### Supported Techniques
-- `zero-shot` - Direct prompt without examples
-- `few-shot` - Prompt with examples
-- `chain-of-thought` - Step-by-step reasoning
-- `self-ask` - Self-asking clarifying questions
-- `least-to-most` - Start general, then add specifics
-- `meta-prompting` - Single prompt for diverse tasks
-- `context-amplification` - Add supplementary context
-- `iterative` - Break complex tasks into steps
 
-## Dependencies
-- Python >= 3.11
-- NumPy, Pydantic, FastAPI
-- mlops-shared
+class OptimizeRequest(BaseModel):
+    base_prompt: str = Field(..., min_length=1)
+    responses: list[dict[str, str | None]] = Field(..., min_length=1)
+
+
+class OptimizeResponse(BaseModel):
+    optimized_prompt: str
+    best_score: float
+    optimization_history: list[dict[str, Any]]
+
+
+class StatsResponse(BaseModel):
+    model_id: str
+    base_model_name: str
+    n_templates: int
+    n_techniques: int
+    current_technique: str
+    n_history_entries: int
+
+
+OptimizeResponse.model_rebuild()
+
+_model: PromptEngineeringModel | None = None
+_model_version: str = &quot;unknown&quot;
+_metrics: MetricsCollector | None = None
+_drift_detector: DriftDetector | None = None
+_reference_data: np.ndarray | None = None
+_recent_predictions: list[list[float]] = []
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global _model, _model_version, _metrics, _drift_detector, _reference_data
+
+    setup_logging(os.getenv(&quot;LOG_LEVEL&quot;, &quot;INFO&quot;))
+    _metrics = MetricsCollector(&quot;prompt_engineering&quot;, port=METRICS_PORT)
+    app.state.metrics = _metrics
+
+    feature_names = [f&quot;token_{i}&quot; for i in range(DEFAULT_VOCAB_SIZE)]
+    _drift_detector = DriftDetector(
+        feature_names=feature_names,
+        feature_types={f: &quot;float&quot; for f in feature_names},
+        psi_threshold=DRIFT_THRESHOLD,
+    )
+
+    _model, _model_version = _load_model()
+    _metrics.set_model_version(_model_version)
+    _metrics.set_model_info(
+        model_name=&quot;prompt-engineering&quot;,
+        model_version=_model_version,
+        model_type=&quot;nlp&quot;,
+    )
+
+    _reference_data = _load_reference_data()
+    logger.info(&quot;Model loaded&quot;, model=&quot;prompt-engineering&quot;, version=_model_version)
+
+    yield
+    logger.info(&quot;Shutting down prompt-engineering API&quot;)
+
+
+def _load_model() -&gt; tuple[PromptEngineeringModel, str]:
+    registry = ModelRegistry(base_dir=MODEL_DIR)
+    try:
+        if MODEL_VERSION == &quot;latest&quot;:
+            models = registry.list_models()
+            pe_models = [m for m in models if m.get(&quot;model_name&quot;) == &quot;prompt-engineering&quot;]
+            if pe_models:
+                pe_models.sort(key=lambda m: m[&quot;model_version&quot;], reverse=True)
+                latest = pe_models[0]
+                model_dir = Path(latest[&quot;artifact_path&quot;])
+                json_files = list(model_dir.glob(&quot;prompt_engineering_v*.json&quot;)) + list(model_dir.glob(&quot;*.json&quot;))
+                if json_files:
+                    return PromptEngineeringModel.load(str(json_files[0])), latest[&quot;model_version&quot;]
+        else:
+            model_dir = MODEL_DIR / &quot;prompt-engineering&quot; / MODEL_VERSION
+            if model_dir.exists():
+                json_files = list(model_dir.glob(&quot;prompt_engineering_v*.json&quot;)) + list(model_dir.glob(&quot;*.json&quot;))
+                if json_files:
+                    return PromptEngineeringModel.load(str(json_files[0])), MODEL_VERSION
+    except Exception as e:
+        logger.warning(f&quot;Registry lookup failed: {e}&quot;)
+
+    json_path = MODEL_DIR / &quot;prompt_engineering.json&quot;
+    if json_path.exists():
+        return PromptEngineeringModel.load(str(json_path)), &quot;legacy&quot;
+
+    candidate_paths = [
+        Path(&quot;/app/artifacts/models/prompt_engineering_v1.0.0.json&quot;),
+        Path(__file__).resolve().parents[3] / &quot;artifacts&quot; / &quot;models&quot; / &quot;prompt_engineering_v1.0.0.json&quot;,
+    ]
+    for p in candidate_paths:
+        if p.exists():
+            logger.info(&quot;Loading bundled baseline model&quot;, path=str(p))
+            return PromptEngineeringModel.load(str(p)), &quot;1.0.0-bundled&quot;
+
+    logger.warning(&quot;No pre-existing model found. Initializing baseline model.&quot;)
+    model = PromptEngineeringModel(model_id=&quot;baseline&quot;, base_model_name=&quot;default&quot;)
+    model._init()
+    return model, &quot;1.0.0-baseline&quot;
+
+
+def _load_reference_data() -&gt; np.ndarray | None:
+    from prompt_engineering.data import generate_synthetic_prompts
+    X_base, _ = generate_synthetic_prompts(n_samples=100, random_seed=42)
+    return X_base.astype(float)
+
+
+app = FastAPI(
+    title=&quot;Prompt Engineering API&quot;,
+    description=&quot;Prompt Engineering service with various techniques (zero-shot, few-shot, chain-of-thought, self-ask, least-to-most, meta-prompting, context-amplification, iterative)&quot;,
+    version=&quot;1.0.0&quot;,
+    lifespan=lifespan,
+)
+
+add_observability_middleware(app)
+
+
+@app.get(&quot;/&quot;)
+def read_root():
+    return {
+        &quot;service&quot;: &quot;prompt_engineering-api&quot;,
+        &quot;version&quot;: &quot;1.0.0&quot;,
+        &quot;model_version&quot;: _model_version,
+        &quot;available_techniques&quot;: _model.get_available_techniques() if _model else [],
+        &quot;endpoints&quot;: {
+            &quot;health&quot;: &quot;/health&quot;,
+            &quot;generate&quot;: &quot;POST /generate&quot;,
+            &quot;evaluate&quot;: &quot;POST /evaluate&quot;,
+            &quot;optimize&quot;: &quot;POST /optimize&quot;,
+            &quot;stats&quot;: &quot;GET /stats&quot;,
+            &quot;metrics&quot;: &quot;/metrics&quot;,
+        },
+    }
+
+
+@app.get(&quot;/health&quot;)
+def health_check():
+    if _model is None:
+        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+    return {
+        &quot;status&quot;: &quot;healthy&quot;,
+        &quot;model_loaded&quot;: True,
+        &quot;model_version&quot;: _model_version,
+        &quot;model_id&quot;: _model.model_id if _model else &quot;unknown&quot;,
+    }
+
+
+@app.get(&quot;/metrics&quot;)
+def metrics():
+    from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+@app.post(&quot;/generate&quot;, response_model=GenerateResponse)
+def generate_prompt(body: GenerateRequest):
+    &quot;&quot;&quot;Generate a prompt using the specified template and technique.&quot;&quot;&quot;
+    if _model is None or _metrics is None:
+        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+
+    start = time.time()
+    try:
+        prompt = _model.generate_prompt(
+            body.template_id,
+            technique=body.technique,
+            input_text=body.input_text,
+            context=body.context,
+            examples=body.examples,
+        )
+
+        response = GenerateResponse(
+            prompt=prompt,
+            template_id=body.template_id,
+            technique=body.technique,
+            model_version=_model_version,
+        )
+        duration = time.time() - start
+        _metrics.record_prediction(model_version=_model_version, duration=duration)
+
+        _recent_predictions.append([float(len(body.input_text.split()))])
+        if len(_recent_predictions) &gt; 1000:
+            _recent_predictions.pop(0)
+
+        return response
+    except Exception as e:
+        _metrics.record_error(model_version=_model_version, error_type=&quot;generation&quot;)
+        logger.exception(&quot;Prompt generation failed&quot;, error=str(e))
+        raise HTTPException(status_code=500, detail=&quot;Prompt generation failed&quot;) from e
+
+
+@app.post(&quot;/evaluate&quot;, response_model=EvaluateResponse)
+def evaluate_prompt(body: EvaluateRequest):
+    &quot;&quot;&quot;Evaluate a prompt response against expected output.&quot;&quot;&quot;
+    if _model is None or _metrics is None:
+        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+
+    start = time.time()
+    try:
+        scores = _model.evaluate_prompt(body.prompt, body.response, body.expected)
+        avg_score = float(np.mean(list(scores.values()))) if scores else 0.0
+
+        response = EvaluateResponse(
+            scores=scores,
+            average_score=round(avg_score, 4),
+            model_version=_model_version,
+        )
+        duration = time.time() - start
+        _metrics.record_prediction(model_version=_model_version, duration=duration)
+
+        return response
+    except Exception as e:
+        _metrics.record_error(model_version=_model_version, error_type=&quot;evaluation&quot;)
+        logger.exception(&quot;Prompt evaluation failed&quot;, error=str(e))
+        raise HTTPException(status_code=500, detail=&quot;Prompt evaluation failed&quot;) from e
+
+
+@app.post(&quot;/optimize&quot;, response_model=OptimizeResponse)
+def optimize_prompt(body: OptimizeRequest):
+    &quot;&quot;&quot;Optimize a prompt based on multiple response-evaluation pairs.&quot;&quot;&quot;
+    if _model is None or _metrics is None:
+        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+
+    start = time.time()
+    try:
+        responses = [(r[&quot;response&quot;], r.get(&quot;expected&quot;)) for r in body.responses]
+        optimized = _model.optimize_prompt(body.base_prompt, responses)
+        best_score = _model.optimizer.get_best_score() if _model.optimizer else 0.0
+        history = _model.optimizer.get_optimization_history() if _model.optimizer else []
+
+        response = OptimizeResponse(
+            optimized_prompt=optimized,
+            best_score=round(best_score, 4),
+            optimization_history=history,
+        )
+        duration = time.time() - start
+        _metrics.record_prediction(model_version=_model_version, duration=duration)
+
+        return response
+    except Exception as e:
+        _metrics.record_error(model_version=_model_version, error_type=&quot;optimization&quot;)
+        logger.exception(&quot;Prompt optimization failed&quot;, error=str(e))
+        raise HTTPException(status_code=500, detail=&quot;Prompt optimization failed&quot;) from e
+
+
+@app.get(&quot;/stats&quot;, response_model=StatsResponse)
+def get_stats():
+    if _model is None:
+        raise HTTPException(status_code=503, detail=&quot;Model not loaded&quot;)
+    info = _model.to_dict()
+    return StatsResponse(
+        model_id=info[&quot;model_id&quot;],
+        base_model_name=info[&quot;base_model_name&quot;],
+        n_templates=info[&quot;n_templates&quot;],
+        n_techniques=info[&quot;n_techniques&quot;],
+        current_technique=info[&quot;current_technique&quot;],
+        n_history_entries=info[&quot;n_history_entries&quot;],
+        model_version=_model_version,
+    )</code></pre>
+</div>
+<h3>CLI Commands</h3>
+<div class="code-block-wrapper">
+<button class="copy-btn" onclick="copyCode('code-3308291390')" title="Copy to clipboard">&#x2398;</button>
+<pre class="code-block" id="code-3308291390"><code class="language-bash">uv run python -m prompt_engineering.train --model-dir ./artifacts/models</code></pre>
+</div>
+</section>
+<section id="benchmarks" class="section bench-section">
+<h2><span class="section-icon">📊</span> Benchmarks</h2>
+<p class="section-subtitle">Test results and performance metrics</p>
+<p class="muted">Run <code>pytest tests/test_models.py</code> and <code>pytest tests/test_apis.py</code> for detailed metrics.</p>
+</section>
+
+</main>
+<footer class="app-footer">
+<p>Generated documentation for <strong>prompt-engineering</strong></p>
+</footer>
+<script>
+function copyCode(id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.innerText);
+}
+function renderMath() {
+  renderMathInElement(document.body, { delimiters: [{left: "$$", right: "$$", display: true}] });
+}
+</script>
+</body>
+</html>

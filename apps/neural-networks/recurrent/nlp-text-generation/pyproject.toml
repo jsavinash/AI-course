@@ -1,0 +1,30 @@
+[project]
+name = "nlp-text-generation"
+version = "1.0.0"
+description = "Text generation - Recurrent Neural Network (SimpleRNN) language model MLOps example"
+requires-python = ">=3.11"
+dependencies = [
+    "ai-core",
+    "numpy>=1.26.0",
+    "pandas>=2.2.0",
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "pydantic>=2.6.0",
+    "prometheus-client>=0.20.0",
+    "python-multipart>=0.0.9",
+    "pyyaml>=6.0.1",
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "httpx>=0.27.0",
+    "structlog>=24.1.0",
+    "matplotlib>=3.7.0",
+]
+
+[project.scripts]
+nlp-text-generation-train = "nlp_text_generation.train:main"
+
+[tool.uv.sources]
+ai-core = { workspace = true }
+
+[tool.uv]
+package = true

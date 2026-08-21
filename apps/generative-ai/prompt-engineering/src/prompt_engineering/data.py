@@ -28,7 +28,8 @@ def load_prompt_dataset(data_path: Path | None = None, n_samples: int = DEFAULT_
 
 def build_vocab(texts: list[str], max_vocab_size: int = DEFAULT_VOCAB_SIZE) -> dict[str, int]:
     from collections import Counter
-    word_counts = Counter()
+
+    word_counts: Counter[str] = Counter()
     for text in texts:
         word_counts.update(text.lower().split())
     most_common = word_counts.most_common(max_vocab_size - 1)

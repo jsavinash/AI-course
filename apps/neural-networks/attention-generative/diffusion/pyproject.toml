@@ -1,0 +1,26 @@
+[project]
+name = "diffusion"
+version = "0.1.0"
+description = "Generates images by systematically removing noise from a random state - Diffusion MLOps example"
+requires-python = ">=3.11"
+dependencies = [
+    "ai-core",
+    "numpy>=1.26.0",
+    "pandas>=2.2.0",
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "pydantic>=2.6.0",
+    "prometheus-client>=0.20.0",
+    "matplotlib>=3.7.0",
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+]
+
+[project.scripts]
+diffusion_image_generation-train = "diffusion_image_generation.train:main"
+
+[tool.uv.sources]
+ai-core = { workspace = true }
+
+[tool.uv]
+package = true

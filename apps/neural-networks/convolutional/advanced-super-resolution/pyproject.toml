@@ -1,0 +1,26 @@
+[project]
+name = "image-super-resolution"
+version = "0.1.0"
+description = "Upscales low-resolution photos and blurry security footage into sharp images - DN MLOps example"
+requires-python = ">=3.11"
+dependencies = [
+    "ai-core",
+    "numpy>=1.26.0",
+    "pandas>=2.2.0",
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "pydantic>=2.6.0",
+    "prometheus-client>=0.20.0",
+    "matplotlib>=3.7.0",
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+]
+
+[project.scripts]
+image_super_resolution-train = "image_super_resolution.train:main"
+
+[tool.uv.sources]
+ai-core = { workspace = true }
+
+[tool.uv]
+package = true

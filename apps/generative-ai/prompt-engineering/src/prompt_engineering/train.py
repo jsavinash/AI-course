@@ -4,12 +4,15 @@ import argparse
 import os
 from pathlib import Path
 
-from mlops_shared.logging import get_logger, setup_logging
-from mlops_shared.model_registry import ModelRegistry
-from mlops_shared.validation import DataValidator
+from ai_core.logging import get_logger, setup_logging
+from ai_core.model_registry import ModelRegistry
 
 from prompt_engineering.data import load_prompt_dataset, save_dataset, train_test_split
-from prompt_engineering.model import PromptEngineeringModel, PromptTemplate, PromptTechnique, PromptEvaluator, PromptOptimizer
+from prompt_engineering.model import (
+    PromptEngineeringModel,
+    PromptEvaluator,
+    PromptTemplate,
+)
 
 logger = get_logger(__name__)
 

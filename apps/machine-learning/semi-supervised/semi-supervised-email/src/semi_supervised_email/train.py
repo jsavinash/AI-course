@@ -5,8 +5,8 @@ import os
 from pathlib import Path
 
 import numpy as np
-from mlops_shared.logging import get_logger, setup_logging
-from mlops_shared.model_registry import ModelRegistry
+from ai_core.logging import get_logger, setup_logging
+from ai_core.model_registry import ModelRegistry
 
 from semi_supervised_email.data import (
     load_training_data,

@@ -4,11 +4,16 @@ import argparse
 import os
 from pathlib import Path
 
-from mlops_shared.logging import get_logger, setup_logging
-from mlops_shared.model_registry import ModelRegistry
-from mlops_shared.validation import DataValidator
+from ai_core.logging import get_logger, setup_logging
+from ai_core.model_registry import ModelRegistry
 
-from code_generation.data import load_code_dataset, save_dataset, train_test_split
+from code_generation.data import (
+    MAX_SEQ_LEN,
+    VOCAB_SIZE,
+    load_code_dataset,
+    save_dataset,
+    train_test_split,
+)
 from code_generation.model import CodeGenerationModel
 
 logger = get_logger(__name__)
@@ -55,7 +60,7 @@ def train(
     )
 
     logger.info("Starting code generation training")
-    training_info = model.fit(X_train, y_train, n_iterations=n_iterations)
+    model.fit(X_train, y_train, n_iterations=n_iterations)
 
     test_metrics = model.evaluate(X_test, y_test)
     logger.info("Training complete", final_loss=model.loss_history[-1], test_accuracy=test_metrics["accuracy"])
