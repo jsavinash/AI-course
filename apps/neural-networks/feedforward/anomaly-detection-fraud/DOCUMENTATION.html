@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>anomaly-detection-fraud — Neural Network App Documentation</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --surface: #181b21;
+    --surface-2: #1f232b;
+    --text: #e6e6e6;
+    --muted: #a0a4b0;
+    --accent: #5eead4;
+    --accent-2: #67e8f9;
+    --border: #2a2f3a;
+    --code-bg: #121418;
+    --tag-bg: #1a2634;
+    --tag-text: #7dd3fc;
+    --warn: #fbbf24;
+    --ok: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-monospace, "SF Mono", "Fira Code", "Cascadia Code", monospace;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 28px 40px;
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  header h1 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--accent);
+  }
+  header p { margin: 0; color: var(--muted); font-size: 13px; }
+  main { max-width: 980px; margin: 0 auto; padding: 36px 40px 80px; }
+  section { margin-bottom: 56px; }
+  h2 {
+    font-size: 16px;
+    margin: 0 0 18px;
+    color: var(--accent-2);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+  }
+  h3 { font-size: 14px; margin: 20px 0 8px; color: var(--text); }
+  p { margin: 0 0 12px; color: var(--muted); }
+  .tag {
+    display: inline-block;
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 12px;
+    margin: 2px 4px 2px 0;
+  }
+  code {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 12px;
+    color: var(--warn);
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text);
+    position: relative;
+  }
+  pre code { background: none; border: none; padding: 0; color: inherit; }
+  .kw { color: #c084fc; } /* keyword */
+  .fn { color: #67e8f9; } /* function */
+  .str { color: #4ade80; } /* string */
+  .num { color: #fbbf24; } /* number */
+  .cm { color: #6b7280; font-style: italic; } /* comment */
+  .op { color: #f472b6; } /* operator */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+  }
+  th { background: var(--surface-2); color: var(--accent-2); }
+  td { background: var(--surface); }
+  .math-block {
+    background: var(--surface-2);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    margin: 10px 0;
+    border-radius: 4px;
+    font-style: italic;
+    color: var(--text);
+    white-space: pre-wrap;
+    font-size: 13px;
+  }
+  .callout {
+    background: var(--surface-2);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin: 12px 0;
+    color: var(--muted);
+  }
+  .callout strong { color: var(--accent-2); }
+  ul { padding-left: 20px; margin: 8px 0; }
+  li { margin: 4px 0; color: var(--muted); }
+  .file-path { color: var(--tag-text); font-size: 12px; }
+  .section-icon { margin-right: 6px; }
+  .mono { font-family: inherit; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="section-icon">🔎</span>anomaly-detection-fraud</h1>
+  <p>Feedforward Autoencoder &nbsp;·&nbsp; Credit Card Fraud Detection &nbsp;·&nbsp; MLOps Example</p>
+</header>
+<main>
+
+<section id="overview">
+  <h2><span class="section-icon">◈</span>Overview &amp; Monorepo Context</h2>
+  <p><strong>anomaly-detection-fraud</strong> is a Python package that detects fraudulent credit-card transactions using a <strong>feedforward autoencoder</strong> trained from scratch with NumPy. The package lives inside the broader <code>feedforward</code> monorepo at <code>apps/neural-networks/feedforward/</code>, alongside three sibling apps: <code>classification-email-spam</code>, <code>regression-house-price</code>, and <code>pattern-recognition-digits</code>.</p>
+  <p>Its role in the monorepo is to demonstrate <strong>unsupervised anomaly detection</strong>: rather than learning to classify fraud directly, the model learns to <em>reconstruct</em> normal (legitimate) transactions. At inference time, high reconstruction error flags a transaction as anomalous.</p>
+
+  <h3>Package Identity</h3>
+  <div class="callout">
+    <strong>pyproject.toml</strong><br>
+    Name: <code>credit-card-fraud-detection</code><br>
+    Version: <code>0.1.0</code><br>
+    Package module: <code>anomaly_detection_fraud</code><br>
+    CLI entry-point: <code>credit-card-fraud-detection-train = credit_card_fraud_detection.train:main</code>
+  </div>
+
+  <h3>Dependencies &amp; Monorepo Coupling</h3>
+  <ul>
+    <li><code>ai-core</code> — <strong>workspace-local shared library</strong> providing logging, model registry, drift detection, metrics, and FastAPI middleware. Declared via <code>[tool.uv.sources] ai-core = { workspace = true }</code>.</li>
+    <li><code>numpy &gt;=1.26.0</code> — sole ML framework (no PyTorch / TensorFlow).</li>
+    <li><code>fastapi + uvicorn + pydantic</code> — production REST API.</li>
+    <li><code>prometheus-client</code> — metrics exposition.</li>
+    <li><code>matplotlib</code> — training-loss charting.</li>
+    <li><code>pytest + pytest-cov</code> — testing.</li>
+  </ul>
+  <p>Because <code>ai-core</code> is resolved from the workspace, all four apps share identical observability, registry, and validation contracts, ensuring consistent MLOps patterns across the monorepo.</p>
+</section>
+
+<section id="math">
+  <h2><span class="section-icon">∫</span>The Mathematical Foundation</h2>
+  <p class="callout"><strong>Task type:</strong> Unsupervised anomaly detection via reconstruction error.<br>
+  <strong>Architecture:</strong> Input → Bottleneck (Hidden) → Output (same dim as Input).</p>
+
+  <h3>1. Encoder / Decoder Forward Pass</h3>
+  <div class="math-block">z_enc = σ(W₁ · x + b₁)          &nbsp;(encoder, bottleneck)</div>
+  <div class="math-block">x̂ = W₂ · z_enc + b₂           &nbsp;(decoder, linear output)</div>
+  <p>Here σ is the element-wise hidden activation (ReLU by default). The decoder layer is intentionally linear so the bottleneck must compress all information into a low-dimensional code.</p>
+
+  <h3>2. Loss Function</h3>
+  <div class="math-block">L = MSE(x, x̂) + λ · (‖W₁‖² + ‖W₂‖²)</div>
+  <div class="math-block">MSE(x, x̂) = (1/n) · Σᵢ ‖xᵢ − x̂ᵢ‖²</div>
+  <p>MSE measures reconstruction fidelity. L2 regularization (weight-decay λ) penalises large weights, preventing the degenerate identity-mapping solution where W₂ = I and W₁ = I⁻¹. λ = 0.0001 by default.</p>
+
+  <h3>3. Anomaly Threshold</h3>
+  <div class="math-block">τ = percentile( { MSE(x⁽ⁱ⁾, x̂⁽ⁱ⁾) } , p )</div>
+  <p>After training on normal transactions only, the per-sample reconstruction errors are computed on the training set. The <code>threshold_percentile</code> (default 95 %) becomes the decision boundary. Transactions with reconstruction error &gt; τ are flagged as fraud.</p>
+
+  <h3>4. Backpropagation Gradients</h3>
+  <div class="math-block">∂L/∂x̂ᵢ = 2/n · (x̂ᵢ − xᵢ) + 2λW₂</div>
+  <div class="math-block">∂L/∂W₂ = z_encᵀ · ∂L/∂x̂ᵢ + 2λW₂</div>
+  <div class="math-block">∂L/∂W₁ = xᵀ · (∂L/∂x̂ᵢ · W₂ᵀ ⊙ σ′(z₁)) + 2λW₁</div>
+  <p>The chain rule flows backwards from the reconstruction error through the linear decoder, then through the non-linear encoder. Element-wise multiplication ⊙ uses the ReLU derivative (1 if z&gt;0 else 0).</p>
+
+  <h3>5. Why an Autoencoder?</h3>
+  <p>Fraud is rare and its distribution shifts over time. Supervised classifiers over-fit to known fraud patterns. An autoencoder trained only on normal data generalises better because <em>any</em> deviation from normal — including unseen fraud types — produces a high reconstruction error.</p>
+</section>
+
+<section id="architecture">
+  <h2><span class="section-icon">⚙</span>Core Logic &amp; Architecture</h2>
+
+  <h3>File Map</h3>
+  <ul>
+    <li><span class="file-path">model.py</span> — <code>FraudDetectionAutoencoder</code> dataclass with fit/predict/save/load.</li>
+    <li><span class="file-path">data.py</span> — synthetic transaction generators, train/test split, CSV persistence.</li>
+    <li><span class="file-path">train.py</span> — CLI pipeline orchestrating data, model, registry, and MLflow logging.</li>
+    <li><span class="file-path">api.py</span> — FastAPI server with model loading, prediction, drift detection, and metrics.</li>
+  </ul>
+
+  <h3>Data Flow</h3>
+  <pre class="mermaid">graph TD
+    A[Synthetic / CSV Data] --> B[Normalize Features]
+    B --> C[Train Autoencoder on Normal Only]
+    C --> D[Compute Threshold from Training Errors]
+    D --> E{Inference}
+    E --> F[Reconstruct x]
+    F --> G[Compute Reconstruction Error]
+    G --> H{Error > Threshold?}
+    H -->|Yes| I[Flag FRAUD]
+    H -->|No| J[Flag LEGIT]</pre>
+
+  <h3>Design Constraints &amp; Patterns</h3>
+  <ul>
+    <li><strong>Normal-only training:</strong> The train split contains only <code>y == 0</code> samples. Fraud samples are reserved for test-time evaluation.</li>
+    <li><strong>Batch gradient descent:</strong> Full-batch updates (not mini-batch), keeping the NumPy implementation simple and deterministic.</li>
+    <li><strong>Early stopping:</strong> Training halts if the loss change over 100 epochs drops below 1e-7.</li>
+    <li><strong>Global mutable state in API:</strong> <code>_model</code>, <code>_metrics</code>, <code>_reference_data</code> are module-level globals initialised once at startup via FastAPI's <code>lifespan</code> context manager.</li>
+    <li><strong>Resilient model loading:</strong> <code>_load_model()</code> cascades through registry, direct NPZ path, bundled fallback, and finally trains an in-memory baseline if nothing is found.</li>
+  </ul>
+</section>
+
+<section id="code-walkthrough">
+  <h2><span class="section-icon">🔬</span>Detailed Code Walkthrough</h2>
+
+  <h3><span class="file-path">model.py</span> — <code>FraudDetectionAutoencoder</code></h3>
+  <p>The class is a <code>@dataclass</code> so hyperparameters are declared inline with defaults. Learned weights are stored as plain <code>np.ndarray</code> fields initialised to <code>None</code>.</p>
+
+  <h4>Weight Initialisation</h4>
+  <pre><code><span class="kw">def</span> <span class="fn">_he_init</span>(self, n_in, n_out, rng):
+    <span class="cm"># He init: variance = 2/n_in — stabilises ReLU gradients</span>
+    <span class="kw">return</span> rng.normal(<span class="num">0</span>, np.sqrt(<span class="num">2.0</span> / n_in), (n_in, n_out))
+
+<span class="kw">def</span> <span class="fn">_xavier_init</span>(self, n_in, n_out, rng):
+    <span class="cm"># Xavier init: variance = 1/n_in — suited for tanh / linear</span>
+    <span class="kw">return</span> rng.normal(<span class="num">0</span>, np.sqrt(<span class="num">1.0</span> / n_in), (n_in, n_out))</code></pre>
+  <p>He initialisation is chosen when the hidden activation is ReLU because it preserves gradient variance through the layer. Xavier is used for tanh. W2 (decoder) always uses Xavier because the output layer is linear.</p>
+
+  <h4>Forward Pass</h4>
+  <pre><code><span class="kw">def</span> <span class="fn">_forward</span>(self, X):
+    z1 = np.dot(X, self.W1) + self.b1          <span class="cm"># linear encoder</span>
+    a1 = _relu(z1) <span class="kw">if</span> self.hidden_activation == <span class="str">"relu"</span> <span class="kw">else</span> _tanh(z1)
+    z2 = np.dot(a1, self.W2) + self.b2          <span class="cm"># linear decoder</span>
+    <span class="kw">return</span> z2, a1, z1</code></pre>
+  <p>Only the reconstruction <code>z2</code> is returned to the caller. <code>a1</code> and <code>z1</code> are cached because they are needed again in backpropagation.</p>
+
+  <h4>Training Loop &amp; Backpropagation</h4>
+  <pre><code><span class="kw">for</span> epoch <span class="kw">in</span> range(self.n_iterations):
+    recon, a1, z1 = self._forward(X_norm)
+    loss = _mse_loss(X_norm, recon)
+    loss += self.weight_decay * (np.sum(self.W1**2) + np.sum(self.W2**2))
+
+    <span class="cm"># Backprop</span>
+    dz2 = <span class="num">2</span> * (recon - X_norm) / m
+    dW2 = np.dot(a1.T, dz2) + self.weight_decay * self.W2
+    db2 = np.sum(dz2, axis=<span class="num">0</span>)
+
+    da1 = np.dot(dz2, self.W2.T)
+    dz1 = da1 * _relu_derivative(z1)  <span class="cm"># element-wise gate</span>
+
+    dW1 = np.dot(X_norm.T, dz1) + self.weight_decay * self.W1
+    db1 = np.sum(dz1, axis=<span class="num">0</span>)
+
+    <span class="cm"># Gradient descent</span>
+    self.W1 -= self.learning_rate * dW1
+    ...</code></pre>
+  <p>Note that the gradient <code>dz2 = 2·(recon − X)/m</code> comes directly from differentiating MSE. L2 gradients are the weights themselves scaled by λ, added to the data-fitting gradients.</p>
+
+  <h4>Threshold Computation</h4>
+  <pre><code><span class="kw">def</span> <span class="fn">_compute_threshold</span>(self, X_norm):
+    errors = self.reconstruction_error_normalized(X_norm)
+    self.threshold = float(np.percentile(errors, self.threshold_percentile))</code></pre>
+  <p>The threshold is a single scalar, not learned from labelled fraud. This makes the model robust to class imbalance because no fraud labels are required at training time.</p>
+
+  <h3><span class="file-path">train.py</span> — Pipeline</h3>
+  <pre><code><span class="cm"># Train only on normal transactions — fraud is reserved for test evaluation</span>
+X_normal = X_full[y_full == <span class="num">0</span>]
+X_train = X_normal[~val_mask]
+X_val   = X_normal[val_mask]
+
+model.fit(X_train, X_val=X_val, X_test=X_test, y_test=y_test)
+test_metrics = model.evaluate(X_test, y_test)</code></pre>
+  <p>The data split deliberately excludes fraud from training. <code>X_test</code> is balanced (equal normal and fraud samples) so that accuracy / precision / recall on the test set are meaningful.</p>
+
+  <h3><span class="file-path">api.py</span> — FastAPI Lifecycle</h3>
+  <pre><code><span class="kw">@asynccontextmanager</span>
+<span class="kw">async def</span> <span class="fn">lifespan</span>(app: FastAPI):
+    <span class="kw">global</span> _model, _model_version, _metrics, _drift_detector, _reference_data
+    setup_logging(os.getenv(<span class="str">"LOG_LEVEL"</span>, <span class="str">"INFO"</span>))
+    _metrics = MetricsCollector(<span class="str">"credit_card_fraud_detection"</span>, port=METRICS_PORT)
+    _drift_detector = DriftDetector(feature_names=FEATURE_NAMES, ...)
+    _model, _model_version = _load_model()
+    _reference_data = _load_reference_data()
+    <span class="kw">yield</span></code></pre>
+  <p>The <code>lifespan</code> context manager replaces the deprecated <code>@app.on_event</code> pattern. Model, metrics collector, drift detector, and reference data are all initialised at startup, before any prediction request arrives. <code>/reload</code> re-executes <code>_load_model()</code> without restarting the container.</p>
+
+  <h3><span class="file-path">data.py</span> — Synthetic Data</h3>
+  <p>Two generators create realistic fraud patterns:</p>
+  <ul>
+    <li><code>_generate_normal_transactions</code> — low risk scores, daytime hours, small distances, low online ratio.</li>
+    <li><code>_generate_fraud_transactions</code> — high amounts, high risk scores, late-night hours, online / foreign, high device &amp; IP risk.</li>
+  </ul>
+  <p>Each feature is sampled from a range that mimics real-world distributions. For example, normal transactions have <code>merchant_risk_score ~ U[0.1, 0.4]</code> while fraud has <code>U[0.6, 0.95]</code>. This inductive bias makes the autoencoder's job learnable even with limited data.</p>
+</section>
+
+<section id="usage">
+  <h2><span class="section-icon">▶</span>Examples &amp; Usage</h2>
+
+  <h3>CLI Training</h3>
+  <pre><code class="language-bash">uv run python -m anomaly_detection_fraud.train \
+  --model-dir ./artifacts/models \
+  --n-samples 2000 \
+  --hidden-dim 8 \
+  --n-iterations 2000 \
+  --threshold-percentile 95 \
+  --register-mlflow</code></pre>
+
+  <h3>Python — Train Programmatically</h3>
+  <pre><code><span class="kw">from</span> pathlib <span class="kw">import</span> Path
+<span class="kw">from</span> anomaly_detection_fraud.data <span class="kw">import</span> generate_synthetic_data
+<span class="kw">from</span> anomaly_detection_fraud.model <span class="kw">import</span> FraudDetectionAutoencoder
+
+X, y = generate_synthetic_data(n_samples=<span class="num">2000</span>, random_seed=<span class="num">42</span>)
+X_normal = X[y == <span class="num">0</span>]
+
+model = FraudDetectionAutoencoder(
+    hidden_dim=<span class="num">8</span>,
+    learning_rate=<span class="num">0.001</span>,
+    n_iterations=<span class="num">2000</span>,
+    threshold_percentile=<span class="num">95.0</span>,
+    weight_decay=<span class="num">0.0001</span>,
+)
+model.fit(X_normal)
+model.save(<span class="str">"./fraud_model.npz"</span>)</code></pre>
+
+  <h3>Python — Predict</h3>
+  <pre><code><span class="kw">import</span> numpy <span class="kw">as</span> np
+
+model = FraudDetectionAutoencoder.load(<span class="str">"./fraud_model.npz"</span>)
+
+transaction = np.array([[
+    <span class="num">120.0</span>,   <span class="cm"># time_since_last_transaction</span>
+    <span class="num">4500.0</span>,  <span class="cm"># transaction_amount (large — suspicious)</span>
+    <span class="num">3.0</span>,     <span class="cm"># merchant_category</span>
+    <span class="num">0.85</span>,    <span class="cm"># merchant_risk_score</span>
+    <span class="num">0.7</span>,     <span class="cm"># cardholder_risk_score</span>
+    <span class="num">200.0</span>,   <span class="cm"># distance_from_home</span>
+    <span class="num">1.0</span>,     <span class="cm"># is_online</span>
+    <span class="num">1.0</span>,     <span class="cm"># is_foreign</span>
+    <span class="num">2.0</span>,     <span class="cm"># hour_of_day (late night)</span>
+    <span class="num">5.0</span>,     <span class="cm"># day_of_week</span>
+    <span class="num">5.0</span>,     <span class="cm"># account_age_days</span>
+    <span class="num">30.0</span>,    <span class="cm"># recent_transaction_count</span>
+    <span class="num">3000.0</span>,  <span class="cm"># avg_transaction_amount_24h</span>
+    <span class="num">0.9</span>,     <span class="cm"># device_risk_score</span>
+    <span class="num">0.8</span>,     <span class="cm"># ip_risk_score</span>
+]])
+
+is_fraud = model.is_fraud(transaction)[<span class="num">0</span>]
+error = model.reconstruction_error(transaction)[<span class="num">0</span>]
+proba = model.predict_proba(transaction)[<span class="num">0</span>]
+print(<span class="str">f"fraud={is_fraud}  error={error:.4f}  proba={proba:.4f}"</span>)
+<span class="cm"># Expected: fraud=True, error &gt; threshold</span></code></pre>
+
+  <h3>REST API — Single Prediction</h3>
+  <pre><code class="language-bash">curl -X POST http://localhost:8010/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "time_since_last_transaction": 120,
+    "transaction_amount": 4500,
+    "merchant_category": 3,
+    "merchant_risk_score": 0.85,
+    "cardholder_risk_score": 0.7,
+    "distance_from_home": 200,
+    "is_online": 1,
+    "is_foreign": 1,
+    "hour_of_day": 2,
+    "day_of_week": 5,
+    "account_age_days": 5,
+    "recent_transaction_count": 30,
+    "avg_transaction_amount_24h": 3000,
+    "device_risk_score": 0.9,
+    "ip_risk_score": 0.8
+  }'</code></pre>
+  <p><strong>Response:</strong></p>
+  <pre><code class="language-json">{
+  "is_fraud": true,
+  "fraud_probability": 0.87,
+  "reconstruction_error": 0.42,
+  "anomaly_threshold": 0.11,
+  "model_version": "1.0.0",
+  "training_mode": "anomaly_detection"
+}</code></pre>
+
+  <h3>REST API — Bulk Prediction</h3>
+  <pre><code class="language-bash">curl -X POST http://localhost:8010/predict/bulk \
+  -H "Content-Type: application/json" \
+  -d '{"samples": [ {...transaction1...}, {...transaction2...} ]}'</code></pre>
+  <p>Bulk accepts up to 100 samples and returns <code>n_frauds</code> count plus individual <code>FraudResponse</code> objects.</p>
+</section>
+
+<section id="benchmarks">
+  <h2><span class="section-icon">📊</span>Benchmarks</h2>
+  <p class="callout">Run <code>pytest tests/</code> from the app root. Key metrics produced by <code>model.evaluate()</code>:</p>
+  <ul>
+    <li><code>accuracy</code> — overall classification accuracy on the balanced test set.</li>
+    <li><code>precision</code> — of flagged transactions, fraction that are truly fraud.</li>
+    <li><code>recall</code> — of all fraud transactions, fraction correctly flagged.</li>
+    <li><code>f1</code> — harmonic mean of precision and recall.</li>
+    <li><code>false_positive_rate</code> — fraction of legitimate transactions incorrectly flagged.</li>
+  </ul>
+  <p>The model is registered to <code>ModelRegistry</code> (local filesystem) and optionally to MLflow with all metrics, parameters, and artifacts (model NPZ + training chart + CSV).</p>
+</section>
+
+<div class="related-links">
+  <h3>Related Apps</h3>
+  <ul>
+    <li><a href="../classification-email-spam/README.md">classification-email-spam</a></li>
+    <li><a href="../regression-house-price/README.md">regression-house-price</a></li>
+    <li><a href="../pattern-recognition-digits/README.md">pattern-recognition-digits</a></li>
+  </ul>
+</div>
+
+</main>
+<footer style="border-top:1px solid var(--border);padding:20px 40px;color:var(--muted);font-size:12px;">
+  Generated documentation for <strong>anomaly-detection-fraud</strong> · feedforward monorepo
+</footer>
+</body>
+</html>
