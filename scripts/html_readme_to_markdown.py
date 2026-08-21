@@ -31,6 +31,8 @@ BLOCK_TAGS = {
     "thead", "tbody", "tr", "pre", "blockquote", "br", "hr", "article", "nav",
 }
 SKIP_TAGS = {"script", "style", "button", "meta", "link", "title", "noscript"}
+# Tags emitted verbatim into the Markdown so GitHub renders them natively.
+RAW_TAGS = {"details", "summary"}
 
 
 class ReadmeConverter(HTMLParser):
@@ -85,6 +87,14 @@ class ReadmeConverter(HTMLParser):
                 # void elements: no closing tag, never increment skip_depth
                 return
             self.skip_depth += 1
+            return
+
+        if tag in RAW_TAGS:
+            if tag == "details":
+                self._ensure_block_break()
+                self.out.append("<details>\n")
+            elif tag == "summary":
+                self.out.append("<summary>")
             return
 
         if tag == "pre":
@@ -170,6 +180,13 @@ class ReadmeConverter(HTMLParser):
             self.skip_depth = max(0, self.skip_depth - 1)
             if tag == "title":
                 self._title_capture = False
+            return
+
+        if tag in RAW_TAGS:
+            if tag == "details":
+                self.out.append("</details>\n\n")
+            elif tag == "summary":
+                self.out.append("</summary>\n")
             return
 
         if tag == "pre":
@@ -272,12 +289,13 @@ def convert(html_text: str) -> str:
     for placeholder, gfm in table_map.items():
         md = md.replace(placeholder, gfm)
 
-    # Prepend a title H1 if we captured one.
+    # Prepend a title H1 only if the document has no H1 of its own
+    # (DOCUMENTATION.html already carries a hero <h1>).
     title = conv.title
-    if title:
+    if title and not md.lstrip().startswith("# "):
         title = title.strip()
-        # title often looks like "pizza-price - AI App Documentation"
-        name = title.split(" - ")[0].strip()
+        # title may use " - " or an em-dash "—"
+        name = re.split(r"\s+[—-]\s+", title)[0].strip()
         md = f"# {name}\n\n" + md
 
     md = _cleanup(md)

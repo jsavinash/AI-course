@@ -1,8 +1,13 @@
 # vision-image-captioning
 
-## ∫ Mathematics & Theory
 
-Image Generation (GAN/VAE/Diffusion) — Underlying equations and derivations
+
+Image Generation (GAN/VAE/Diffusion) — AI engineering example · part of the MLOps monorepo
+
+## 1. Mathematical Foundations
+
+This example is grounded in **Image Generation (GAN/VAE/Diffusion)**. The equations below
+drive every forward and backward pass in the implementation.
 
 $$\min_G \max_D V(D, G) = \mathbb{E}_{x \sim p_{data}}[\log D(x)] + \mathbb{E}_{z \sim p_z}[\log(1 - D(G(z)))]$$
 
@@ -10,54 +15,366 @@ $$q(x_t | x_{t-1}) = \mathcal{N}(x_t; \sqrt{1 - \beta_t}x_{t-1}, \beta_t I)$$
 
 $$\mathcal{L}_{simple} = \mathbb{E}_{t, x_0, \epsilon} \left[ \| \epsilon - \epsilon_\theta(\sqrt{\bar{\alpha}_t}x_0 + \sqrt{1-\bar{\alpha}_t}\epsilon, t) \|^2 \right]$$
 
-### Step-by-Step Derivation
+### Derivation
 
 Image generation models learn to synthesize realistic images. GANs use adversarial training between generator and discriminator. VAEs learn a structured latent space via reconstruction and KL regularization. Diffusion models iteratively denoise from Gaussian noise, offering stable training and diverse outputs.
 
-### Interactive Visualization
+### Worked Numerical Example
+
+$$z = w \cdot x + b$$
+
+Illustrative forward-pass evaluation (scalar example):
+
+Input  x        = 12.0   (e.g. pizza diameter, inches)
+Weights w       =  0.85
+Bias    b       =  0.30
+---------------------------------
+z = w*x + b
+  = 0.85 * 12.0 + 0.30
+  = 10.20 + 0.30
+  = 10.50   <- model output
+
+### Conceptual Diagram
+
+        Math concept (placeholder)
+   [ Input x ] --> ( w · x + b ) --> [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]
+
+![Math Explanation (placeholder)](./assets/math-concept.png)
 
 Interactive latent space explorer; denoising trajectory viewer; FID score vs training steps.
 
-## ⚙ Architecture
+## 2. Core Logic & Architecture
 
-Model structure, data flow, and layer breakdown
+The example follows a consistent **data → train → evaluate → serve**
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.
 
-### Class Hierarchy
+  Raw dataset→
+  load + validate (data.py)→
+  fit / transform (model.py)→
+  evaluate + persist (train.py)→
+  serve (api.py)
 
-```
-  ImageCaptioningRNN
-```
+### Primary Components
+
+| Class | Public methods | Responsibility |
+| --- | --- | --- |
+| `PredictRequest` | — |  |
+| `PredictBulkRequest` | — |  |
+| `PredictResponse` | — |  |
+| `BulkPredictResponse` | — |  |
+| `StatsResponse` | — |  |
+| `ImageCaptioningRNN` | _to_onehot_seq, _encode_image, _encode_image_batch, fit, predict, predict_proba, evaluate, save, load, to_dict | RNN for image captioning (image encoder + RNN language model).  Args:     n_pixels: Number of input image pixels (e.g., 8x8=64)     vocab_size: Size of the word vocabulary     caption_len: Number of words in each caption     hidden_dim: Number of hidden units     learning_rate: Gradient descent step size     n_iterations: Number of training epochs     weight_decay: L2 regularization strength     clip_value: Maximum gradient norm     random_seed: Random seed for reproducibility |
 
 ### Data Flow
 
-```mermaid
-graph TD
-  A[Input Data] --> B[Preprocessing]
-  B --> C[Model Training]
-  C --> D[Evaluation]
-  D --> E[Model Registry]
-  E --> F[Serving API]
+
+
+1. **Load** — `data.py` reads the source dataset and splits train/test.
+
+
+
+2. **Validate** — a Pydantic schema guards input shape/dtypes before training.
+
+
+
+3. **Fit / Transform** — `model.py` applies the mathematics from Section 1.
+
+
+
+4. **Evaluate** — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.
+
+
+
+5. **Persist** — weights/artifacts are saved and registered in the model registry.
+
+
+
+6. **Serve** — `api.py` exposes prediction endpoints with drift detection.
+
+### Design Patterns & Performance
+
+Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via `ai_core.validation`, structured JSON logging through `ai_core.logging`, Prometheus metrics from `ai_core.metrics`, and MLflow/model-registry persistence via `ai_core.model_registry`. The FastAPI service wraps the trained model with observability middleware from `ai_core.fastapi_middleware`.
+
+## 3. Detailed Code Walkthrough
+
+The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.
+
+### `ImageCaptioningRNN.fit(X_images, captions, X_val, y_val)`
+
+Train the image encoder + RNN decoder with BPTT.
+
+Args:
+    X_images: Image pixel arrays (n_samples, n_pixels)
+    captions: Caption word indices (n_samples, caption_len)
+    X_val: Optional validation images
+    y_val: Optional validation captions
+
+Returns:
+    self
+
+### `ImageCaptioningRNN.predict(X_images)`
+
+Generate captions for a batch of images (greedy decoding).
+
+### Source Files
+
+<details>
+<summary>model.py</summary>
+
+```
+"""Recurrent neural network for image captioning.
+
+Combines a dense image encoder with a SimpleRNN (Elman network) decoder,
+trained with Backpropagation Through Time (BPTT). Built from scratch with NumPy.
+
+Architecture:
+    Image (64 pixels) -> Dense (hidden_dim) -> RNN (hidden_dim, tanh) -> Output (vocab_size, softmax)
+
+The image is encoded as a dense projection, then repeated as the first input
+to a many-to-many RNN that generates a sequence of word tokens.
+
+Loss: Cross-Entropy (many-to-many: predicts next word at each timestep)
+"""
+
+from dataclasses import dataclass, field
+
+import numpy as np
+from ai_core.nn_utils.rnn import SimpleRNN
+
+@dataclass
+class ImageCaptioningRNN:
+    """RNN for image captioning (image encoder + RNN language model).
+
+    Args:
+        n_pixels: Number of input image pixels (e.g., 8x8=64)
+        vocab_size: Size of the word vocabulary
+        caption_len: Number of words in each caption
+        hidden_dim: Number of hidden units
+        learning_rate: Gradient descent step size
+        n_iterations: Number of training epochs
+        weight_decay: L2 regularization strength
+        clip_value: Maximum gradient norm
+        random_seed: Random seed for reproducibility
+    """
+
+    n_pixels: int = 64
+    vocab_size: int = 20
+    caption_len: int = 8
+    hidden_dim: int = 32
+    learning_rate: float = 0.05
+    n_iterations: int = 300
+    weight_decay: float = 0.001
+    clip_value: float = 5.0
+    random_seed: int = 42
+
+    model: SimpleRNN | None = field(default=None, repr=False)
+    training_mode: str = "supervised"
+    loss_history: list[float] = field(default_factory=list)
+    # Image encoder weights
+    W_img: np.ndarray | None = None
+    b_img: np.ndarray | None = None
+
+    def _to_onehot_seq(self, seq: np.ndarray, dim: int) -> np.ndarray:
+        seq = np.atleast_1d(seq).astype(int)
+        result = np.zeros((len(seq), dim))
+        result[np.arange(len(seq)), seq % dim] = 1.0
+        return result
+
+    def _encode_image(self, X_img: np.ndarray) -> np.ndarray:
+        """Encode image pixels to a dense vector, then expand to RNN input dim.
+
+        Returns (vocab_size,) one-hot-like vector (argmax-based one-hot).
+        """
+        if self.W_img is None:
+            raise ValueError("Image encoder not initialized")
+        z = X_img @ self.W_img + self.b_img
+        z = np.tanh(z)
+        # Project hidden representation to vocab_size-dim one-hot-like input
+        onehot = np.zeros(self.vocab_size)
+        onehot[int(np.argmax(z))] = 1.0
+        return onehot
+
+    def _encode_image_batch(self, X_images: np.ndarray) -> np.ndarray:
+        """Encode a batch of images to one-hot-like start tokens.
+
+        Returns: (n_samples, 1, vocab_size)
+        """
+        result = np.zeros((len(X_images), 1, self.vocab_size))
+        for i in range(len(X_images)):
+            result[i, 0] = self._encode_image(X_images[i])
+        return result
+
+    def fit(
+        self,
+        X_images: np.ndarray,
+        captions: np.ndarray,
+        X_val: np.ndarray | None = None,
+        y_val: np.ndarray | None = None,
+    ) -> "ImageCaptioningRNN":
+        """Train the image encoder + RNN decoder with BPTT.
+
+        Args:
+            X_images: Image pixel arrays (n_samples, n_pixels)
+            captions: Caption word indices (n_samples, caption_len)
+            X_val: Optional validation images
+            y_val: Optional validation captions
+
+        Returns:
+            self
+        """
+        rng = np.random.default_rng(self.random_seed)
+
+        # Initialize image encoder (project pixels to vocab_size-dim for one-hot encoding)
+        scale = np.sqrt(1.0 / self.n_pixels)
+        self.W_img = rng.normal(0, scale, (self.n_pixels, self.vocab_size))
+        self.b_img = np.zeros(self.vocab_size)
+
+        # Build RNN input sequences: [start_token, caption[:-1]]
+        # The start token is the encoded image (one-hot like)
+        n_samples = X_images.shape[0]
+        seq_len = self.caption_len
+        X_rnn = np.zeros((n_samples, seq_len, self.vocab_size))
+
+        for i in range(n_samples):
+            img_encoded = self._encode_image(X_images[i])
+            # Shift captions: predict word t from image + words 0..t-1
+            cap = captions[i] % self.vocab_size
+            X_rnn[i, 0] = img_encoded  # first input is image
+            for t in range(1, seq_len):
+                prev_idx = int(cap[t - 1])
+                X_rnn[i, t] = self._to_onehot_seq(np.array([prev_idx]), self.vocab_size)[0]
+
+        # Build targets: captions one-hot
+        y_onehot = np.zeros((n_samples, seq_len, self.vocab_size))
+        for i in range(n_samples):
+            cap = captions[i] % self.vocab_size
+            for t in range(seq_len):
+                y_onehot[i, t, int(cap[t])] = 1.0
+
+        self.model = SimpleRNN(
+            input_dim=self.vocab_size,
+            hidden_dim=self.hidden_dim,
+            output_dim=self.vocab_size,
+            output_activation="softmax",
+            learning_rate=self.learning_rate,
+            weight_decay=self.weight_decay,
+            clip_value=self.clip_value,
+            random_seed=self.random_seed,
+            output_loss="cross_entropy",
+        )
+        self.model.fit(X_rnn, y_onehot, n_iterations=self.n_iterations)
+        self.loss_history = self.model.loss_history
+
+        # Fine-tune image encoder via RNN gradients (simplified: keep image encoder fixed)
+        # In a full implementation, we would backprop through the image encoder too.
+        return self
+
+    def predict(self, X_images: np.ndarray) -> list[np.ndarray]:
+        """Generate captions for a batch of images (greedy decoding)."""
+        X_rnn_start = self._encode_image_batch(X_images)
+        captions = []
+        for i in range(len(X_images)):
+            seq = X_rnn_start[i]  # (1, vocab_size)
+            generated = []
+            for _t in range(self.caption_len):
+                outputs = self.model.predict_many_to_many(seq)
+                next_word = int(np.argmax(outputs[-1]))
+                generated.append(next_word)
+                # Append next input (greedy)
+                next_input = np.zeros((1, self.vocab_size))
+                next_input[0, next_word] = 1.0
+                seq = np.vstack([seq, next_input])
+            captions.append(np.array(generated))
+        return captions
+
+    def predict_proba(self, X_images: np.ndarray) -> np.ndarray:
+        """Return word probabilities for the first predicted word."""
+        X_rnn_start = self._encode_image_batch(X_images)
+        results = []
+        for i in range(len(X_images)):
+            outputs = self.model.predict_many_to_many(X_rnn_start[i])
+            results.append(outputs[-1])
+        return np.array(results)
+
+    def evaluate(self, X_images: np.ndarray, captions: np.ndarray) -> dict[str, float]:
+        preds = self.predict(X_images)
+        correct = sum(
+            np.array_equal(preds[i], captions[i] % self.vocab_size) for i in range(len(preds))
+        )
+        return {
+            "accuracy": float(correct / max(len(preds), 1)),
+            "n_samples": float(len(preds)),
+        }
+
+    def save(self, path: str) -> None:
+        if self.model is None:
+            raise ValueError("Cannot save untrained model")
+        self.model.save(path)
+        np.savez(
+            path + ".img_encoder.npz",
+            W_img=self.W_img,
+            b_img=self.b_img,
+        )
+
+    @classmethod
+    def load(cls, path: str) -> "ImageCaptioningRNN":
+        model = SimpleRNN.load(path)
+
+        W_img = None
+        b_img = None
+        try:
+            img_data = np.load(path + ".img_encoder.npz")
+            W_img = img_data["W_img"]
+            b_img = img_data["b_img"]
+        except FileNotFoundError:
+            rng = np.random.default_rng(42)
+            W_img = rng.normal(0, 0.1, (model.input_dim, model.input_dim))
+            b_img = np.zeros(model.input_dim)
+
+        obj = cls(
+            n_pixels=model.input_dim,
+            vocab_size=model.input_dim,
+            caption_len=8,
+            hidden_dim=model.hidden_dim,
+            learning_rate=model.learning_rate,
+            weight_decay=model.weight_decay,
+            clip_value=model.clip_value,
+            random_seed=model.random_seed,
+        )
+        obj.model = model
+        obj.loss_history = model.loss_history
+        obj.W_img = W_img
+        obj.b_img = b_img
+        return obj
+
+    def to_dict(self) -> dict:
+        return {
+            "n_pixels": self.n_pixels,
+            "vocab_size": self.vocab_size,
+            "caption_len": self.caption_len,
+            "hidden_dim": self.hidden_dim,
+            "learning_rate": self.learning_rate,
+            "n_iterations": self.n_iterations,
+            "weight_decay": self.weight_decay,
+            "random_seed": self.random_seed,
+            "training_mode": self.training_mode,
+            "n_epochs_run": len(self.loss_history),
+            "final_loss": self.loss_history[-1] if self.loss_history else 0.0,
+        }
 ```
 
-## ⚡ API Reference
+</details>
 
-FastAPI endpoints and model interfaces
+<details>
+<summary>train.py</summary>
 
-| Method | Endpoint |
-| --- | --- |
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/metrics` |
-| `POST` | `/reload` |
-| `GET` | `/drift` |
-
-## ▶ Usage
-
-Code examples and CLI commands
-
-### Training Script
-
-```python
+```
 """Training pipeline for image captioning (RNN)."""
 
 import argparse
@@ -287,9 +604,165 @@ if __name__ == "__main__":
     main()
 ```
 
-### API Server
+</details>
 
-```python
+<details>
+<summary>data.py</summary>
+
+```
+"""Data loading and preprocessing for image captioning (RNN).
+
+Generates synthetic image pixel arrays (8x8=64) and corresponding caption word sequences.
+"""
+
+from pathlib import Path
+
+import numpy as np
+
+N_PIXELS = 64
+VOCAB_SIZE = 20
+CAPTION_LEN = 8
+
+DEFAULT_N_SAMPLES = 500
+
+# Simple vocabulary: objects + descriptors
+VOCAB_TOKENS = [
+    "start",
+    "a",
+    "the",
+    "object",
+    "bright",
+    "dark",
+    "round",
+    "square",
+    "small",
+    "large",
+    "circle",
+    "box",
+    "shape",
+    "is",
+    "this",
+    "red",
+    "blue",
+    "green",
+    "pattern",
+    "end",
+]
+
+def _create_image_template(
+    pattern_type: int, noise_level: float = 0.1, rng: np.random.Generator | None = None
+) -> np.ndarray:
+    """Generate an 8x8 image with a specific pattern.
+
+    pattern_type determines the pattern (0=circle-like, 1=corner-like, etc.)
+    """
+    if rng is None:
+        rng = np.random.default_rng(42)
+
+    img = np.zeros(N_PIXELS)
+
+    if pattern_type == 0:
+        # Circle in center
+        img[27:29] = 0.9
+        img[28:31] += 0.8
+        img[27:29] += 0.4
+    elif pattern_type == 1:
+        # Corner
+        img[0:3] = 0.9
+        img[8:11] = 0.8
+    elif pattern_type == 2:
+        # Horizontal bar
+        img[28:36] = 0.9
+    elif pattern_type == 3:
+        # Vertical bar
+        img[::8] = 0.9
+    elif pattern_type == 4:
+        # Diagonal
+        img[::9] = 0.9
+    else:
+        img.flat[rng.integers(0, N_PIXELS, size=10)] = 0.9
+
+    img = np.clip(img + rng.normal(0, noise_level, N_PIXELS), 0, 1)
+    return img
+
+def generate_synthetic_data(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    noise_level: float = 0.1,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Generate synthetic images and their caption sequences.
+
+    Each image has one of 5 basic patterns, and the caption describes it.
+
+    Returns:
+        X_images: (n_samples, N_PIXELS) image pixel arrays
+        captions: (n_samples, CAPTION_LEN) word token indices
+    """
+    rng = np.random.default_rng(random_seed)
+
+    # Pattern-to-caption mapping
+    pattern_captions = {
+        0: [0, 1, 3, 10, 2, 4, 5, 19],  # start a object circle the bright blue end
+        1: [0, 1, 3, 11, 2, 6, 12, 19],  # start a object box the round shape end
+        2: [0, 1, 3, 2, 7, 13, 14, 19],  # start a object the square is this end
+        3: [0, 1, 3, 11, 2, 8, 15, 19],  # start a object box the small red end
+        4: [0, 1, 3, 10, 2, 9, 16, 19],  # start a object circle the large blue end
+    }
+
+    X_images = np.zeros((n_samples, N_PIXELS))
+    captions = np.zeros((n_samples, CAPTION_LEN), dtype=int)
+
+    for i in range(n_samples):
+        pattern = rng.integers(0, 5)
+        X_images[i] = _create_image_template(pattern, noise_level, rng)
+        captions[i] = pattern_captions[pattern]
+
+    # Shuffle
+    perm = rng.permutation(n_samples)
+    return X_images[perm], captions[perm]
+
+def load_training_data(
+    data_path: Path | None = None,
+    n_samples: int = DEFAULT_N_SAMPLES,
+    noise_level: float = 0.1,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    if data_path and Path(data_path).exists():
+        data = np.load(data_path, allow_pickle=True)
+        return data["X"], data["y"]
+    return generate_synthetic_data(
+        n_samples=n_samples, noise_level=noise_level, random_seed=random_seed
+    )
+
+def train_test_split(
+    X: np.ndarray, y: np.ndarray, test_size: float = 0.2, random_seed: int | None = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    n = len(X)
+    n_test = max(1, int(n * test_size))
+
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+
+    test_idx = indices[:n_test]
+    train_idx = indices[n_test:]
+
+    return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
+
+def save_training_data(X: np.ndarray, y: np.ndarray, path: Path) -> None:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(path, X=X, y=y)
+```
+
+</details>
+
+<details>
+<summary>api.py</summary>
+
+```
 """Serving API for image captioning (RNN)."""
 
 import os
@@ -594,22 +1067,42 @@ def predict_bulk(body: PredictBulkRequest):
     return BulkPredictResponse(predictions=predictions, model_version=_model_version)
 ```
 
-### CLI Commands
+</details>
 
-```bash
-uv run python -m vision_image_captioning.train --model-dir ./artifacts/models
-```
+## 4. Monorepo Integration
 
-## 📊 Benchmarks
+This example is a first-class consumer of the shared `packages/ai-core` library.
+It reuses the following foundation modules instead of re-implementing infrastructure:
 
-Test results and performance metrics
+ai_core.drift
+ai_core.fastapi_middleware
+ai_core.logging
+ai_core.metrics
+ai_core.model_registry
+ai_core.nn_utils
+ai_core.validation
 
-Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+### How it plugs in
 
-### Related Apps
 
-- [image-generation](../image-generation/README.md)
 
-- [snn-image-classification](../snn-image-classification/README.md)
+- **Configuration** — 12-factor config from `ai_core.config`.
 
-Generated documentation for **vision-image-captioning**
+
+
+- **Observability** — structured logging + Prometheus metrics are wired in automatically.
+
+
+
+- **Validation** — input schema validation prevents bad data reaching the model.
+
+
+
+- **Registry** — trained artifacts are versioned and registered for reproducible serving.
+
+
+
+- **Serving** — the FastAPI app mounts shared observability middleware for tracing & metrics.
+
+Because every example shares `ai_core`, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.

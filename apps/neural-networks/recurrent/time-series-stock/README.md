@@ -1,65 +1,308 @@
 # time-series-stock
 
-## ∫ Mathematics & Theory
 
-Recurrent Neural Network (RNN) — Underlying equations and derivations
 
-$$h_t = \tanh(W_{hh}h_{t-1} + W_{xh}x_t + b_h)$$
+Machine Learning Fundamentals — AI engineering example · part of the MLOps monorepo
 
-$$\hat{y}_t = W_{hy}h_t + b_y$$
+## 1. Mathematical Foundations
 
-$$\mathcal{L} = \sum_{t=1}^{T} \mathcal{L}_t(y_t, \hat{y}_t)$$
+This example is grounded in **Machine Learning Fundamentals**. The equations below
+drive every forward and backward pass in the implementation.
 
-$$\frac{\partial \mathcal{L}}{\partial W_{hh}} = \sum_{t=1}^{T} \delta_t h_{t-1}^T$$
+$$\hat{y} = f(x; \theta)$$
 
-### Step-by-Step Derivation
+$$\mathcal{L}(\theta) = \frac{1}{n} \sum_{i=1}^{n} \ell(y_i, \hat{y}_i)$$
 
-RNNs process sequences by maintaining a hidden state $h_t$ that summarizes past inputs. At each timestep, the hidden state is updated via $h_t = \tanh(W_{hh}h_{t-1} + W_{xh}x_t)$. Backpropagation Through Time (BPTT) unrolls the network and computes gradients across all timesteps. Vanishing gradients are mitigated by gated architectures like LSTM and GRU.
+$$\theta \leftarrow \theta - \alpha \nabla_\theta \mathcal{L}(\theta)$$
 
-### Interactive Visualization
+### Derivation
 
-Interactive unfolded RNN diagram with gradient flow visualization; hidden state trajectory plot.
+Machine learning models learn parameters $\theta$ by minimizing a loss function $\mathcal{L}$. Gradient descent iteratively updates parameters in the direction of steepest descent. The learning rate $\alpha$ controls step size. Stochastic gradient descent (SGD) uses mini-batches for computational efficiency.
 
-## ⚙ Architecture
+### Worked Numerical Example
 
-Model structure, data flow, and layer breakdown
+$$z = w \cdot x + b$$
 
-### Class Hierarchy
+Illustrative forward-pass evaluation (scalar example):
 
-```
-  StockMarketRNN
-```
+Input  x        = 12.0   (e.g. pizza diameter, inches)
+Weights w       =  0.85
+Bias    b       =  0.30
+---------------------------------
+z = w*x + b
+  = 0.85 * 12.0 + 0.30
+  = 10.20 + 0.30
+  = 10.50   <- model output
+
+### Conceptual Diagram
+
+        Math concept (placeholder)
+   [ Input x ] --> ( w · x + b ) --> [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]
+
+![Math Explanation (placeholder)](./assets/math-concept.png)
+
+Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
+
+## 2. Core Logic & Architecture
+
+The example follows a consistent **data → train → evaluate → serve**
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.
+
+  Raw dataset→
+  load + validate (data.py)→
+  fit / transform (model.py)→
+  evaluate + persist (train.py)→
+  serve (api.py)
+
+### Primary Components
+
+| Class | Public methods | Responsibility |
+| --- | --- | --- |
+| `PredictRequest` | — |  |
+| `PredictBulkRequest` | — |  |
+| `PredictResponse` | — |  |
+| `BulkPredictResponse` | — |  |
+| `StatsResponse` | — |  |
+| `StockMarketRNN` | fit, predict, predict_proba, mse, rmse, mae, r2_score, evaluate, save, load, to_dict | RNN for stock price regression (many-to-one).  Args:     n_features: Number of features per timestep (e.g., OHLCV = 5)     seq_len: Number of timesteps in input sequences     hidden_dim: Number of hidden units     learning_rate: Gradient descent step size     n_iterations: Number of training epochs     weight_decay: L2 regularization strength     clip_value: Maximum gradient norm     random_seed: Random seed for reproducibility |
 
 ### Data Flow
 
-```mermaid
-graph TD
-  A[Input Data] --> B[Preprocessing]
-  B --> C[Model Training]
-  C --> D[Evaluation]
-  D --> E[Model Registry]
-  E --> F[Serving API]
+
+
+1. **Load** — `data.py` reads the source dataset and splits train/test.
+
+
+
+2. **Validate** — a Pydantic schema guards input shape/dtypes before training.
+
+
+
+3. **Fit / Transform** — `model.py` applies the mathematics from Section 1.
+
+
+
+4. **Evaluate** — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.
+
+
+
+5. **Persist** — weights/artifacts are saved and registered in the model registry.
+
+
+
+6. **Serve** — `api.py` exposes prediction endpoints with drift detection.
+
+### Design Patterns & Performance
+
+Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via `ai_core.validation`, structured JSON logging through `ai_core.logging`, Prometheus metrics from `ai_core.metrics`, and MLflow/model-registry persistence via `ai_core.model_registry`. The FastAPI service wraps the trained model with observability middleware from `ai_core.fastapi_middleware`.
+
+## 3. Detailed Code Walkthrough
+
+The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.
+
+### `StockMarketRNN.fit(X, y, X_val, y_val)`
+
+Train the RNN with BPTT.
+
+Args:
+    X: Feature sequences (n_samples, seq_len, n_features)
+    y: Target prices (n_samples,)
+
+Returns:
+    self
+
+### `StockMarketRNN.predict(X)`
+
+Predict stock prices for a batch of sequences.
+
+### Source Files
+
+<details>
+<summary>model.py</summary>
+
+```
+"""Recurrent neural network for stock market price prediction.
+
+A SimpleRNN (Elman network) trained with Backpropagation Through Time (BPTT).
+Built from scratch with NumPy, using the shared nn_utils.rnn.SimpleRNN base.
+
+Architecture:
+    Input (seq_len, n_features) -> Hidden (hidden_dim, tanh) -> Output (1, linear)
+
+Loss: Mean Squared Error (many-to-one: predicts next price at final timestep)
+
+The model learns temporal patterns in a sequence of feature vectors
+(e.g., normalized open/high/low/close/volume) and predicts the next price.
+"""
+
+from dataclasses import dataclass, field
+
+import numpy as np
+from ai_core.nn_utils.rnn import SimpleRNN
+
+@dataclass
+class StockMarketRNN:
+    """RNN for stock price regression (many-to-one).
+
+    Args:
+        n_features: Number of features per timestep (e.g., OHLCV = 5)
+        seq_len: Number of timesteps in input sequences
+        hidden_dim: Number of hidden units
+        learning_rate: Gradient descent step size
+        n_iterations: Number of training epochs
+        weight_decay: L2 regularization strength
+        clip_value: Maximum gradient norm
+        random_seed: Random seed for reproducibility
+    """
+
+    n_features: int = 5
+    seq_len: int = 20
+    hidden_dim: int = 32
+    learning_rate: float = 0.01
+    n_iterations: int = 300
+    weight_decay: float = 0.001
+    clip_value: float = 5.0
+    random_seed: int = 42
+
+    model: SimpleRNN | None = field(default=None, repr=False)
+    training_mode: str = "supervised"
+    loss_history: list[float] = field(default_factory=list)
+    y_mean_: float | None = None
+    y_std_: float | None = None
+
+    def fit(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        X_val: np.ndarray | None = None,
+        y_val: np.ndarray | None = None,
+    ) -> "StockMarketRNN":
+        """Train the RNN with BPTT.
+
+        Args:
+            X: Feature sequences (n_samples, seq_len, n_features)
+            y: Target prices (n_samples,)
+
+        Returns:
+            self
+        """
+        y = np.asarray(y, dtype=float).flatten()
+        self.y_mean_ = float(y.mean())
+        self.y_std_ = float(y.std()) if y.std() > 1e-8 else 1.0
+        y_norm = (y - self.y_mean_) / self.y_std_
+
+        self.model = SimpleRNN(
+            input_dim=self.n_features,
+            hidden_dim=self.hidden_dim,
+            output_dim=1,
+            output_activation="linear",
+            learning_rate=self.learning_rate,
+            weight_decay=self.weight_decay,
+            clip_value=self.clip_value,
+            random_seed=self.random_seed,
+            output_loss="mse",
+        )
+        self.model.fit(X, y_norm, n_iterations=self.n_iterations)
+        self.loss_history = self.model.loss_history
+        return self
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """Predict stock prices for a batch of sequences."""
+        preds_norm = self.model.predict_proba(X).flatten()
+        return preds_norm * self.y_std_ + self.y_mean_
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        """Alias for predict (returns normalized then denormalized predictions)."""
+        return self.predict(X)
+
+    def mse(self, X: np.ndarray, y: np.ndarray) -> float:
+        return float(np.mean((self.predict(X) - y) ** 2))
+
+    def rmse(self, X: np.ndarray, y: np.ndarray) -> float:
+        return float(np.sqrt(self.mse(X, y)))
+
+    def mae(self, X: np.ndarray, y: np.ndarray) -> float:
+        return float(np.mean(np.abs(self.predict(X) - y)))
+
+    def r2_score(self, X: np.ndarray, y: np.ndarray) -> float:
+        y_pred = self.predict(X)
+        ss_res = np.sum((y - y_pred) ** 2)
+        ss_tot = np.sum((y - np.mean(y)) ** 2)
+        if ss_tot == 0:
+            return 1.0 if ss_res == 0 else 0.0
+        return float(1 - ss_res / ss_tot)
+
+    def evaluate(self, X: np.ndarray, y: np.ndarray) -> dict[str, float]:
+        return {
+            "mse": self.mse(X, y),
+            "rmse": self.rmse(X, y),
+            "mae": self.mae(X, y),
+            "r2": self.r2_score(X, y),
+        }
+
+    def save(self, path: str) -> None:
+        if self.model is None:
+            raise ValueError("Cannot save untrained model")
+        self.model.save(path)
+        np.savez(
+            path + ".norm.npz",
+            y_mean=np.array([self.y_mean_ or 0.0]),
+            y_std=np.array([self.y_std_ or 1.0]),
+        )
+
+    @classmethod
+    def load(cls, path: str) -> "StockMarketRNN":
+        model = SimpleRNN.load(path)
+        y_mean = 0.0
+        y_std = 1.0
+        try:
+            norm_data = np.load(path + ".norm.npz")
+            y_mean = float(norm_data["y_mean"].item())
+            y_std = float(norm_data["y_std"].item())
+        except FileNotFoundError:
+            pass
+
+        obj = cls(
+            n_features=model.input_dim,
+            seq_len=20,
+            hidden_dim=model.hidden_dim,
+            learning_rate=model.learning_rate,
+            weight_decay=model.weight_decay,
+            clip_value=model.clip_value,
+            random_seed=model.random_seed,
+        )
+        obj.model = model
+        obj.loss_history = model.loss_history
+        obj.y_mean_ = y_mean
+        obj.y_std_ = y_std
+        return obj
+
+    def to_dict(self) -> dict:
+        return {
+            "n_features": self.n_features,
+            "seq_len": self.seq_len,
+            "hidden_dim": self.hidden_dim,
+            "learning_rate": self.learning_rate,
+            "n_iterations": self.n_iterations,
+            "weight_decay": self.weight_decay,
+            "random_seed": self.random_seed,
+            "training_mode": self.training_mode,
+            "n_epochs_run": len(self.loss_history),
+            "final_loss": self.loss_history[-1] if self.loss_history else 0.0,
+        }
 ```
 
-## ⚡ API Reference
+</details>
 
-FastAPI endpoints and model interfaces
+<details>
+<summary>train.py</summary>
 
-| Method | Endpoint |
-| --- | --- |
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/metrics` |
-| `POST` | `/reload` |
-| `GET` | `/drift` |
-
-## ▶ Usage
-
-Code examples and CLI commands
-
-### Training Script
-
-```python
+```
 """Training pipeline for stock market prediction (RNN)."""
 
 import argparse
@@ -282,9 +525,120 @@ if __name__ == "__main__":
     main()
 ```
 
-### API Server
+</details>
 
-```python
+<details>
+<summary>data.py</summary>
+
+```
+"""Data loading and preprocessing for stock market prediction (RNN).
+
+Generates synthetic financial time-series feature sequences for price prediction.
+"""
+
+from pathlib import Path
+
+import numpy as np
+
+N_FEATURES = 5  # normalized open, high, low, close, volume
+SEQ_LEN = 20
+
+DEFAULT_N_SAMPLES = 500
+
+def generate_synthetic_data(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Generate synthetic stock price feature sequences.
+
+    Each sample is a sequence of SEQ_LEN timesteps, each with 5 features
+    (normalized open, high, low, close, volume). The target is the next
+    closing price (derived from the sequence trend).
+
+    Returns:
+        X: (n_samples, SEQ_LEN, N_FEATURES) feature sequences
+        y: (n_samples,) target prices
+    """
+    rng = np.random.default_rng(random_seed)
+
+    X = np.zeros((n_samples, SEQ_LEN, N_FEATURES))
+    y = np.zeros(n_samples)
+
+    for i in range(n_samples):
+        # Random walk base price
+        base_price = rng.uniform(50, 200)
+        prices = [base_price]
+        for _ in range(SEQ_LEN):
+            change = rng.normal(0, 0.02)
+            prices.append(prices[-1] * (1 + change))
+
+        prices = np.array(prices)
+
+        # Normalize features to [0, 1] using rolling window
+        window = prices[:SEQ_LEN]
+        w_min = window.min()
+        w_max = window.max()
+        w_range = w_max - w_min if w_max - w_min > 1e-8 else 1.0
+
+        for t in range(SEQ_LEN):
+            o = prices[t] if t == 0 else prices[t - 1]
+            h = max(prices[t], prices[t - 1] if t > 0 else prices[t])
+            lo = min(prices[t], prices[t - 1] if t > 0 else prices[t])
+            c = prices[t]
+            v = rng.uniform(0.3, 0.9)  # normalized volume
+
+            X[i, t, 0] = (o - w_min) / w_range  # open
+            X[i, t, 1] = (h - w_min) / w_range  # high
+            X[i, t, 2] = (lo - w_min) / w_range  # low
+            X[i, t, 3] = (c - w_min) / w_range  # close
+            X[i, t, 4] = v  # volume
+
+        # Target: actual next closing price (next step after sequence)
+        y[i] = prices[SEQ_LEN]
+
+    # Shuffle
+    perm = rng.permutation(n_samples)
+    return X[perm], y[perm]
+
+def load_training_data(
+    data_path: Path | None = None,
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    if data_path and Path(data_path).exists():
+        data = np.load(data_path, allow_pickle=True)
+        return data["X"], data["y"]
+    return generate_synthetic_data(n_samples=n_samples, random_seed=random_seed)
+
+def train_test_split(
+    X: np.ndarray, y: np.ndarray, test_size: float = 0.2, random_seed: int | None = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    n = len(X)
+    n_test = max(1, int(n * test_size))
+
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+
+    test_idx = indices[:n_test]
+    train_idx = indices[n_test:]
+
+    return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
+
+def save_training_data(X: np.ndarray, y: np.ndarray, path: Path) -> None:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(path, X=X, y=y)
+```
+
+</details>
+
+<details>
+<summary>api.py</summary>
+
+```
 """Serving API for stock market prediction (RNN)."""
 
 import os
@@ -584,20 +938,42 @@ def predict_bulk(body: PredictBulkRequest):
     return BulkPredictResponse(predictions=predictions, model_version=_model_version)
 ```
 
-### CLI Commands
+</details>
 
-```bash
-uv run python -m time_series_stock.train --model-dir ./artifacts/models
-```
+## 4. Monorepo Integration
 
-## 📊 Benchmarks
+This example is a first-class consumer of the shared `packages/ai-core` library.
+It reuses the following foundation modules instead of re-implementing infrastructure:
 
-Test results and performance metrics
+ai_core.drift
+ai_core.fastapi_middleware
+ai_core.logging
+ai_core.metrics
+ai_core.model_registry
+ai_core.nn_utils
+ai_core.validation
 
-Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+### How it plugs in
 
-### Related Apps
 
-- [time-series-weather](../time-series-weather/README.md)
 
-Generated documentation for **time-series-stock**
+- **Configuration** — 12-factor config from `ai_core.config`.
+
+
+
+- **Observability** — structured logging + Prometheus metrics are wired in automatically.
+
+
+
+- **Validation** — input schema validation prevents bad data reaching the model.
+
+
+
+- **Registry** — trained artifacts are versioned and registered for reproducible serving.
+
+
+
+- **Serving** — the FastAPI app mounts shared observability middleware for tracing & metrics.
+
+Because every example shares `ai_core`, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.

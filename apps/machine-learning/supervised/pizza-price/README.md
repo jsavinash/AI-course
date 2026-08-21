@@ -1,8 +1,13 @@
 # pizza-price
 
-## ∫ Mathematics & Theory
 
-Linear Regression — Underlying equations and derivations
+
+Linear Regression — AI engineering example · part of the MLOps monorepo
+
+## 1. Mathematical Foundations
+
+This example is grounded in **Linear Regression**. The equations below
+drive every forward and backward pass in the implementation.
 
 $$\hat{y} = w \cdot x + b$$
 
@@ -14,53 +19,232 @@ $$\frac{\partial \mathcal{L}}{\partial b} = -\frac{2}{n} \sum_{i=1}^{n} (y_i - \
 
 $$w \leftarrow w - \alpha \cdot \frac{\partial \mathcal{L}}{\partial w}, \quad b \leftarrow b - \alpha \cdot \frac{\partial \mathcal{L}}{\partial b}$$
 
-### Step-by-Step Derivation
+### Derivation
 
 Starting from the hypothesis $h(x) = wx + b$, we minimize the MSE loss. Taking partial derivatives w.r.t. $w$ and $b$ and applying gradient descent yields the update rules. The learning rate $\alpha$ controls step size; too large causes divergence, too small causes slow convergence.
 
-### Interactive Visualization
+### Worked Numerical Example
+
+$$z = w \cdot x + b$$
+
+Illustrative forward-pass evaluation (scalar example):
+
+Input  x        = 12.0   (e.g. pizza diameter, inches)
+Weights w       =  0.85
+Bias    b       =  0.30
+---------------------------------
+z = w*x + b
+  = 0.85 * 12.0 + 0.30
+  = 10.20 + 0.30
+  = 10.50   <- model output
+
+### Conceptual Diagram
+
+        Math concept (placeholder)
+   [ Input x ] --> ( w · x + b ) --> [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]
+
+![Math Explanation (placeholder)](./assets/math-concept.png)
 
 Interactive scatter plot with regression line, showing loss descent over iterations.
 
-## ⚙ Architecture
+## 2. Core Logic & Architecture
 
-Model structure, data flow, and layer breakdown
+The example follows a consistent **data → train → evaluate → serve**
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.
 
-### Class Hierarchy
+  Raw dataset→
+  load + validate (data.py)→
+  fit / transform (model.py)→
+  evaluate + persist (train.py)→
+  serve (api.py)
 
-```
-  LinearRegression
-```
+### Primary Components
+
+| Class | Public methods | Responsibility |
+| --- | --- | --- |
+| `PredictRequest` | — | Single pizza price prediction request. |
+| `PredictBulkRequest` | — | Bulk pizza price prediction request. |
+| `PredictResponse` | — | Prediction response. |
+| `BulkPredictResponse` | — | Bulk prediction response. |
+| `DriftResponse` | — | Drift detection response. |
+| `LinearRegression` | predict, fit, mse, rmse, r2_score, mae, evaluate, save, load, to_dict | Linear regression: price = weight * diameter + bias, trained via MSE gradient descent. |
 
 ### Data Flow
 
-```mermaid
-graph TD
-  A[Input Data] --> B[Preprocessing]
-  B --> C[Model Training]
-  C --> D[Evaluation]
-  D --> E[Model Registry]
-  E --> F[Serving API]
+
+
+1. **Load** — `data.py` reads the source dataset and splits train/test.
+
+
+
+2. **Validate** — a Pydantic schema guards input shape/dtypes before training.
+
+
+
+3. **Fit / Transform** — `model.py` applies the mathematics from Section 1.
+
+
+
+4. **Evaluate** — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.
+
+
+
+5. **Persist** — weights/artifacts are saved and registered in the model registry.
+
+
+
+6. **Serve** — `api.py` exposes prediction endpoints with drift detection.
+
+### Design Patterns & Performance
+
+Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via `ai_core.validation`, structured JSON logging through `ai_core.logging`, Prometheus metrics from `ai_core.metrics`, and MLflow/model-registry persistence via `ai_core.model_registry`. The FastAPI service wraps the trained model with observability middleware from `ai_core.fastapi_middleware`.
+
+## 3. Detailed Code Walkthrough
+
+The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.
+
+### `LinearRegression.predict(X)`
+
+Forward pass: y_hat = w * x + b.
+
+### `LinearRegression.fit(X, y)`
+
+Train using gradient descent on Mean Squared Error.
+
+### `LinearRegression.evaluate(X, y)`
+
+Compute all evaluation metrics.
+
+### Source Files
+
+<details>
+<summary>model.py</summary>
+
+```
+"""Linear Regression model for pizza price prediction.
+
+Implements a production-ready linear regression with:
+- Gradient descent training
+- R² score computation
+- Feature scaling
+- Proper serialization with metadata
+"""
+
+from dataclasses import dataclass, field
+
+import numpy as np
+
+@dataclass
+class LinearRegression:
+    """Linear regression: price = weight * diameter + bias, trained via MSE gradient descent."""
+
+    learning_rate: float = 0.001
+    n_iterations: int = 2000
+    weight: float = 0.0
+    bias: float = 0.0
+    loss_history: list[float] = field(default_factory=list)
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """Forward pass: y_hat = w * x + b."""
+        return self.weight * X + self.bias
+
+    def fit(self, X: np.ndarray, y: np.ndarray) -> "LinearRegression":
+        """Train using gradient descent on Mean Squared Error."""
+        n = len(X)
+        self.loss_history = []
+        for _ in range(self.n_iterations):
+            y_pred = self.predict(X)
+            loss = np.mean((y_pred - y) ** 2)
+            self.loss_history.append(float(loss))
+
+            dw = (2 / n) * np.sum(X * (y_pred - y))
+            db = (2 / n) * np.sum(y_pred - y)
+
+            self.weight -= self.learning_rate * dw
+            self.bias -= self.learning_rate * db
+
+        return self
+
+    # ---------- Metrics ----------
+
+    def mse(self, X: np.ndarray, y: np.ndarray) -> float:
+        """Compute Mean Squared Error on given data."""
+        return float(np.mean((self.predict(X) - y) ** 2))
+
+    def rmse(self, X: np.ndarray, y: np.ndarray) -> float:
+        """Compute Root Mean Squared Error."""
+        return float(np.sqrt(self.mse(X, y)))
+
+    def r2_score(self, X: np.ndarray, y: np.ndarray) -> float:
+        """Compute R² (coefficient of determination) score."""
+        y_pred = self.predict(X)
+        ss_res = np.sum((y - y_pred) ** 2)
+        ss_tot = np.sum((y - np.mean(y)) ** 2)
+        if ss_tot == 0:
+            return 1.0 if ss_res == 0 else 0.0
+        return float(1 - ss_res / ss_tot)
+
+    def mae(self, X: np.ndarray, y: np.ndarray) -> float:
+        """Compute Mean Absolute Error."""
+        return float(np.mean(np.abs(self.predict(X) - y)))
+
+    def evaluate(self, X: np.ndarray, y: np.ndarray) -> dict[str, float]:
+        """Compute all evaluation metrics."""
+        return {
+            "mse": self.mse(X, y),
+            "rmse": self.rmse(X, y),
+            "mae": self.mae(X, y),
+            "r2": self.r2_score(X, y),
+        }
+
+    # ---------- Serialization ----------
+
+    def save(self, path: str) -> None:
+        """Save model parameters to disk."""
+        np.savez(
+            path,
+            weight=self.weight,
+            bias=self.bias,
+            learning_rate=self.learning_rate,
+            n_iterations=self.n_iterations,
+            loss_history=np.array(self.loss_history),
+        )
+
+    @classmethod
+    def load(cls, path: str) -> "LinearRegression":
+        """Load model parameters from disk."""
+        data = np.load(path)
+        model = cls(
+            learning_rate=float(data["learning_rate"]),
+            n_iterations=int(data["n_iterations"]),
+        )
+        model.weight = float(data["weight"])
+        model.bias = float(data["bias"])
+        model.loss_history = list(data["loss_history"])
+        return model
+
+    def to_dict(self) -> dict[str, float]:
+        """Return model parameters as a dict."""
+        return {
+            "weight": self.weight,
+            "bias": self.bias,
+            "learning_rate": self.learning_rate,
+            "n_iterations": self.n_iterations,
+        }
 ```
 
-## ⚡ API Reference
+</details>
 
-FastAPI endpoints and model interfaces
+<details>
+<summary>train.py</summary>
 
-| Method | Endpoint |
-| --- | --- |
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/metrics` |
-| `POST` | `/reload` |
-
-## ▶ Usage
-
-Code examples and CLI commands
-
-### Training Script
-
-```python
+```
 """Production training pipeline for pizza price prediction."""
 
 import argparse
@@ -265,9 +449,71 @@ if __name__ == "__main__":
     main()
 ```
 
-### API Server
+</details>
 
-```python
+<details>
+<summary>data.py</summary>
+
+```
+"""Data loading and preprocessing for pizza price prediction."""
+
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+def load_training_data(data_path: Path | None = None) -> tuple[np.ndarray, np.ndarray]:
+    """Load pizza training data from CSV or use built-in dataset.
+
+    Expected CSV format:
+        diameter,price
+        6,7.0
+        8,9.0
+        ...
+    """
+    if data_path and Path(data_path).exists():
+        df = pd.read_csv(data_path)
+        X = df["diameter"].values.astype(float)
+        y = df["price"].values.astype(float)
+        return X, y
+
+    # Built-in training data
+    X = np.array([6, 8, 10, 14, 18], dtype=float)
+    y = np.array([7.0, 9.0, 13.0, 17.5, 18.0], dtype=float)
+    return X, y
+
+def train_test_split(
+    X: np.ndarray, y: np.ndarray, test_size: float = 0.2, random_seed: int | None = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Split data into train and test sets."""
+    n = len(X)
+    n_test = max(1, int(n * test_size))
+
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+
+    test_idx = indices[:n_test]
+    train_idx = indices[n_test:]
+
+    return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
+
+def save_training_data(X: np.ndarray, y: np.ndarray, path: Path) -> None:
+    """Save training data to CSV for reproducibility."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    df = pd.DataFrame({"diameter": X, "price": y})
+    df.to_csv(path, index=False)
+```
+
+</details>
+
+<details>
+<summary>api.py</summary>
+
+```
 """Production serving API for pizza price prediction."""
 
 import os
@@ -600,20 +846,41 @@ def predict_bulk(body: PredictBulkRequest):
         raise HTTPException(status_code=500, detail="Bulk prediction failed") from e
 ```
 
-### CLI Commands
+</details>
 
-```bash
-uv run python -m pizza_price.train --model-dir ./artifacts/models
-```
+## 4. Monorepo Integration
 
-## 📊 Benchmarks
+This example is a first-class consumer of the shared `packages/ai-core` library.
+It reuses the following foundation modules instead of re-implementing infrastructure:
 
-Test results and performance metrics
+ai_core.drift
+ai_core.fastapi_middleware
+ai_core.logging
+ai_core.metrics
+ai_core.model_registry
+ai_core.validation
 
-Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+### How it plugs in
 
-### Related Apps
 
-- [regression-house-price](../regression-house-price/README.md)
 
-Generated documentation for **pizza-price**
+- **Configuration** — 12-factor config from `ai_core.config`.
+
+
+
+- **Observability** — structured logging + Prometheus metrics are wired in automatically.
+
+
+
+- **Validation** — input schema validation prevents bad data reaching the model.
+
+
+
+- **Registry** — trained artifacts are versioned and registered for reproducible serving.
+
+
+
+- **Serving** — the FastAPI app mounts shared observability middleware for tracing & metrics.
+
+Because every example shares `ai_core`, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.

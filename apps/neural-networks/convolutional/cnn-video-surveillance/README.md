@@ -1,8 +1,13 @@
 # cnn-video-surveillance
 
-## ∫ Mathematics & Theory
 
-Convolutional Neural Network — Underlying equations and derivations
+
+Convolutional Neural Network — AI engineering example · part of the MLOps monorepo
+
+## 1. Mathematical Foundations
+
+This example is grounded in **Convolutional Neural Network**. The equations below
+drive every forward and backward pass in the implementation.
 
 $$Z^{(l)} = W^{(l)} * X^{(l)} + b^{(l)}$$
 
@@ -14,53 +19,277 @@ $$\text{Softmax}(z)_j = \frac{e^{z_j}}{\sum_{k=1}^{K} e^{z_k}}$$
 
 $$\mathcal{L}_{CE} = -\sum_{i=1}^{C} y_i \log(\hat{y}_i)$$
 
-### Step-by-Step Derivation
+### Derivation
 
 CNNs apply learned filters across spatial dimensions. Convolution slides a kernel $W$ over the input, computing dot products at each position. ReLU introduces non-linearity. Pooling reduces spatial dimensions. The softmax converts final logits to class probabilities.
 
-### Interactive Visualization
+### Worked Numerical Example
+
+$$z = w \cdot x + b$$
+
+Illustrative forward-pass evaluation (scalar example):
+
+Input  x        = 12.0   (e.g. pizza diameter, inches)
+Weights w       =  0.85
+Bias    b       =  0.30
+---------------------------------
+z = w*x + b
+  = 0.85 * 12.0 + 0.30
+  = 10.20 + 0.30
+  = 10.50   <- model output
+
+### Conceptual Diagram
+
+        Math concept (placeholder)
+   [ Input x ] --> ( w · x + b ) --> [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]
+
+![Math Explanation (placeholder)](./assets/math-concept.png)
 
 Interactive filter visualization; feature map heatmap; receptive field calculator; Grad-CAM overlay.
 
-## ⚙ Architecture
+## 2. Core Logic & Architecture
 
-Model structure, data flow, and layer breakdown
+The example follows a consistent **data → train → evaluate → serve**
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.
 
-### Class Hierarchy
+  Raw dataset→
+  load + validate (data.py)→
+  fit / transform (model.py)→
+  evaluate + persist (train.py)→
+  serve (api.py)
 
-```
-  VideoSurveillanceCNN
-```
+### Primary Components
+
+| Class | Public methods | Responsibility |
+| --- | --- | --- |
+| `PredictRequest` | — |  |
+| `PredictBulkRequest` | — |  |
+| `PredictResponse` | — |  |
+| `BulkPredictResponse` | — |  |
+| `DriftResponse` | — |  |
+| `StatsResponse` | — |  |
+| `VideoSurveillanceCNN` | fit, predict_proba, predict_class, predict, accuracy, evaluate, save, load, to_dict | CNN for video surveillance.  Args:     img_size: Size of input images (square)     n_channels: Number of input channels     n_filters: Number of convolution filters     kernel_size: Convolution kernel size     hidden_dim: Hidden units in dense layer     output_dim: Output dimension     learning_rate: Gradient descent step size     n_iterations: Number of training epochs     weight_decay: L2 regularization strength     clip_value: Maximum gradient norm for clipping     random_seed: Random seed for reproducibility |
 
 ### Data Flow
 
-```mermaid
-graph TD
-  A[Input Data] --> B[Preprocessing]
-  B --> C[Model Training]
-  C --> D[Evaluation]
-  D --> E[Model Registry]
-  E --> F[Serving API]
+
+
+1. **Load** — `data.py` reads the source dataset and splits train/test.
+
+
+
+2. **Validate** — a Pydantic schema guards input shape/dtypes before training.
+
+
+
+3. **Fit / Transform** — `model.py` applies the mathematics from Section 1.
+
+
+
+4. **Evaluate** — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.
+
+
+
+5. **Persist** — weights/artifacts are saved and registered in the model registry.
+
+
+
+6. **Serve** — `api.py` exposes prediction endpoints with drift detection.
+
+### Design Patterns & Performance
+
+Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via `ai_core.validation`, structured JSON logging through `ai_core.logging`, Prometheus metrics from `ai_core.metrics`, and MLflow/model-registry persistence via `ai_core.model_registry`. The FastAPI service wraps the trained model with observability middleware from `ai_core.fastapi_middleware`.
+
+## 3. Detailed Code Walkthrough
+
+The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.
+
+### `VideoSurveillanceCNN.fit(X, y, X_val, y_val)`
+
+Train the CNN using backpropagation.
+
+Args:
+    X: Image pixel arrays (n_samples, N_FEATURES)
+    y: Class labels (n_samples,)
+
+Returns:
+    self
+
+### `VideoSurveillanceCNN.predict(X, threshold)`
+
+Alias for predict_class.
+
+### Source Files
+
+<details>
+<summary>model.py</summary>
+
+```
+"""Video Surveillance using a Convolutional Neural Network.
+
+Architecture:
+    Input (1 x 8x8) -> Conv2D (1->8, 3x3, ReLU)
+    -> MaxPool2D (2x2) -> Flatten -> Dense (32, ReLU) -> Dense (3, softmax)
+
+Loss: categorical cross-entropy (many-to-one: classifies image into a class label)
+Optimizer: Gradient Descent with He initialization
+"""
+
+from dataclasses import dataclass, field
+
+import numpy as np
+from ai_core.nn_utils.cnn import SimpleCNN
+
+from cnn_video_surveillance.data import reshape_image
+
+@dataclass
+class VideoSurveillanceCNN:
+    """CNN for video surveillance.
+
+    Args:
+        img_size: Size of input images (square)
+        n_channels: Number of input channels
+        n_filters: Number of convolution filters
+        kernel_size: Convolution kernel size
+        hidden_dim: Hidden units in dense layer
+        output_dim: Output dimension
+        learning_rate: Gradient descent step size
+        n_iterations: Number of training epochs
+        weight_decay: L2 regularization strength
+        clip_value: Maximum gradient norm for clipping
+        random_seed: Random seed for reproducibility
+    """
+
+    IMG_SIZE: int = 8
+    N_CHANNELS: int = 1
+    n_filters: int = 8
+    kernel_size: int = 3
+    hidden_dim: int = 32
+    output_dim: int = 3
+    learning_rate: float = 0.05
+    n_iterations: int = 300
+    weight_decay: float = 0.001
+    clip_value: float = 5.0
+    random_seed: int = 42
+
+    model: SimpleCNN | None = field(default=None, repr=False)
+    training_mode: str = "supervised"
+    loss_history: list[float] = field(default_factory=list)
+
+    def fit(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        X_val: np.ndarray | None = None,
+        y_val: np.ndarray | None = None,
+    ) -> "VideoSurveillanceCNN":
+        """Train the CNN using backpropagation.
+
+        Args:
+            X: Image pixel arrays (n_samples, N_FEATURES)
+            y: Class labels (n_samples,)
+
+        Returns:
+            self
+        """
+        X_img = reshape_image(X)
+        y_arr = np.asarray(y, dtype=float)
+
+        if self.output_dim == 1:
+            y_arr = y_arr.reshape(-1, 1)
+        else:
+            onehot = np.zeros((len(y_arr), self.output_dim))
+            onehot[np.arange(len(y_arr)), y_arr.astype(int)] = 1.0
+            y_arr = onehot
+
+        self.model = SimpleCNN(
+            input_shape=(self.N_CHANNELS, self.IMG_SIZE, self.IMG_SIZE),
+            n_filters=self.n_filters,
+            kernel_size=self.kernel_size,
+            hidden_dim=self.hidden_dim,
+            output_dim=self.output_dim,
+            output_activation="softmax",
+            output_loss="cross_entropy",
+            learning_rate=self.learning_rate,
+            weight_decay=self.weight_decay,
+            clip_value=self.clip_value,
+            random_seed=self.random_seed,
+        )
+        self.model.fit(X_img, y_arr, n_iterations=self.n_iterations)
+        self.loss_history = self.model.loss_history
+        return self
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        """Return output probabilities for each sample."""
+        X_img = reshape_image(X)
+        return self.model.predict_proba(X_img)
+
+    def predict_class(self, X: np.ndarray, threshold: float = 0.5) -> np.ndarray:
+        """Return predicted class indices."""
+        if self.output_dim == 1:
+            probas = self.predict_proba(X).flatten()
+            return (probas >= threshold).astype(int)
+        X_img = reshape_image(X)
+        return self.model.predict(X_img)
+
+    def predict(self, X: np.ndarray, threshold: float = 0.5) -> np.ndarray:
+        """Alias for predict_class."""
+        return self.predict_class(X, threshold)
+
+    def accuracy(self, X: np.ndarray, y: np.ndarray) -> float:
+        preds = self.predict_class(X)
+        return float(np.mean(preds == y))
+
+    def evaluate(self, X: np.ndarray, y: np.ndarray) -> dict[str, float]:
+        preds = self.predict_class(X)
+        acc = float(np.mean(preds == y))
+        return {
+            "accuracy": acc,
+            "n_samples": float(len(y)),
+        }
+
+    def save(self, path: str) -> None:
+        if self.model is None:
+            raise ValueError("Cannot save untrained model")
+        self.model.save(path)
+
+    @classmethod
+    def load(cls, path: str) -> "VideoSurveillanceCNN":
+        model = SimpleCNN.load(path)
+        obj = cls()
+        obj.model = model
+        obj.loss_history = model.loss_history
+        obj.output_dim = model.output_dim
+        return obj
+
+    def to_dict(self) -> dict:
+        return {
+            "img_size": self.IMG_SIZE,
+            "n_channels": self.N_CHANNELS,
+            "n_filters": self.n_filters,
+            "hidden_dim": self.hidden_dim,
+            "output_dim": self.output_dim,
+            "learning_rate": self.learning_rate,
+            "n_iterations": self.n_iterations,
+            "weight_decay": self.weight_decay,
+            "training_mode": self.training_mode,
+            "n_epochs_run": len(self.loss_history),
+            "final_loss": self.loss_history[-1] if self.loss_history else 0.0,
+        }
 ```
 
-## ⚡ API Reference
+</details>
 
-FastAPI endpoints and model interfaces
+<details>
+<summary>train.py</summary>
 
-| Method | Endpoint |
-| --- | --- |
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/metrics` |
-| `POST` | `/reload` |
-
-## ▶ Usage
-
-Code examples and CLI commands
-
-### Training Script
-
-```python
+```
 """Training pipeline for Video Surveillance (CNN)."""
 
 import argparse
@@ -267,9 +496,117 @@ if __name__ == "__main__":
     main()
 ```
 
-### API Server
+</details>
 
-```python
+<details>
+<summary>data.py</summary>
+
+```
+"""Data loading and preprocessing for Video Surveillance (CNN).
+
+Generates synthetic 8x8 grayscale images and their labels.
+"""
+
+from pathlib import Path
+
+import numpy as np
+
+IMAGE_SIZE = 8
+N_CHANNELS = 1
+N_FEATURES = IMAGE_SIZE * IMAGE_SIZE
+N_CLASSES = 3
+
+DEFAULT_N_SAMPLES = 500
+
+LABEL_NAMES = ['normal', 'activity', 'threat']
+
+def _create_template(label: int, rng: np.random.Generator) -> np.ndarray:
+    """Create a 8x8 template pattern for a given class."""
+    grid = np.zeros((IMAGE_SIZE, IMAGE_SIZE), dtype=float)
+    # Distinct spatial patterns per class
+    patterns = [
+        lambda r, c: IMAGE_SIZE // 4 <= r <= 3 * IMAGE_SIZE // 4 and IMAGE_SIZE // 4 <= c <= 3 * IMAGE_SIZE // 4,
+        lambda r, c: r < IMAGE_SIZE // 2,
+        lambda r, c: (r + c) % 3 == 0,
+        lambda r, c: r == 0 or r == IMAGE_SIZE - 1 or c == 0 or c == IMAGE_SIZE - 1,
+        lambda r, c: (r - IMAGE_SIZE // 2) ** 2 + (c - IMAGE_SIZE // 2) ** 2 <= 4,
+        lambda r, c: r > IMAGE_SIZE // 2 and c > IMAGE_SIZE // 2,
+        lambda r, c: (r + c) % 2 == 0,
+        lambda r, c: r == c,
+        lambda r, c: r + c == IMAGE_SIZE - 1,
+        lambda r, c: True,
+    ]
+    for r in range(IMAGE_SIZE):
+        for c in range(IMAGE_SIZE):
+            if label < len(patterns) and patterns[label](r, c):
+                grid[r, c] = 0.9
+    return grid.flatten()
+
+def generate_synthetic_data(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    noise_level: float = 0.2,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Generate synthetic images and their labels.
+
+    Returns:
+        X: (n_samples, N_FEATURES) flattened image pixel arrays
+        y: (n_samples,) class labels
+    """
+    rng = np.random.default_rng(random_seed)
+    X = np.zeros((n_samples, N_FEATURES))
+    y = np.zeros(n_samples, dtype=int)
+
+    for i in range(n_samples):
+        label = rng.integers(0, N_CLASSES) if N_CLASSES > 0 else rng.integers(0, 2)
+        template = _create_template(label, rng)
+        X[i] = np.clip(template + rng.normal(0, noise_level, N_FEATURES), 0, 1)
+        y[i] = label
+
+    perm = rng.permutation(n_samples)
+    return X[perm], y[perm]
+
+def load_training_data(
+    data_path: Path | None = None,
+    n_samples: int = DEFAULT_N_SAMPLES,
+    noise_level: float = 0.2,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    if data_path and Path(data_path).exists():
+        data = np.load(data_path, allow_pickle=True)
+        return data["X"], data["y"]
+    return generate_synthetic_data(n_samples=n_samples, noise_level=noise_level, random_seed=random_seed)
+
+def train_test_split(
+    X: np.ndarray, y: np.ndarray, test_size: float = 0.2, random_seed: int | None = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    n = len(X)
+    n_test = max(1, int(n * test_size))
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+    test_idx = indices[:n_test]
+    train_idx = indices[n_test:]
+    return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
+
+def save_training_data(X: np.ndarray, y: np.ndarray, path: Path) -> None:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(path, X=X, y=y)
+
+def reshape_image(X: np.ndarray) -> np.ndarray:
+    """Reshape flattened images to (N, 1, IMAGE_SIZE, IMAGE_SIZE) for CNN input."""
+    return X.reshape(-1, N_CHANNELS, IMAGE_SIZE, IMAGE_SIZE)
+```
+
+</details>
+
+<details>
+<summary>api.py</summary>
+
+```
 """Serving API for Video Surveillance (CNN)."""
 
 import os
@@ -576,24 +913,42 @@ def predict_bulk(body: PredictBulkRequest):
     return BulkPredictResponse(predictions=predictions, model_version=_model_version)
 ```
 
-### CLI Commands
+</details>
 
-```bash
-uv run python -m cnn_video_surveillance.train --model-dir ./artifacts/models
-```
+## 4. Monorepo Integration
 
-## 📊 Benchmarks
+This example is a first-class consumer of the shared `packages/ai-core` library.
+It reuses the following foundation modules instead of re-implementing infrastructure:
 
-Test results and performance metrics
+ai_core.drift
+ai_core.fastapi_middleware
+ai_core.logging
+ai_core.metrics
+ai_core.model_registry
+ai_core.nn_utils
+ai_core.validation
 
-Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+### How it plugs in
 
-### Related Apps
 
-- [video-generation](../video-generation/README.md)
 
-- [cnn-facial-recognition](../cnn-facial-recognition/README.md)
+- **Configuration** — 12-factor config from `ai_core.config`.
 
-- [cnn-medical-imaging](../cnn-medical-imaging/README.md)
 
-Generated documentation for **cnn-video-surveillance**
+
+- **Observability** — structured logging + Prometheus metrics are wired in automatically.
+
+
+
+- **Validation** — input schema validation prevents bad data reaching the model.
+
+
+
+- **Registry** — trained artifacts are versioned and registered for reproducible serving.
+
+
+
+- **Serving** — the FastAPI app mounts shared observability middleware for tracing & metrics.
+
+Because every example shares `ai_core`, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.

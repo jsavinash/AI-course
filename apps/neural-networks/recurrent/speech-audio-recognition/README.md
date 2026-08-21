@@ -1,65 +1,307 @@
 # speech-audio-recognition
 
-## ∫ Mathematics & Theory
 
-Recurrent Neural Network (RNN) — Underlying equations and derivations
 
-$$h_t = \tanh(W_{hh}h_{t-1} + W_{xh}x_t + b_h)$$
+Machine Learning Fundamentals — AI engineering example · part of the MLOps monorepo
 
-$$\hat{y}_t = W_{hy}h_t + b_y$$
+## 1. Mathematical Foundations
 
-$$\mathcal{L} = \sum_{t=1}^{T} \mathcal{L}_t(y_t, \hat{y}_t)$$
+This example is grounded in **Machine Learning Fundamentals**. The equations below
+drive every forward and backward pass in the implementation.
 
-$$\frac{\partial \mathcal{L}}{\partial W_{hh}} = \sum_{t=1}^{T} \delta_t h_{t-1}^T$$
+$$\hat{y} = f(x; \theta)$$
 
-### Step-by-Step Derivation
+$$\mathcal{L}(\theta) = \frac{1}{n} \sum_{i=1}^{n} \ell(y_i, \hat{y}_i)$$
 
-RNNs process sequences by maintaining a hidden state $h_t$ that summarizes past inputs. At each timestep, the hidden state is updated via $h_t = \tanh(W_{hh}h_{t-1} + W_{xh}x_t)$. Backpropagation Through Time (BPTT) unrolls the network and computes gradients across all timesteps. Vanishing gradients are mitigated by gated architectures like LSTM and GRU.
+$$\theta \leftarrow \theta - \alpha \nabla_\theta \mathcal{L}(\theta)$$
 
-### Interactive Visualization
+### Derivation
 
-Interactive unfolded RNN diagram with gradient flow visualization; hidden state trajectory plot.
+Machine learning models learn parameters $\theta$ by minimizing a loss function $\mathcal{L}$. Gradient descent iteratively updates parameters in the direction of steepest descent. The learning rate $\alpha$ controls step size. Stochastic gradient descent (SGD) uses mini-batches for computational efficiency.
 
-## ⚙ Architecture
+### Worked Numerical Example
 
-Model structure, data flow, and layer breakdown
+$$z = w \cdot x + b$$
 
-### Class Hierarchy
+Illustrative forward-pass evaluation (scalar example):
 
-```
-  SpeechRecognitionRNN
-```
+Input  x        = 12.0   (e.g. pizza diameter, inches)
+Weights w       =  0.85
+Bias    b       =  0.30
+---------------------------------
+z = w*x + b
+  = 0.85 * 12.0 + 0.30
+  = 10.20 + 0.30
+  = 10.50   <- model output
+
+### Conceptual Diagram
+
+        Math concept (placeholder)
+   [ Input x ] --> ( w · x + b ) --> [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]
+
+![Math Explanation (placeholder)](./assets/math-concept.png)
+
+Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
+
+## 2. Core Logic & Architecture
+
+The example follows a consistent **data → train → evaluate → serve**
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.
+
+  Raw dataset→
+  load + validate (data.py)→
+  fit / transform (model.py)→
+  evaluate + persist (train.py)→
+  serve (api.py)
+
+### Primary Components
+
+| Class | Public methods | Responsibility |
+| --- | --- | --- |
+| `PredictRequest` | — |  |
+| `PredictBulkRequest` | — |  |
+| `PredictResponse` | — |  |
+| `BulkPredictResponse` | — |  |
+| `StatsResponse` | — |  |
+| `SpeechRecognitionRNN` | _to_onehot, fit, predict_proba, predict, accuracy, precision, recall, f1_score, evaluate, save, load, to_dict | RNN for speech-to-text classification (many-to-one).  Args:     n_features: Number of acoustic features per timestep (e.g., MFCCs)     seq_len: Number of timesteps in each audio sequence     n_classes: Number of recognizable words     hidden_dim: Number of hidden units     learning_rate: Gradient descent step size     n_iterations: Number of training epochs     weight_decay: L2 regularization strength     clip_value: Maximum gradient norm     random_seed: Random seed for reproducibility |
 
 ### Data Flow
 
-```mermaid
-graph TD
-  A[Input Data] --> B[Preprocessing]
-  B --> C[Model Training]
-  C --> D[Evaluation]
-  D --> E[Model Registry]
-  E --> F[Serving API]
+
+
+1. **Load** — `data.py` reads the source dataset and splits train/test.
+
+
+
+2. **Validate** — a Pydantic schema guards input shape/dtypes before training.
+
+
+
+3. **Fit / Transform** — `model.py` applies the mathematics from Section 1.
+
+
+
+4. **Evaluate** — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.
+
+
+
+5. **Persist** — weights/artifacts are saved and registered in the model registry.
+
+
+
+6. **Serve** — `api.py` exposes prediction endpoints with drift detection.
+
+### Design Patterns & Performance
+
+Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via `ai_core.validation`, structured JSON logging through `ai_core.logging`, Prometheus metrics from `ai_core.metrics`, and MLflow/model-registry persistence via `ai_core.model_registry`. The FastAPI service wraps the trained model with observability middleware from `ai_core.fastapi_middleware`.
+
+## 3. Detailed Code Walkthrough
+
+The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.
+
+### `SpeechRecognitionRNN.fit(X, y, X_val, y_val)`
+
+Train the RNN with BPTT.
+
+Args:
+    X: Audio feature sequences (n_samples, seq_len, n_features)
+    y: Word class labels (n_samples,)
+
+Returns:
+    self
+
+### `SpeechRecognitionRNN.predict(X)`
+
+Return predicted word class indices.
+
+### Source Files
+
+<details>
+<summary>model.py</summary>
+
+```
+"""Recurrent neural network for speech recognition.
+
+A SimpleRNN (Elman network) trained with Backpropagation Through Time (BPTT).
+Built from scratch with NumPy, using the shared nn_utils.rnn.SimpleRNN base.
+
+Architecture:
+    Input (seq_len, n_mfcc_features) -> Hidden (hidden_dim, tanh) -> Output (n_chars, softmax)
+
+Loss: Cross-Entropy (many-to-one: predicts word at final timestep)
+
+This is a simplified speech-to-text model that classifies an audio feature
+sequence into one of a small vocabulary of spoken words.
+"""
+
+from dataclasses import dataclass, field
+
+import numpy as np
+from ai_core.nn_utils.rnn import SimpleRNN
+
+@dataclass
+class SpeechRecognitionRNN:
+    """RNN for speech-to-text classification (many-to-one).
+
+    Args:
+        n_features: Number of acoustic features per timestep (e.g., MFCCs)
+        seq_len: Number of timesteps in each audio sequence
+        n_classes: Number of recognizable words
+        hidden_dim: Number of hidden units
+        learning_rate: Gradient descent step size
+        n_iterations: Number of training epochs
+        weight_decay: L2 regularization strength
+        clip_value: Maximum gradient norm
+        random_seed: Random seed for reproducibility
+    """
+
+    n_features: int = 16
+    seq_len: int = 20
+    n_classes: int = 10
+    hidden_dim: int = 32
+    learning_rate: float = 0.05
+    n_iterations: int = 300
+    weight_decay: float = 0.001
+    clip_value: float = 5.0
+    random_seed: int = 42
+
+    model: SimpleRNN | None = field(default=None, repr=False)
+    training_mode: str = "supervised"
+    loss_history: list[float] = field(default_factory=list)
+
+    def _to_onehot(self, indices: np.ndarray, dim: int) -> np.ndarray:
+        result = np.zeros((len(indices), dim))
+        for i, idx in enumerate(indices):
+            result[i, int(idx)] = 1.0
+        return result
+
+    def fit(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        X_val: np.ndarray | None = None,
+        y_val: np.ndarray | None = None,
+    ) -> "SpeechRecognitionRNN":
+        """Train the RNN with BPTT.
+
+        Args:
+            X: Audio feature sequences (n_samples, seq_len, n_features)
+            y: Word class labels (n_samples,)
+
+        Returns:
+            self
+        """
+        y_onehot = self._to_onehot(y, self.n_classes)
+
+        self.model = SimpleRNN(
+            input_dim=self.n_features,
+            hidden_dim=self.hidden_dim,
+            output_dim=self.n_classes,
+            output_activation="softmax",
+            learning_rate=self.learning_rate,
+            weight_decay=self.weight_decay,
+            clip_value=self.clip_value,
+            random_seed=self.random_seed,
+            output_loss="cross_entropy",
+        )
+        self.model.fit(X, y_onehot, n_iterations=self.n_iterations)
+        self.loss_history = self.model.loss_history
+        return self
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        """Return class probabilities for each sample."""
+        return self.model.predict_proba(X)
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """Return predicted word class indices."""
+        probas = self.predict_proba(X)
+        return np.argmax(probas, axis=1)
+
+    def accuracy(self, X: np.ndarray, y: np.ndarray) -> float:
+        return float(np.mean(self.predict(X) == y))
+
+    def precision(self, X: np.ndarray, y: np.ndarray) -> float:
+        preds = self.predict(X)
+        classes = np.unique(np.concatenate([y, preds]))
+        precisions = []
+        for c in classes:
+            tp = np.sum((preds == c) & (y == c))
+            fp = np.sum((preds == c) & (y != c))
+            precisions.append(tp / (tp + fp) if (tp + fp) > 0 else 0.0)
+        return float(np.mean(precisions))
+
+    def recall(self, X: np.ndarray, y: np.ndarray) -> float:
+        preds = self.predict(X)
+        classes = np.unique(np.concatenate([y, preds]))
+        recalls = []
+        for c in classes:
+            tp = np.sum((preds == c) & (y == c))
+            fn = np.sum((preds != c) & (y == c))
+            recalls.append(tp / (tp + fn) if (tp + fn) > 0 else 0.0)
+        return float(np.mean(recalls))
+
+    def f1_score(self, X: np.ndarray, y: np.ndarray) -> float:
+        p, r = self.precision(X, y), self.recall(X, y)
+        return float(2 * p * r / (p + r)) if (p + r) > 0 else 0.0
+
+    def evaluate(self, X: np.ndarray, y: np.ndarray) -> dict[str, float]:
+        return {
+            "accuracy": self.accuracy(X, y),
+            "precision": self.precision(X, y),
+            "recall": self.recall(X, y),
+            "f1": self.f1_score(X, y),
+        }
+
+    def save(self, path: str) -> None:
+        if self.model is None:
+            raise ValueError("Cannot save untrained model")
+        self.model.save(path)
+
+    @classmethod
+    def load(cls, path: str) -> "SpeechRecognitionRNN":
+        model = SimpleRNN.load(path)
+        obj = cls(
+            n_features=model.input_dim,
+            seq_len=20,
+            n_classes=model.output_dim,
+            hidden_dim=model.hidden_dim,
+            learning_rate=model.learning_rate,
+            weight_decay=model.weight_decay,
+            clip_value=model.clip_value,
+            random_seed=model.random_seed,
+        )
+        obj.model = model
+        obj.loss_history = model.loss_history
+        return obj
+
+    def to_dict(self) -> dict:
+        return {
+            "n_features": self.n_features,
+            "seq_len": self.seq_len,
+            "n_classes": self.n_classes,
+            "hidden_dim": self.hidden_dim,
+            "learning_rate": self.learning_rate,
+            "n_iterations": self.n_iterations,
+            "weight_decay": self.weight_decay,
+            "random_seed": self.random_seed,
+            "training_mode": self.training_mode,
+            "n_epochs_run": len(self.loss_history),
+            "final_loss": self.loss_history[-1] if self.loss_history else 0.0,
+        }
 ```
 
-## ⚡ API Reference
+</details>
 
-FastAPI endpoints and model interfaces
+<details>
+<summary>train.py</summary>
 
-| Method | Endpoint |
-| --- | --- |
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/metrics` |
-| `POST` | `/reload` |
-| `GET` | `/drift` |
-
-## ▶ Usage
-
-Code examples and CLI commands
-
-### Training Script
-
-```python
+```
 """Training pipeline for speech recognition (RNN)."""
 
 import argparse
@@ -288,9 +530,119 @@ if __name__ == "__main__":
     main()
 ```
 
-### API Server
+</details>
 
-```python
+<details>
+<summary>data.py</summary>
+
+```
+"""Data loading and preprocessing for speech recognition (RNN).
+
+Generates synthetic audio-like feature sequences (e.g., MFCC-like 16-dim vectors)
+labeled with spoken word classes.
+"""
+
+from pathlib import Path
+
+import numpy as np
+
+N_FEATURES = 16
+SEQ_LEN = 20
+N_CLASSES = 10
+
+DEFAULT_N_SAMPLES = 500
+
+WORD_NAMES = [
+    "hello",
+    "world",
+    "yes",
+    "no",
+    "good",
+    "bad",
+    "up",
+    "down",
+    "left",
+    "right",
+]
+
+def generate_synthetic_data(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Generate synthetic audio feature sequences and their word labels.
+
+    Each word class has a characteristic feature pattern (mean vector).
+    The RNN must learn to classify the sequence of acoustic frames.
+
+    Returns:
+        X: (n_samples, SEQ_LEN, N_FEATURES) audio feature sequences
+        y: (n_samples,) word class indices
+    """
+    rng = np.random.default_rng(random_seed)
+
+    # Each class has a characteristic mean feature vector
+    class_means = rng.normal(0, 1, size=(N_CLASSES, N_FEATURES))
+
+    X = np.zeros((n_samples, SEQ_LEN, N_FEATURES))
+    y = np.zeros(n_samples, dtype=int)
+
+    for i in range(n_samples):
+        label = rng.integers(0, N_CLASSES)
+        y[i] = label
+
+        # Generate a sequence that gradually reveals the class
+        base = class_means[label]
+        for t in range(SEQ_LEN):
+            # Early frames are noisy, later frames are clearer (as word is pronounced)
+            noise_scale = 1.0 - (t / SEQ_LEN) * 0.4
+            X[i, t] = base + rng.normal(0, noise_scale, size=N_FEATURES)
+
+        # Normalize each sequence
+        X[i] = (X[i] - X[i].mean()) / (X[i].std() + 1e-8)
+
+    # Shuffle
+    perm = rng.permutation(n_samples)
+    return X[perm], y[perm]
+
+def load_training_data(
+    data_path: Path | None = None,
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    if data_path and Path(data_path).exists():
+        data = np.load(data_path, allow_pickle=True)
+        return data["X"], data["y"]
+    return generate_synthetic_data(n_samples=n_samples, random_seed=random_seed)
+
+def train_test_split(
+    X: np.ndarray, y: np.ndarray, test_size: float = 0.2, random_seed: int | None = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    n = len(X)
+    n_test = max(1, int(n * test_size))
+
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+
+    test_idx = indices[:n_test]
+    train_idx = indices[n_test:]
+
+    return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
+
+def save_training_data(X: np.ndarray, y: np.ndarray, path: Path) -> None:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(path, X=X, y=y)
+```
+
+</details>
+
+<details>
+<summary>api.py</summary>
+
+```
 """Serving API for speech recognition (RNN)."""
 
 import os
@@ -607,26 +959,42 @@ def predict_bulk(body: PredictBulkRequest):
     return BulkPredictResponse(predictions=predictions, model_version=_model_version)
 ```
 
-### CLI Commands
+</details>
 
-```bash
-uv run python -m speech_audio_recognition.train --model-dir ./artifacts/models
-```
+## 4. Monorepo Integration
 
-## 📊 Benchmarks
+This example is a first-class consumer of the shared `packages/ai-core` library.
+It reuses the following foundation modules instead of re-implementing infrastructure:
 
-Test results and performance metrics
+ai_core.drift
+ai_core.fastapi_middleware
+ai_core.logging
+ai_core.metrics
+ai_core.model_registry
+ai_core.nn_utils
+ai_core.validation
 
-Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+### How it plugs in
 
-### Related Apps
 
-- [capsnet-text-recognition](../capsnet-text-recognition/README.md)
 
-- [cnn-facial-recognition](../cnn-facial-recognition/README.md)
+- **Configuration** — 12-factor config from `ai_core.config`.
 
-- [pattern-recognition-digits](../pattern-recognition-digits/README.md)
 
-- [speech-audio-music](../speech-audio-music/README.md)
 
-Generated documentation for **speech-audio-recognition**
+- **Observability** — structured logging + Prometheus metrics are wired in automatically.
+
+
+
+- **Validation** — input schema validation prevents bad data reaching the model.
+
+
+
+- **Registry** — trained artifacts are versioned and registered for reproducible serving.
+
+
+
+- **Serving** — the FastAPI app mounts shared observability middleware for tracing & metrics.
+
+Because every example shares `ai_core`, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.

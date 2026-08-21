@@ -1,8 +1,13 @@
 # anomaly-detection-pca
 
-## ∫ Mathematics & Theory
 
-Anomaly Detection / PCA — Underlying equations and derivations
+
+Anomaly Detection / PCA — AI engineering example · part of the MLOps monorepo
+
+## 1. Mathematical Foundations
+
+This example is grounded in **Anomaly Detection / PCA**. The equations below
+drive every forward and backward pass in the implementation.
 
 $$X_{\text{centered}} = X - \bar{x}$$
 
@@ -14,53 +19,544 @@ $$X_{\text{reduced}} = X_{\text{centered}} V_k$$
 
 $$\text{recon error} = \|X - X_{\text{reconstructed}}\|^2$$
 
-### Step-by-Step Derivation
+### Derivation
 
 PCA finds orthogonal directions of maximum variance. By computing the SVD of centered data $X = U\Sigma V^T$, the right singular vectors $V$ are the principal components. Anomalies are detected from large reconstruction error after projection.
 
-### Interactive Visualization
+### Worked Numerical Example
+
+$$z = w \cdot x + b$$
+
+Illustrative forward-pass evaluation (scalar example):
+
+Input  x        = 12.0   (e.g. pizza diameter, inches)
+Weights w       =  0.85
+Bias    b       =  0.30
+---------------------------------
+z = w*x + b
+  = 0.85 * 12.0 + 0.30
+  = 10.20 + 0.30
+  = 10.50   <- model output
+
+### Conceptual Diagram
+
+        Math concept (placeholder)
+   [ Input x ] --> ( w · x + b ) --> [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]
+
+![Math Explanation (placeholder)](./assets/math-concept.png)
 
 Interactive 2D/3D PCA projection; explained variance scree plot; anomaly score distribution.
 
-## ⚙ Architecture
+## 2. Core Logic & Architecture
 
-Model structure, data flow, and layer breakdown
+The example follows a consistent **data → train → evaluate → serve**
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.
 
-### Class Hierarchy
+  Raw dataset→
+  load + validate (data.py)→
+  fit / transform (model.py)→
+  evaluate + persist (train.py)→
+  serve (api.py)
 
-```
-  PCAAnomalyDetector
-```
+### Primary Components
+
+| Class | Public methods | Responsibility |
+| --- | --- | --- |
+| `MetricsRequest` | — | Single metrics observation for anomaly detection. |
+| `MetricsBulkRequest` | — | Bulk metrics request for anomaly detection. |
+| `AnomalyResponse` | — | Anomaly detection response for a single observation. |
+| `BulkAnomalyResponse` | — | Bulk anomaly detection response. |
+| `StatsResponse` | — | Model statistics response. |
+| `ModelInfoResponse` | — | Model information response. |
+| `DriftResponse` | — | Drift detection response. |
+| `PCAAnomalyDetector` | feature_mean, feature_std, reconstruction_threshold, cumulative_variance_ratio, _standardize, _compute_eigen, _select_n_components, fit, _fit_threshold, _reconstruction_errors, reconstruction_error, predict_anomaly, predict, predict_proba, reconstruct, is_anomaly, anomaly_score, transform, inverse_transform, evaluate, save, load, to_dict | PCA-based anomaly detector using reconstruction error.  The model learns a low-dimensional representation of normal data using PCA. Anomalies are detected by measuring how much information is lost when reconstructing data from the reduced representation.  Args:     n_components: Number of principal components to retain.         Can be an integer or a float between 0 and 1 (variance ratio).     threshold_method: Method for computing anomaly threshold.         - "percentile": use a percentile of training reconstruction errors         - "iqr": use Q3 + multiplier * IQR         - "fixed": use a user-specified threshold     threshold_percentile: Percentile for threshold (default 95).     threshold_iqr_multiplier: IQR multiplier for threshold (default 1.5).     threshold_value: Fixed threshold value (used when method="fixed").     random_seed: Random seed for reproducibility. |
 
 ### Data Flow
 
-```mermaid
-graph TD
-  A[Input Data] --> B[Preprocessing]
-  B --> C[Model Training]
-  C --> D[Evaluation]
-  D --> E[Model Registry]
-  E --> F[Serving API]
+
+
+1. **Load** — `data.py` reads the source dataset and splits train/test.
+
+
+
+2. **Validate** — a Pydantic schema guards input shape/dtypes before training.
+
+
+
+3. **Fit / Transform** — `model.py` applies the mathematics from Section 1.
+
+
+
+4. **Evaluate** — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.
+
+
+
+5. **Persist** — weights/artifacts are saved and registered in the model registry.
+
+
+
+6. **Serve** — `api.py` exposes prediction endpoints with drift detection.
+
+### Design Patterns & Performance
+
+Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via `ai_core.validation`, structured JSON logging through `ai_core.logging`, Prometheus metrics from `ai_core.metrics`, and MLflow/model-registry persistence via `ai_core.model_registry`. The FastAPI service wraps the trained model with observability middleware from `ai_core.fastapi_middleware`.
+
+## 3. Detailed Code Walkthrough
+
+The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.
+
+### `PCAAnomalyDetector.fit(X)`
+
+Train the PCA model on normal (non-anomalous) data.
+
+Args:
+    X: array of shape (n_samples, n_features) - training data
+        (ideally only normal samples, no anomalies)
+
+Returns:
+    self
+
+### `PCAAnomalyDetector.predict(X)`
+
+Predict anomaly scores for each sample.
+
+Args:
+    X: array of shape (n_samples, n_features)
+
+Returns:
+    Array of reconstruction errors with shape (n_samples,)
+
+### `PCAAnomalyDetector.evaluate(X, y)`
+
+Evaluate anomaly detection performance.
+
+Args:
+    X: array of shape (n_samples, n_features)
+    y: optional ground-truth labels (0=normal, 1=anomaly)
+
+Returns:
+    Dict with evaluation metrics
+
+### Source Files
+
+<details>
+<summary>model.py</summary>
+
+```
+"""PCA-based anomaly detection model using dimensionality reduction.
+
+Implements Principal Component Analysis from scratch with:
+- Eigendecomposition-based PCA (no scikit-learn)
+- Reconstruction error computation for anomaly scoring
+- Automatic threshold selection using percentiles or IQR
+- Proper serialization with metadata
+- Univariate and multivariate anomaly detection
+"""
+
+from dataclasses import dataclass
+from typing import Literal
+
+import numpy as np
+
+@dataclass
+class PCAAnomalyDetector:
+    """PCA-based anomaly detector using reconstruction error.
+
+    The model learns a low-dimensional representation of normal data
+    using PCA. Anomalies are detected by measuring how much information
+    is lost when reconstructing data from the reduced representation.
+
+    Args:
+        n_components: Number of principal components to retain.
+            Can be an integer or a float between 0 and 1 (variance ratio).
+        threshold_method: Method for computing anomaly threshold.
+            - "percentile": use a percentile of training reconstruction errors
+            - "iqr": use Q3 + multiplier * IQR
+            - "fixed": use a user-specified threshold
+        threshold_percentile: Percentile for threshold (default 95).
+        threshold_iqr_multiplier: IQR multiplier for threshold (default 1.5).
+        threshold_value: Fixed threshold value (used when method="fixed").
+        random_seed: Random seed for reproducibility.
+    """
+
+    n_components: int | float = 0.95
+    threshold_method: Literal["percentile", "iqr", "fixed"] = "percentile"
+    threshold_percentile: float = 95.0
+    threshold_iqr_multiplier: float = 1.5
+    threshold_value: float = 0.0
+    random_seed: int = 42
+
+    # Learned state
+    components: np.ndarray | None = None
+    mean: np.ndarray | None = None
+    std: np.ndarray | None = None
+    explained_variance_ratio: np.ndarray | None = None
+    cumulative_variance: np.ndarray | None = None
+    threshold: float = 0.0
+    n_features: int = 0
+    n_components_selected: int = 0
+
+    @property
+    def feature_mean(self) -> np.ndarray | None:
+        """Mean of features used for standardization."""
+        return self.mean
+
+    @property
+    def feature_std(self) -> np.ndarray | None:
+        """Standard deviation of features used for standardization."""
+        return self.std
+
+    @property
+    def reconstruction_threshold(self) -> float:
+        """Anomaly threshold."""
+        return self.threshold
+
+    @property
+    def cumulative_variance_ratio(self) -> float:
+        """Total variance explained by selected components."""
+        if self.cumulative_variance is None:
+            return 0.0
+        return float(self.cumulative_variance[self.n_components_selected - 1])
+
+    def _standardize(self, X: np.ndarray) -> np.ndarray:
+        """Standardize features to zero mean and unit variance."""
+        if self.mean is None or self.std is None:
+            raise ValueError("Model not trained. Call fit() first.")
+        return (X - self.mean) / (self.std + 1e-8)
+
+    def _compute_eigen(self, X_std: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        """Compute eigenvalues and eigenvectors via SVD.
+
+        Uses SVD for numerical stability instead of explicit covariance matrix.
+        """
+        n_samples = X_std.shape[0]
+        # Center the data (already standardized, but ensure zero mean)
+        X_centered = X_std - np.mean(X_std, axis=0)
+
+        # SVD: X = U * S * Vt
+        _, S, Vt = np.linalg.svd(X_centered, full_matrices=False)
+
+        # Eigenvalues = S^2 / (n_samples - 1)
+        eigenvalues = (S**2) / (n_samples - 1)
+
+        # Eigenvectors = Vt.T (each column is a component)
+        eigenvectors = Vt.T
+
+        return eigenvalues, eigenvectors
+
+    def _select_n_components(self, eigenvalues: np.ndarray, n_features: int) -> int:
+        """Determine the number of components based on n_components parameter."""
+        if isinstance(self.n_components, int):
+            if self.n_components > n_features:
+                raise ValueError(
+                    f"n_components ({self.n_components}) must be <= n_features ({n_features})"
+                )
+            return min(self.n_components, len(eigenvalues))
+
+        # Float: variance ratio
+        total_variance = np.sum(eigenvalues)
+        if total_variance == 0:
+            return len(eigenvalues)
+
+        explained = eigenvalues / total_variance
+        cumulative = np.cumsum(explained)
+        n_comp = np.searchsorted(cumulative, self.n_components) + 1
+        return min(n_comp, len(eigenvalues))
+
+    def fit(self, X: np.ndarray) -> "PCAAnomalyDetector":
+        """Train the PCA model on normal (non-anomalous) data.
+
+        Args:
+            X: array of shape (n_samples, n_features) - training data
+                (ideally only normal samples, no anomalies)
+
+        Returns:
+            self
+        """
+        X = np.asarray(X, dtype=float)
+        if X.ndim != 2:
+            raise ValueError(f"Expected 2D array, got {X.ndim}D")
+
+        self.n_features = X.shape[1]
+
+        # Compute feature statistics for standardization
+        self.mean = np.mean(X, axis=0)
+        self.std = np.std(X, axis=0)
+        X_std = self._standardize(X)
+
+        # Compute eigenvalues and eigenvectors
+        eigenvalues, eigenvectors = self._compute_eigen(X_std)
+
+        # Select number of components
+        self.n_components_selected = self._select_n_components(eigenvalues, self.n_features)
+
+        # Store components (eigenvectors) and variance info
+        self.components = eigenvectors[:, : self.n_components_selected]
+        total_variance = np.sum(eigenvalues)
+        if total_variance > 0:
+            self.explained_variance_ratio = (eigenvalues / total_variance)[
+                : self.n_components_selected
+            ]
+            self.cumulative_variance = np.cumsum(self.explained_variance_ratio)
+        else:
+            self.explained_variance_ratio = np.zeros(self.n_components_selected)
+            self.cumulative_variance = np.zeros(self.n_components_selected)
+
+        # Compute reconstruction errors for threshold fitting
+        reconstruction_errors = self._reconstruction_errors(X_std)
+
+        # Compute anomaly threshold
+        self._fit_threshold(reconstruction_errors)
+
+        return self
+
+    def _fit_threshold(self, reconstruction_errors: np.ndarray) -> None:
+        """Compute the anomaly threshold based on training reconstruction errors."""
+        if self.threshold_method == "percentile":
+            self.threshold = float(np.percentile(reconstruction_errors, self.threshold_percentile))
+        elif self.threshold_method == "iqr":
+            q1 = float(np.percentile(reconstruction_errors, 25))
+            q3 = float(np.percentile(reconstruction_errors, 75))
+            iqr = q3 - q1
+            self.threshold = q3 + self.threshold_iqr_multiplier * iqr
+        elif self.threshold_method == "fixed":
+            self.threshold = self.threshold_value
+        else:
+            raise ValueError(f"Unknown threshold method: {self.threshold_method}")
+
+    def _reconstruction_errors(self, X_std: np.ndarray) -> np.ndarray:
+        """Compute reconstruction errors for standardized data."""
+        if self.components is None:
+            raise ValueError("Model not trained. Call fit() first.")
+
+        # Project onto principal components
+        projected = X_std @ self.components
+
+        # Reconstruct
+        reconstructed = projected @ self.components.T
+
+        # Compute squared reconstruction error per sample
+        errors = np.sum((X_std - reconstructed) ** 2, axis=1)
+
+        return errors
+
+    def reconstruction_error(self, X: np.ndarray) -> np.ndarray:
+        """Compute PCA reconstruction error for each sample.
+
+        Args:
+            X: array of shape (n_samples, n_features)
+
+        Returns:
+            Array of reconstruction errors with shape (n_samples,)
+        """
+        if self.components is None:
+            raise ValueError("Model not trained. Call fit() first.")
+
+        X = np.asarray(X, dtype=float)
+        X_std = self._standardize(X)
+        return self._reconstruction_errors(X_std)
+
+    # ---------- Prediction API (test-compatible) ----------
+
+    def predict_anomaly(self, X: np.ndarray) -> np.ndarray:
+        """Predict binary anomaly labels (0=normal, 1=anomaly).
+
+        Args:
+            X: array of shape (n_samples, n_features)
+
+        Returns:
+            Array of ints (0 or 1) with shape (n_samples,)
+        """
+        return self.is_anomaly(X).astype(int)
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """Predict anomaly scores for each sample.
+
+        Args:
+            X: array of shape (n_samples, n_features)
+
+        Returns:
+            Array of reconstruction errors with shape (n_samples,)
+        """
+        return self.reconstruction_error(X)
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        """Predict anomaly probabilities in [0, 1].
+
+        Args:
+            X: array of shape (n_samples, n_features)
+
+        Returns:
+            Array of probabilities in [0, 1] with shape (n_samples,)
+        """
+        return self.anomaly_score(X)
+
+    def reconstruct(self, X: np.ndarray) -> np.ndarray:
+        """Reconstruct data from principal component space.
+
+        Alias for inverse_transform.
+
+        Args:
+            X: array of shape (n_samples, n_features)
+
+        Returns:
+            Array of shape (n_samples, n_features) - reconstructed data
+        """
+        return self.inverse_transform(self.transform(X))
+
+    def is_anomaly(self, X: np.ndarray) -> np.ndarray:
+        """Classify samples as anomalous or normal based on reconstruction error.
+
+        Args:
+            X: array of shape (n_samples, n_features)
+
+        Returns:
+            Boolean array of shape (n_samples,) - True if anomalous
+        """
+        errors = self.reconstruction_error(X)
+        return errors > self.threshold
+
+    def anomaly_score(self, X: np.ndarray) -> np.ndarray:
+        """Compute normalized anomaly scores in [0, 1].
+
+        Score is computed as: min(error / max(error, threshold), 1.0)
+
+        Args:
+            X: array of shape (n_samples, n_features)
+
+        Returns:
+            Array of anomaly scores in [0, 1] with shape (n_samples,)
+        """
+        errors = self.reconstruction_error(X)
+        denom = max(float(np.max(errors)), self.threshold)
+        scores = np.clip(errors / denom, 0.0, 1.0)
+        return scores
+
+    def transform(self, X: np.ndarray) -> np.ndarray:
+        """Project data onto principal components.
+
+        Args:
+            X: array of shape (n_samples, n_features)
+
+        Returns:
+            Array of shape (n_samples, n_components_selected)
+        """
+        if self.components is None:
+            raise ValueError("Model not trained. Call fit() first.")
+
+        X = np.asarray(X, dtype=float)
+        X_std = self._standardize(X)
+        return X_std @ self.components
+
+    def inverse_transform(self, X_projected: np.ndarray) -> np.ndarray:
+        """Reconstruct data from principal component space.
+
+        Args:
+            X_projected: array of shape (n_samples, n_components_selected)
+
+        Returns:
+            Array of shape (n_samples, n_features) - reconstructed data
+        """
+        if self.components is None:
+            raise ValueError("Model not trained. Call fit() first.")
+
+        reconstructed_std = X_projected @ self.components.T
+        return reconstructed_std * self.std + self.mean
+
+    def evaluate(self, X: np.ndarray, y: np.ndarray | None = None) -> dict[str, float]:
+        """Evaluate anomaly detection performance.
+
+        Args:
+            X: array of shape (n_samples, n_features)
+            y: optional ground-truth labels (0=normal, 1=anomaly)
+
+        Returns:
+            Dict with evaluation metrics
+        """
+        if self.components is None:
+            raise ValueError("Model not trained. Call fit() first.")
+
+        X = np.asarray(X, dtype=float)
+        errors = self.reconstruction_error(X)
+
+        metrics = {
+            "mean_reconstruction_error": float(np.mean(errors)),
+            "std_reconstruction_error": float(np.std(errors)),
+            "max_reconstruction_error": float(np.max(errors)),
+            "anomaly_threshold": float(self.threshold),
+            "n_components": float(self.n_components_selected),
+            "explained_variance_ratio": float(
+                np.sum(self.explained_variance_ratio[: self.n_components_selected])
+                if self.explained_variance_ratio is not None
+                else 0.0
+            ),
+        }
+
+        if y is not None:
+            predictions = self.is_anomaly(X)
+
+            tp = int(np.sum((predictions == 1) & (y == 1)))
+            fp = int(np.sum((predictions == 1) & (y == 0)))
+            tn = int(np.sum((predictions == 0) & (y == 0)))
+            fn = int(np.sum((predictions == 0) & (y == 1)))
+
+            precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+            recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+            f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
+            accuracy = (tp + tn) / len(y) if len(y) > 0 else 0.0
+            fpr = fp / (fp + tn) if (fp + tn) > 0 else 0.0
+
+            metrics.update(
+                {
+                    "accuracy": accuracy,
+                    "precision": precision,
+                    "recall": recall,
+                    "f1": f1,
+                    "false_positive_rate": fpr,
+                    "true_positives": float(tp),
+                    "false_positives": float(fp),
+                    "true_negatives": float(tn),
+                    "false_negatives": float(fn),
+                }
+            )
+
+        return metrics
+
+    # ---------- Serialization ----------
+
+    def save(self, path: str) -> None:
+        """Save model parameters to disk."""
+        if self.components is None:
+            raise ValueError("Cannot save untrained model")
+
+        np.savez(
+            path,
+            components=self.components,
+            mean=self.mean,
+            std=self.std,
+            explained_variance_ratio=self.explained_variance_ratio,
+            cumulative_variance=self.cumulative_variance,
+            n_features=np.array([self.n_features]),
+            n_components=np.array([self.n_components_selected]),
+            threshold=np.array([self.threshold]),
+            threshold_method=np.array([self.threshold_method]),
+            threshold_percentile=np.array([self.threshold_percentile]),
+            threshold_iqr_multiplier=np.array([self.threshold_iqr_multiplier]),
+... (truncated) ...
 ```
 
-## ⚡ API Reference
+</details>
 
-FastAPI endpoints and model interfaces
+<details>
+<summary>train.py</summary>
 
-| Method | Endpoint |
-| --- | --- |
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/metrics` |
-| `POST` | `/reload` |
-
-## ▶ Usage
-
-Code examples and CLI commands
-
-### Training Script
-
-```python
+```
 """Production training pipeline for PCA-based anomaly detection."""
 
 import argparse
@@ -373,9 +869,251 @@ if __name__ == "__main__":
     main()
 ```
 
-### API Server
+</details>
 
-```python
+<details>
+<summary>data.py</summary>
+
+```
+"""Data loading and preprocessing for PCA-based anomaly detection.
+
+Generates a realistic synthetic server monitoring dataset with:
+
+Normal traffic patterns:
+   - Baseline load with diurnal patterns
+   - Correlated metrics (CPU, memory, network, disk I/O)
+   - Realistic bounded ranges for each metric
+
+Anomalous patterns:
+   - CPU spikes
+   - Memory leaks
+   - Network floods
+   - Disk thrashing
+   - Error rate bursts
+"""
+
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+# Feature order MUST match what was used during training
+FEATURE_NAMES = [
+    "request_count",
+    "bytes_per_request",
+    "cpu_usage",
+    "memory_usage",
+    "disk_io",
+    "network_in",
+    "network_out",
+    "error_rate",
+    "connection_count",
+    "response_time",
+]
+
+# Number of synthetic samples generated when no CSV is provided
+DEFAULT_N_SAMPLES = 2000
+
+# Ratio of anomalous samples in generated data
+ANOMALY_RATIO = 0.05
+
+def _generate_server_metrics(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    anomaly_ratio: float = ANOMALY_RATIO,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Generate synthetic server monitoring metrics with injected anomalies.
+
+    Normal traffic baselines are calibrated so that typical healthy-server
+    values (e.g. request_count ~120, cpu_usage ~35) sit near the center of
+    the normal cluster, while extreme spikes are clearly separated as anomalies.
+
+    Returns:
+        X: array of shape (n_samples, n_features) - server metrics
+        y: array of shape (n_samples,) - 0 for normal, 1 for anomaly
+    """
+    rng = np.random.default_rng(random_seed)
+    n_normal = int(n_samples * (1 - anomaly_ratio))
+    n_anomaly = n_samples - n_normal
+
+    # ---- Generate normal traffic ----
+    # Baseline ranges for normal traffic (aligned with test expectations)
+    t = np.linspace(0, 24 * np.pi, n_normal)
+    diurnal = 0.5 * (1 + np.sin(t))  # diurnal pattern [0, 1]
+
+    # Normal traffic centered around typical healthy server values
+    req_base = 120 + 40 * diurnal + rng.normal(0, 15, n_normal)
+    bpr_base = 4800 + 1200 * rng.random(n_normal)
+    cpu_base = 35 + 12 * diurnal + rng.normal(0, 4, n_normal)
+    mem_base = 55 + 10 * diurnal + rng.normal(0, 3, n_normal)
+    disk_base = 950 + 200 * diurnal + rng.normal(0, 40, n_normal)
+    net_in_base = 220 + 60 * diurnal + rng.normal(0, 15, n_normal)
+    net_out_base = 180 + 50 * diurnal + rng.normal(0, 12, n_normal)
+    err_base = 1.5 + 1.0 * rng.random(n_normal)
+    conn_base = 480 + 120 * diurnal + rng.normal(0, 20, n_normal)
+    rt_base = 95 + 25 * diurnal + rng.normal(0, 8, n_normal)
+
+    normal = np.column_stack(
+        [
+            req_base,
+            bpr_base,
+            cpu_base,
+            mem_base,
+            disk_base,
+            net_in_base,
+            net_out_base,
+            err_base,
+            conn_base,
+            rt_base,
+        ]
+    )
+    normal = np.clip(normal, 0, None)
+
+    # ---- Generate anomalies ----
+    anomaly_type = rng.integers(0, 5, size=n_anomaly)
+    anomaly = np.zeros((n_anomaly, len(FEATURE_NAMES)))
+
+    for i, at in enumerate(anomaly_type):
+        if at == 0:
+            # CPU spike
+            anomaly[i] = [
+                rng.normal(520, 60),
+                rng.normal(1400, 200),
+                rng.normal(72, 5),
+                rng.normal(80, 4),
+                rng.normal(2000, 200),
+                rng.normal(1700, 100),
+                rng.normal(1000, 80),
+                rng.normal(15, 3),
+                rng.normal(2600, 100),
+                rng.normal(280, 20),
+            ]
+        elif at == 1:
+            # Memory leak
+            anomaly[i] = [
+                rng.normal(350, 50),
+                rng.normal(6000, 500),
+                rng.normal(55, 6),
+                rng.normal(92, 2),
+                rng.normal(1200, 100),
+                rng.normal(400, 40),
+                rng.normal(300, 30),
+                rng.normal(4, 1),
+                rng.normal(800, 50),
+                rng.normal(160, 15),
+            ]
+        elif at == 2:
+            # Network flood
+            anomaly[i] = [
+                rng.normal(4500, 300),
+                rng.normal(200, 50),
+                rng.normal(85, 5),
+                rng.normal(60, 5),
+                rng.normal(300, 50),
+                rng.normal(4500, 200),
+                rng.normal(4500, 200),
+                rng.normal(2, 1),
+                rng.normal(4000, 200),
+                rng.normal(250, 30),
+            ]
+        elif at == 3:
+            # Disk thrashing
+            anomaly[i] = [
+                rng.normal(600, 100),
+                rng.normal(3000, 400),
+                rng.normal(60, 10),
+                rng.normal(50, 8),
+                rng.normal(15000, 500),
+                rng.normal(100, 30),
+                rng.normal(150, 30),
+                rng.normal(8, 2),
+                rng.normal(300, 50),
+                rng.normal(500, 60),
+            ]
+        else:
+            # Error burst
+            anomaly[i] = [
+                rng.normal(3000, 300),
+                rng.normal(1500, 200),
+                rng.normal(90, 4),
+                rng.normal(80, 4),
+                rng.normal(1000, 150),
+                rng.normal(600, 80),
+                rng.normal(500, 70),
+                rng.normal(45, 5),
+                rng.normal(1200, 100),
+                rng.normal(400, 40),
+            ]
+
+    anomaly = np.clip(anomaly, 0, None)
+
+    X = np.vstack([normal, anomaly])
+    y = np.concatenate(
+        [
+            np.zeros(n_normal, dtype=int),
+            np.ones(n_anomaly, dtype=int),
+        ]
+    )
+
+    # Shuffle
+    perm = rng.permutation(n_samples)
+    X = X[perm]
+    y = y[perm]
+
+    return X, y
+
+def load_training_data(
+    data_path: Path | None = None,
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Load server metrics from CSV or generate a synthetic dataset.
+
+    Expected CSV format:
+        request_count,bytes_per_request,cpu_usage,memory_usage,disk_io,network_in,network_out,error_rate,connection_count,response_time,is_anomaly
+        120.3,4800.1,35.2,55.1,210.4,160.2,180.5,0.4,350.2,68.3,0
+        ...
+
+    Returns:
+        X: array of shape (n_samples, n_features) with features
+        y: array of shape (n_samples,) - 0 for normal, 1 for anomaly
+    """
+    if data_path and Path(data_path).exists():
+        df = pd.read_csv(data_path)
+        X = df[FEATURE_NAMES].values.astype(float)
+        y = df.get("is_anomaly", np.zeros(len(df), dtype=int)).values.astype(int)
+        return X, y
+
+    return _generate_server_metrics(n_samples=n_samples, random_seed=random_seed)
+
+def load_normal_training_data(
+    data_path: Path | None = None,
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> np.ndarray:
+    """Load only normal (non-anomalous) server metrics for PCA training.
+
+    Returns:
+        X: array of shape (n_normal, n_features) - normal samples only
+    """
+    X, y = load_training_data(data_path, n_samples, random_seed)
+    return X[y == 0]
+
+def save_training_data(X: np.ndarray, y: np.ndarray, path: Path) -> None:
+    """Save training data to CSV for reproducibility."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    df = pd.DataFrame(X, columns=FEATURE_NAMES)
+    df["is_anomaly"] = y
+    df.to_csv(path, index=False)
+```
+
+</details>
+
+<details>
+<summary>api.py</summary>
+
+```
 """Production serving API for PCA-based anomaly detection."""
 
 import os
@@ -756,128 +1494,44 @@ def _compute_anomaly(observation: MetricsRequest) -> AnomalyResponse:
     start = time.time()
     try:
         recon_error = float(_model.reconstruction_error(X)[0])
-        is_anom = bool(_model.is_anomaly(X)[0])
-        proba = float(_model.predict_proba(X)[0])
-        duration = time.time() - start
-        _metrics.record_prediction(model_version=_model_version, duration=duration)
-
-        # Track for drift detection
-        _recent_predictions.append(
-            [
-                observation.request_count,
-                observation.bytes_per_request,
-                observation.cpu_usage,
-                observation.memory_usage,
-                observation.disk_io,
-                observation.network_in,
-                observation.network_out,
-                observation.error_rate,
-                observation.connection_count,
-                observation.response_time,
-            ]
-        )
-        if len(_recent_predictions) > 1000:
-            _recent_predictions.pop(0)
-
-        return AnomalyResponse(
-            is_anomaly=is_anom,
-            anomaly_score=round(recon_error, 4),
-            anomaly_probability=round(proba, 4),
-            reconstruction_error=round(recon_error, 4),
-            anomaly_threshold=round(_model.threshold, 4),
-            model_version=_model_version,
-        )
-    except Exception as e:
-        _metrics.record_error(model_version=_model_version, error_type="prediction")
-        logger.exception("Anomaly detection failed", error=str(e))
-        raise HTTPException(status_code=500, detail="Anomaly detection failed") from e
-
-@app.post("/predict", response_model=AnomalyResponse)
-def predict_anomaly(body: MetricsRequest):
-    """Detect anomaly for a single metrics observation."""
-    return _compute_anomaly(body)
-
-@app.post("/predict/bulk", response_model=BulkAnomalyResponse)
-def predict_anomaly_bulk(body: MetricsBulkRequest):
-    """Detect anomalies for multiple metrics observations."""
-    global _recent_predictions
-    if _model is None or _metrics is None or _validator is None:
-        raise HTTPException(status_code=503, detail="Model not loaded")
-
-    X = np.array(
-        [
-            [
-                obs.request_count,
-                obs.bytes_per_request,
-                obs.cpu_usage,
-                obs.memory_usage,
-                obs.disk_io,
-                obs.network_in,
-                obs.network_out,
-                obs.error_rate,
-                obs.connection_count,
-                obs.response_time,
-            ]
-            for obs in body.samples
-        ]
-    )
-
-    validation = _validator.validate(X)
-    if not validation.valid:
-        raise HTTPException(status_code=422, detail=validation.errors)
-
-    start = time.time()
-    try:
-        recon_errors = _model.reconstruction_error(X)
-        anomalies = _model.is_anomaly(X)
-        probas = _model.predict_proba(X)
-        duration = time.time() - start
-        _metrics.record_prediction(model_version=_model_version, duration=duration)
-
-        # Track for drift detection
-        _recent_predictions.extend(X.tolist())
-        if len(_recent_predictions) > 1000:
-            _recent_predictions = _recent_predictions[-1000:]
-
-        results = [
-            AnomalyResponse(
-                is_anomaly=bool(anom),
-                anomaly_score=round(float(recon_error), 4),
-                anomaly_probability=round(float(proba), 4),
-                reconstruction_error=round(float(recon_error), 4),
-                anomaly_threshold=round(_model.threshold, 4),
-                model_version=_model_version,
-            )
-            for anom, proba, recon_error in zip(anomalies, probas, recon_errors, strict=False)
-        ]
-
-        n_anomalies = int(np.sum(anomalies))
-        return BulkAnomalyResponse(
-            samples=results,
-            n_anomalies=n_anomalies,
-            n_samples=len(results),
-            model_version=_model_version,
-        )
-    except Exception as e:
-        _metrics.record_error(model_version=_model_version, error_type="prediction")
-        logger.exception("Bulk anomaly detection failed", error=str(e))
-        raise HTTPException(status_code=500, detail="Bulk anomaly detection failed") from e
+... (truncated) ...
 ```
 
-### CLI Commands
+</details>
 
-```bash
-uv run python -m anomaly_detection_pca.train --model-dir ./artifacts/models
-```
+## 4. Monorepo Integration
 
-## 📊 Benchmarks
+This example is a first-class consumer of the shared `packages/ai-core` library.
+It reuses the following foundation modules instead of re-implementing infrastructure:
 
-Test results and performance metrics
+ai_core.drift
+ai_core.fastapi_middleware
+ai_core.logging
+ai_core.metrics
+ai_core.model_registry
+ai_core.validation
 
-Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+### How it plugs in
 
-### Related Apps
 
-- [anomaly-detection-fraud](../anomaly-detection-fraud/README.md)
 
-Generated documentation for **anomaly-detection-pca**
+- **Configuration** — 12-factor config from `ai_core.config`.
+
+
+
+- **Observability** — structured logging + Prometheus metrics are wired in automatically.
+
+
+
+- **Validation** — input schema validation prevents bad data reaching the model.
+
+
+
+- **Registry** — trained artifacts are versioned and registered for reproducible serving.
+
+
+
+- **Serving** — the FastAPI app mounts shared observability middleware for tracing & metrics.
+
+Because every example shares `ai_core`, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.

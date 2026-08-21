@@ -1,65 +1,510 @@
 # snn-image-classification
 
-## ∫ Mathematics & Theory
 
-Spiking Neural Network (SNN) — Underlying equations and derivations
 
-$$\tau_m \frac{dV_m}{dt} = -(V_m - V_{rest}) + R_m I(t)$$
+Image Generation (GAN/VAE/Diffusion) — AI engineering example · part of the MLOps monorepo
 
-$$\text{if } V_m \geq V_{th}: \text{ emit spike}, V_m \leftarrow V_{reset}$$
+## 1. Mathematical Foundations
 
-$$S(t) = \sum_{i} \delta(t - t_i)$$
+This example is grounded in **Image Generation (GAN/VAE/Diffusion)**. The equations below
+drive every forward and backward pass in the implementation.
 
-$$\tau_s \frac{dS}{dt} = -S$$
+$$\min_G \max_D V(D, G) = \mathbb{E}_{x \sim p_{data}}[\log D(x)] + \mathbb{E}_{z \sim p_z}[\log(1 - D(G(z)))]$$
 
-### Step-by-Step Derivation
+$$q(x_t | x_{t-1}) = \mathcal{N}(x_t; \sqrt{1 - \beta_t}x_{t-1}, \beta_t I)$$
 
-SNNs compute with discrete spike events rather than continuous activations. The membrane potential integrates input current and leaks over time. When the potential exceeds a threshold, a spike is emitted and the membrane is reset. This event-driven computation is energy-efficient and biologically plausible.
+$$\mathcal{L}_{simple} = \mathbb{E}_{t, x_0, \epsilon} \left[ \| \epsilon - \epsilon_\theta(\sqrt{\bar{\alpha}_t}x_0 + \sqrt{1-\bar{\alpha}_t}\epsilon, t) \|^2 \right]$$
 
-### Interactive Visualization
+### Derivation
 
-Interactive membrane potential trace; spike raster plot; synaptic current decomposition.
+Image generation models learn to synthesize realistic images. GANs use adversarial training between generator and discriminator. VAEs learn a structured latent space via reconstruction and KL regularization. Diffusion models iteratively denoise from Gaussian noise, offering stable training and diverse outputs.
 
-## ⚙ Architecture
+### Worked Numerical Example
 
-Model structure, data flow, and layer breakdown
+$$z = w \cdot x + b$$
 
-### Class Hierarchy
+Illustrative forward-pass evaluation (scalar example):
 
-```
-  LIFNeuron
-  SNNImageClassification
-```
+Input  x        = 12.0   (e.g. pizza diameter, inches)
+Weights w       =  0.85
+Bias    b       =  0.30
+---------------------------------
+z = w*x + b
+  = 0.85 * 12.0 + 0.30
+  = 10.20 + 0.30
+  = 10.50   <- model output
+
+### Conceptual Diagram
+
+        Math concept (placeholder)
+   [ Input x ] --> ( w · x + b ) --> [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]
+
+![Math Explanation (placeholder)](./assets/math-concept.png)
+
+Interactive latent space explorer; denoising trajectory viewer; FID score vs training steps.
+
+## 2. Core Logic & Architecture
+
+The example follows a consistent **data → train → evaluate → serve**
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.
+
+  Raw dataset→
+  load + validate (data.py)→
+  fit / transform (model.py)→
+  evaluate + persist (train.py)→
+  serve (api.py)
+
+### Primary Components
+
+| Class | Public methods | Responsibility |
+| --- | --- | --- |
+| `PredictRequest` | — |  |
+| `PredictResponse` | — |  |
+| `DriftResponse` | — |  |
+| `StatsResponse` | — |  |
+| `LIFNeuron` | init_weights, forward, backward, update_params | Leaky Integrate-and-Fire neuron layer.  Membrane dynamics:     tau_m * dv/dt = -(v - v_rest) + R * I     If v >= v_threshold: fire spike, v <- v_reset  Args:     n_neurons: number of neurons     n_inputs: input dimension     threshold: spike threshold     reset_voltage: voltage after spike     leak_rate: leak coefficient (tau_m inverse)     v_rest: resting potential     random_seed: random seed |
+| `SNNImageClassification` | _build, _forward, fit, predict_proba, predict, evaluate, save, load, to_dict | Spiking Neural Network for image classification.  Uses Leaky Integrate-and-Fire (LIF) neurons that communicate via discrete spikes, closely mimicking biological brain activity.  Args:     n_features: Number of input features (e.g., flattened 8x8 image = 64)     n_classes: Number of output classes     hidden_dim: Hidden dimension for LIF layers     learning_rate: Gradient descent step size     n_iterations: Number of training iterations     n_timesteps: Number of temporal simulation steps per forward pass     weight_decay: L2 regularization     threshold: Spike threshold for LIF neurons     leak_rate: Decay rate for membrane potential     clip_value: Gradient clipping threshold     random_seed: Random seed |
 
 ### Data Flow
 
-```mermaid
-graph TD
-  A[Input Data] --> B[Preprocessing]
-  B --> C[Model Training]
-  C --> D[Evaluation]
-  D --> E[Model Registry]
-  E --> F[Serving API]
+
+
+1. **Load** — `data.py` reads the source dataset and splits train/test.
+
+
+
+2. **Validate** — a Pydantic schema guards input shape/dtypes before training.
+
+
+
+3. **Fit / Transform** — `model.py` applies the mathematics from Section 1.
+
+
+
+4. **Evaluate** — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.
+
+
+
+5. **Persist** — weights/artifacts are saved and registered in the model registry.
+
+
+
+6. **Serve** — `api.py` exposes prediction endpoints with drift detection.
+
+### Design Patterns & Performance
+
+Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via `ai_core.validation`, structured JSON logging through `ai_core.logging`, Prometheus metrics from `ai_core.metrics`, and MLflow/model-registry persistence via `ai_core.model_registry`. The FastAPI service wraps the trained model with observability middleware from `ai_core.fastapi_middleware`.
+
+## 3. Detailed Code Walkthrough
+
+The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.
+
+### `LIFNeuron.forward(x, n_timesteps)`
+
+Forward pass over multiple timesteps (temporal coding).
+
+Args:
+    x: Input spike trains (batch, n_inputs) encoded as rates
+    n_timesteps: number of simulation steps
+
+Returns:
+    spikes: spike trains (batch, n_neurons, n_timesteps)
+
+### `SNNImageClassification.fit(X, y, n_iterations)`
+
+Train the SNN using surrogate gradient descent.
+
+Args:
+    X: Input features (n_samples, n_features)
+    y: Labels (n_samples,)
+
+### Source Files
+
+<details>
+<summary>model.py</summary>
+
+```
+"""SNN model for image classification using spiking neurons.
+
+Architecture:
+    Input (batch, n_features) -> Linear (input_dim -> hidden_dim) -> LIF Neuron
+    -> Linear (hidden_dim -> hidden_dim) -> LIF Neuron
+    -> Linear (hidden_dim -> n_classes) -> Output
+
+    Uses Leaky Integrate-and-Fire (LIF) neurons that communicate via discrete spikes.
+    Neurons accumulate membrane potential; when threshold is reached, they fire (spike).
+
+    Input encoding: rate coding (pixel intensity -> spike probability)
+    Training: surrogate gradient descent through spike generation
+"""
+
+from dataclasses import dataclass, field
+
+import numpy as np
+
+def sigmoid(z: np.ndarray) -> np.ndarray:
+    return 1.0 / (1.0 + np.exp(-np.clip(z, -20, 20)))
+
+def sigmoid_derivative(sig_val: np.ndarray) -> np.ndarray:
+    return sig_val * (1.0 - sig_val)
+
+def softmax(z: np.ndarray) -> np.ndarray:
+    z_shifted = z - np.max(z, axis=-1, keepdims=True)
+    exp_z = np.exp(z_shifted)
+    return exp_z / np.sum(exp_z, axis=-1, keepdims=True)
+
+@dataclass
+class LIFNeuron:
+    """Leaky Integrate-and-Fire neuron layer.
+
+    Membrane dynamics:
+        tau_m * dv/dt = -(v - v_rest) + R * I
+        If v >= v_threshold: fire spike, v <- v_reset
+
+    Args:
+        n_neurons: number of neurons
+        n_inputs: input dimension
+        threshold: spike threshold
+        reset_voltage: voltage after spike
+        leak_rate: leak coefficient (tau_m inverse)
+        v_rest: resting potential
+        random_seed: random seed
+    """
+
+    n_neurons: int = 64
+    n_inputs: int = 64
+    threshold: float = 1.0
+    reset_voltage: float = 0.0
+    leak_rate: float = 0.9
+    v_rest: float = 0.0
+    random_seed: int = 42
+
+    W: np.ndarray | None = None
+    b: np.ndarray | None = None
+    dW: np.ndarray | None = None
+    db: np.ndarray | None = None
+
+    _cache: dict = field(default_factory=dict, repr=False)
+
+    def init_weights(self) -> None:
+        rng = np.random.default_rng(self.random_seed)
+        self.W = rng.normal(0, np.sqrt(2.0 / self.n_inputs), (self.n_inputs, self.n_neurons))
+        self.b = np.zeros(self.n_neurons)
+
+    def forward(self, x: np.ndarray, n_timesteps: int = 10) -> np.ndarray:
+        """Forward pass over multiple timesteps (temporal coding).
+
+        Args:
+            x: Input spike trains (batch, n_inputs) encoded as rates
+            n_timesteps: number of simulation steps
+
+        Returns:
+            spikes: spike trains (batch, n_neurons, n_timesteps)
+        """
+        if self.W is None:
+            self.init_weights()
+
+        batch_size = x.shape[0]
+        spike_trains = np.zeros((batch_size, self.n_neurons, n_timesteps))
+
+        membrane = np.full((batch_size, self.n_neurons), self.v_rest)
+
+        for t in range(n_timesteps):
+            I_in = x @ self.W + self.b
+            membrane = self.leak_rate * membrane + (1 - self.leak_rate) * (self.v_rest + I_in)
+
+            new_spikes = (membrane >= self.threshold).astype(np.float32)
+            membrane = np.where(new_spikes > 0, self.reset_voltage, membrane)
+
+            spike_trains[:, :, t] = new_spikes
+
+        self._cache = {"x": x, "spike_trains": spike_trains, "membrane_trace": membrane}
+        return spike_trains
+
+    def backward(self, dout: np.ndarray) -> np.ndarray:
+        """Backward pass using surrogate gradient.
+
+        Args:
+            dout: gradient from next layer (batch, n_neurons, n_timesteps)
+
+        Returns:
+            gradient w.r.t. input x (batch, n_inputs)
+        """
+        c = self._cache
+        x = c["x"]
+        spike_trains = c["spike_trains"]
+
+        batch_size = x.shape[0]
+        n_timesteps = spike_trains.shape[2]
+
+        self.dW = np.zeros_like(self.W)
+        self.db = np.zeros_like(self.b)
+        grad_membrane = np.zeros((batch_size, self.n_neurons))
+
+        for t in range(n_timesteps):
+            spikes_t = spike_trains[:, :, t]
+            surrogate = sigmoid_derivative(spikes_t)
+            grad_out_t = dout[:, :, t]
+            grad_membrane += grad_out_t
+
+            grad_spikes = grad_out_t * surrogate
+            self.dW += x.T @ grad_spikes
+            self.db += np.sum(grad_spikes, axis=0)
+
+        self.dW /= n_timesteps
+        self.db /= n_timesteps
+
+        dx = grad_membrane @ self.W.T
+        return dx
+
+    def update_params(self, lr: float, weight_decay: float = 0.0) -> None:
+        if self.W is None:
+            return
+        self.W -= lr * (self.dW + weight_decay * self.W)
+        self.b -= lr * self.db
+
+@dataclass
+class SNNImageClassification:
+    """Spiking Neural Network for image classification.
+
+    Uses Leaky Integrate-and-Fire (LIF) neurons that communicate via discrete spikes,
+    closely mimicking biological brain activity.
+
+    Args:
+        n_features: Number of input features (e.g., flattened 8x8 image = 64)
+        n_classes: Number of output classes
+        hidden_dim: Hidden dimension for LIF layers
+        learning_rate: Gradient descent step size
+        n_iterations: Number of training iterations
+        n_timesteps: Number of temporal simulation steps per forward pass
+        weight_decay: L2 regularization
+        threshold: Spike threshold for LIF neurons
+        leak_rate: Decay rate for membrane potential
+        clip_value: Gradient clipping threshold
+        random_seed: Random seed
+    """
+
+    n_features: int = 64
+    n_classes: int = 10
+    hidden_dim: int = 128
+    learning_rate: float = 0.01
+    n_iterations: int = 200
+    n_timesteps: int = 10
+    weight_decay: float = 0.0001
+    threshold: float = 1.0
+    leak_rate: float = 0.9
+    clip_value: float = 5.0
+    random_seed: int = 42
+
+    layers: list = field(default_factory=list, repr=False)
+    W_out: np.ndarray | None = None
+    b_out: np.ndarray | None = None
+    training_mode: str = "spiking"
+    loss_history: list[float] = field(default_factory=list)
+
+    def _build(self) -> None:
+        rng = np.random.default_rng(self.random_seed + 200)
+        self.layers = [
+            LIFNeuron(
+                n_neurons=self.hidden_dim,
+                n_inputs=self.n_features,
+                threshold=self.threshold,
+                leak_rate=self.leak_rate,
+                random_seed=self.random_seed,
+            ),
+            LIFNeuron(
+                n_neurons=self.hidden_dim,
+                n_inputs=self.hidden_dim,
+                threshold=self.threshold,
+                leak_rate=self.leak_rate,
+                random_seed=self.random_seed + 1,
+            ),
+        ]
+        self.W_out = rng.normal(0, np.sqrt(1.0 / self.hidden_dim), (self.hidden_dim, self.n_classes))
+        self.b_out = np.zeros(self.n_classes)
+
+    def _forward(self, X: np.ndarray) -> tuple[np.ndarray, dict]:
+        """Forward pass through SNN.
+
+        Args:
+            X: Input features (batch, n_features)
+
+        Returns:
+            logits: output logits (batch, n_classes)
+            cache: intermediate values
+        """
+        x = X
+
+        lif1: LIFNeuron = self.layers[0]
+        spikes1 = lif1.forward(x, n_timesteps=self.n_timesteps)
+        pooled1 = np.mean(spikes1, axis=2)
+
+        lif2: LIFNeuron = self.layers[1]
+        spikes2 = lif2.forward(pooled1, n_timesteps=self.n_timesteps)
+        pooled2 = np.mean(spikes2, axis=2)
+
+        logits = pooled2 @ self.W_out + self.b_out
+        cache = {"x": x, "pooled1": pooled1, "pooled2": pooled2, "spikes1": spikes1, "spikes2": spikes2}
+        return logits, cache
+
+    def fit(self, X: np.ndarray, y: np.ndarray, n_iterations: int | None = None) -> "SNNImageClassification":
+        """Train the SNN using surrogate gradient descent.
+
+        Args:
+            X: Input features (n_samples, n_features)
+            y: Labels (n_samples,)
+        """
+        if not self.layers:
+            self._build()
+
+        if n_iterations is None:
+            n_iterations = self.n_iterations
+
+        n_samples = X.shape[0]
+        rng = np.random.default_rng(self.random_seed)
+        eps = 1e-12
+
+        y_onehot = np.zeros((n_samples, self.n_classes))
+        y_onehot[np.arange(n_samples), y.astype(int)] = 1.0
+
+        for _epoch in range(n_iterations):
+            perm = rng.permutation(n_samples)
+            X_shuffled = X[perm]
+            y_shuffled = y_onehot[perm]
+
+            epoch_loss = 0.0
+            for i in range(n_samples):
+                x_i = X_shuffled[i:i + 1]
+                y_i = y_shuffled[i:i + 1]
+
+                logits, cache = self._forward(x_i)
+                probs = softmax(logits)
+                loss = -np.sum(y_i * np.log(np.clip(probs, eps, 1)))
+                epoch_loss += loss
+
+                dlogits = (probs - y_i) / 1.0
+                dW_out = cache["pooled2"].T @ dlogits
+                db_out = np.sum(dlogits, axis=0)
+
+                dpooled2 = dlogits @ self.W_out.T
+                dout2 = np.zeros_like(cache["spikes2"])
+                dout2[:, :, :] = dpooled2[:, :, np.newaxis] / self.n_timesteps
+
+                dh1 = self.layers[1].backward(dout2)
+                dph1 = np.mean(dh1, axis=2) if dh1.ndim > 2 else dh1
+                dout1 = np.zeros_like(cache["spikes1"])
+                dout1[:, :, :] = dph1[:, :, np.newaxis] / self.n_timesteps
+
+                _ = self.layers[0].backward(dout1)
+
+                grad_norm = np.sqrt(
+                    np.sum(self.layers[0].dW ** 2) + np.sum(self.layers[1].dW ** 2) + np.sum(dW_out ** 2)
+                )
+                if grad_norm > self.clip_value:
+                    scale = self.clip_value / (grad_norm + 1e-8)
+                    self.layers[0].dW *= scale
+                    self.layers[1].dW *= scale
+                    dW_out *= scale
+
+                lr = self.learning_rate
+                wd = self.weight_decay
+                lif1: LIFNeuron = self.layers[0]
+                lif2: LIFNeuron = self.layers[1]
+                lif1.W -= lr * (lif1.dW + wd * lif1.W)
+                lif1.b -= lr * lif1.db
+                lif2.W -= lr * (lif2.dW + wd * lif2.W)
+                lif2.b -= lr * lif2.db
+                self.W_out -= lr * (dW_out + wd * self.W_out)
+                self.b_out -= lr * db_out
+
+            self.loss_history.append(epoch_loss / n_samples)
+
+        return self
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        logits, _ = self._forward(X)
+        return softmax(logits)
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        return np.argmax(self.predict_proba(X), axis=-1)
+
+    def evaluate(self, X: np.ndarray, y: np.ndarray) -> dict[str, float]:
+        preds = self.predict(X)
+        accuracy = float(np.mean(preds == y))
+        return {"accuracy": accuracy, "n_samples": float(len(y))}
+
+    def save(self, path: str) -> None:
+        arrays = {
+            "loss_history": np.array(self.loss_history),
+            "n_features": np.array([self.n_features]),
+            "n_classes": np.array([self.n_classes]),
+            "hidden_dim": np.array([self.hidden_dim]),
+            "learning_rate": np.array([self.learning_rate]),
+            "n_iterations": np.array([self.n_iterations]),
+            "n_timesteps": np.array([self.n_timesteps]),
+            "weight_decay": np.array([self.weight_decay]),
+            "threshold": np.array([self.threshold]),
+            "leak_rate": np.array([self.leak_rate]),
+            "lif1_W": self.layers[0].W,
+            "lif1_b": self.layers[0].b,
+            "lif2_W": self.layers[1].W,
+            "lif2_b": self.layers[1].b,
+            "W_out": self.W_out,
+            "b_out": self.b_out,
+        }
+        np.savez(path, **arrays)
+
+    @classmethod
+    def load(cls, path: str) -> "SNNImageClassification":
+        data = np.load(path, allow_pickle=True)
+        obj = cls(
+            n_features=int(data["n_features"].item()),
+            n_classes=int(data["n_classes"].item()),
+            hidden_dim=int(data["hidden_dim"].item()),
+            learning_rate=float(data["learning_rate"].item()),
+            n_iterations=int(data["n_iterations"].item()),
+            n_timesteps=int(data["n_timesteps"].item()),
+            weight_decay=float(data["weight_decay"].item()),
+            threshold=float(data["threshold"].item()),
+            leak_rate=float(data["leak_rate"].item()),
+            random_seed=42,
+        )
+        obj._build()
+        obj.layers[0].W = data["lif1_W"]
+        obj.layers[0].b = data["lif1_b"]
+        obj.layers[1].W = data["lif2_W"]
+        obj.layers[1].b = data["lif2_b"]
+        obj.W_out = data["W_out"]
+        obj.b_out = data["b_out"]
+        obj.loss_history = list(data.get("loss_history", [0.0]))
+        return obj
+
+    def to_dict(self) -> dict:
+        return {
+            "n_features": self.n_features,
+            "n_classes": self.n_classes,
+            "hidden_dim": self.hidden_dim,
+            "training_mode": self.training_mode,
+            "n_timesteps": self.n_timesteps,
+            "threshold": self.threshold,
+            "leak_rate": self.leak_rate,
+            "n_epochs_run": len(self.loss_history),
+            "final_loss": self.loss_history[-1] if self.loss_history else 0.0,
+        }
 ```
 
-## ⚡ API Reference
+</details>
 
-FastAPI endpoints and model interfaces
+<details>
+<summary>train.py</summary>
 
-| Method | Endpoint |
-| --- | --- |
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/metrics` |
-| `POST` | `/reload` |
-
-## ▶ Usage
-
-Code examples and CLI commands
-
-### Training Script
-
-```python
+```
 """Training pipeline for SNN Image Classification."""
 
 import argparse
@@ -225,9 +670,106 @@ if __name__ == "__main__":
     main()
 ```
 
-### API Server
+</details>
 
-```python
+<details>
+<summary>data.py</summary>
+
+```
+"""Data loading and preprocessing for SNN image classification."""
+
+from pathlib import Path
+
+import numpy as np
+
+N_FEATURES = 64
+N_CLASSES = 10
+
+DEFAULT_N_SAMPLES = 500
+
+def generate_synthetic_data(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    n_features: int = N_FEATURES,
+    n_classes: int = N_CLASSES,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Generate synthetic image data for SNN classification.
+
+    Creates 8x8 pixel images with class-based patterns.
+    Images are normalized to [0, 1] for rate encoding.
+
+    Returns:
+        X: (n_samples, n_features) flattened 8x8 images
+        y: (n_samples,) class labels
+    """
+    rng = np.random.default_rng(random_seed)
+    X = np.zeros((n_samples, n_features))
+    y = rng.integers(0, n_classes, size=n_samples)
+
+    for i in range(n_samples):
+        label = y[i]
+        img = np.zeros((8, 8))
+
+        patterns = [
+            lambda m: m.__setitem__((slice(2, 4), slice(1, 7)), 1),
+            lambda m: m.__setitem__((slice(1, 3), slice(2, 6)), 1),
+            lambda m: m.__setitem__((slice(3, 5), slice(3, 5)), 1),
+            lambda m: m.__setitem__((slice(4, 6), slice(2, 6)), 1),
+            lambda m: (m.__setitem__((slice(1, 3), slice(2, 4)), 1), m.__setitem__((slice(5, 7), slice(4, 6)), 1)),
+            lambda m: (m.__setitem__((slice(3, 5), slice(1, 3)), 1), m.__setitem__((slice(3, 5), slice(5, 7)), 1)),
+            lambda m: m.__setitem__((slice(1, 7), slice(3, 5)), 1),
+            lambda m: (m.__setitem__((slice(1, 3), slice(2, 6)), 1), m.__setitem__((slice(5, 7), slice(2, 6)), 1)),
+            lambda m: (m.__setitem__((slice(3, 5), slice(1, 7)), 1),),
+            lambda m: (m.__setitem__((slice(2, 5), slice(1, 7)), 1),),
+        ]
+
+        if label < len(patterns):
+            patterns[label](img)
+
+        noise_level = 0.3
+        img = img + rng.normal(0, noise_level, img.shape)
+        img = np.clip(img, 0, 1)
+        X[i] = img.flatten()
+
+    perm = rng.permutation(n_samples)
+    return X[perm], y[perm]
+
+def load_training_data(
+    data_path: Path | None = None,
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    if data_path and Path(data_path).exists():
+        data = np.load(data_path, allow_pickle=True)
+        return data["X"], data["y"]
+    return generate_synthetic_data(n_samples=n_samples, random_seed=random_seed)
+
+def train_test_split(
+    X: np.ndarray, y: np.ndarray, test_size: float = 0.2, random_seed: int | None = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    n = len(X)
+    n_test = max(1, int(n * test_size))
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+    test_idx = indices[:n_test]
+    train_idx = indices[n_test:]
+    return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
+
+def save_training_data(X: np.ndarray, y: np.ndarray, path: Path) -> None:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(path, X=X, y=y)
+```
+
+</details>
+
+<details>
+<summary>api.py</summary>
+
+```
 """Serving API for SNN Image Classification."""
 
 import os
@@ -507,26 +1049,41 @@ def predict(body: PredictRequest):
         raise HTTPException(status_code=500, detail="Prediction failed") from e
 ```
 
-### CLI Commands
+</details>
 
-```bash
-uv run python -m snn_image_classification.train --model-dir ./artifacts/models
-```
+## 4. Monorepo Integration
 
-## 📊 Benchmarks
+This example is a first-class consumer of the shared `packages/ai-core` library.
+It reuses the following foundation modules instead of re-implementing infrastructure:
 
-Test results and performance metrics
+ai_core.drift
+ai_core.fastapi_middleware
+ai_core.logging
+ai_core.metrics
+ai_core.model_registry
+ai_core.validation
 
-Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+### How it plugs in
 
-### Related Apps
 
-- [image-generation](../image-generation/README.md)
 
-- [spam-classification](../spam-classification/README.md)
+- **Configuration** — 12-factor config from `ai_core.config`.
 
-- [classification-email-spam](../classification-email-spam/README.md)
 
-- [vision-image-captioning](../vision-image-captioning/README.md)
 
-Generated documentation for **snn-image-classification**
+- **Observability** — structured logging + Prometheus metrics are wired in automatically.
+
+
+
+- **Validation** — input schema validation prevents bad data reaching the model.
+
+
+
+- **Registry** — trained artifacts are versioned and registered for reproducible serving.
+
+
+
+- **Serving** — the FastAPI app mounts shared observability middleware for tracing & metrics.
+
+Because every example shares `ai_core`, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.

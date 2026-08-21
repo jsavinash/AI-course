@@ -1,8 +1,13 @@
 # spam-classification
 
-## ∫ Mathematics & Theory
 
-Logistic Regression — Underlying equations and derivations
+
+Logistic Regression — AI engineering example · part of the MLOps monorepo
+
+## 1. Mathematical Foundations
+
+This example is grounded in **Logistic Regression**. The equations below
+drive every forward and backward pass in the implementation.
 
 $$z = w \cdot x + b$$
 
@@ -12,53 +17,254 @@ $$\mathcal{L}_{BCE} = -\frac{1}{n} \sum_{i=1}^{n} [y_i \log(\hat{y}_i) + (1-y_i)
 
 $$\frac{\partial \mathcal{L}}{\partial w} = \frac{1}{n} \sum_{i=1}^{n} (\hat{y}_i - y_i)x_i$$
 
-### Step-by-Step Derivation
+### Derivation
 
 Logistic regression models $P(y=1|x)$ via the sigmoid function. Binary cross-entropy loss penalizes confident wrong predictions. The gradient simplifies to $\hat{y} - y$, enabling efficient SGD.
 
-### Interactive Visualization
+### Worked Numerical Example
+
+$$z = w \cdot x + b$$
+
+Illustrative forward-pass evaluation (scalar example):
+
+Input  x        = 12.0   (e.g. pizza diameter, inches)
+Weights w       =  0.85
+Bias    b       =  0.30
+---------------------------------
+z = w*x + b
+  = 0.85 * 12.0 + 0.30
+  = 10.20 + 0.30
+  = 10.50   <- model output
+
+### Conceptual Diagram
+
+        Math concept (placeholder)
+   [ Input x ] --> ( w · x + b ) --> [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]
+
+![Math Explanation (placeholder)](./assets/math-concept.png)
 
 Sigmoid curve with decision boundary overlay; ROC and precision-recall curves.
 
-## ⚙ Architecture
+## 2. Core Logic & Architecture
 
-Model structure, data flow, and layer breakdown
+The example follows a consistent **data → train → evaluate → serve**
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.
 
-### Class Hierarchy
+  Raw dataset→
+  load + validate (data.py)→
+  fit / transform (model.py)→
+  evaluate + persist (train.py)→
+  serve (api.py)
 
-```
-  LogisticRegression
-```
+### Primary Components
+
+| Class | Public methods | Responsibility |
+| --- | --- | --- |
+| `PredictRequest` | — | Request with explicit feature values. |
+| `EmailRequest` | — | Request with raw email text (features are auto-extracted). |
+| `PredictResponse` | — | Response with prediction and probability. |
+| `DriftResponse` | — | Drift detection response. |
+| `LogisticRegression` | _sigmoid, predict_proba, predict, fit, accuracy, precision, recall, f1_score, roc_auc, evaluate, save, load | Logistic regression for binary classification (spam / not spam).  Model: z = X·w + b,  p = sigmoid(z),  prediction = 1 if p >= threshold else 0 |
 
 ### Data Flow
 
-```mermaid
-graph TD
-  A[Input Data] --> B[Preprocessing]
-  B --> C[Model Training]
-  C --> D[Evaluation]
-  D --> E[Model Registry]
-  E --> F[Serving API]
+
+
+1. **Load** — `data.py` reads the source dataset and splits train/test.
+
+
+
+2. **Validate** — a Pydantic schema guards input shape/dtypes before training.
+
+
+
+3. **Fit / Transform** — `model.py` applies the mathematics from Section 1.
+
+
+
+4. **Evaluate** — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.
+
+
+
+5. **Persist** — weights/artifacts are saved and registered in the model registry.
+
+
+
+6. **Serve** — `api.py` exposes prediction endpoints with drift detection.
+
+### Design Patterns & Performance
+
+Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via `ai_core.validation`, structured JSON logging through `ai_core.logging`, Prometheus metrics from `ai_core.metrics`, and MLflow/model-registry persistence via `ai_core.model_registry`. The FastAPI service wraps the trained model with observability middleware from `ai_core.fastapi_middleware`.
+
+## 3. Detailed Code Walkthrough
+
+The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.
+
+### `LogisticRegression.predict(X, threshold)`
+
+Return 1 (spam) if probability >= threshold, else 0 (not spam).
+
+### `LogisticRegression.fit(X, y)`
+
+Train using gradient descent on Binary Cross-Entropy.
+
+### `LogisticRegression.evaluate(X, y)`
+
+Compute all evaluation metrics.
+
+### Source Files
+
+<details>
+<summary>model.py</summary>
+
+```
+"""Logistic Regression model for spam email classification."""
+
+from dataclasses import dataclass, field
+
+import numpy as np
+
+@dataclass
+class LogisticRegression:
+    """Logistic regression for binary classification (spam / not spam).
+
+    Model: z = X·w + b,  p = sigmoid(z),  prediction = 1 if p >= threshold else 0
+    """
+
+    learning_rate: float = 0.1
+    n_iterations: int = 2000
+    weights: np.ndarray | None = None
+    bias: float = 0.0
+    loss_history: list[float] = field(default_factory=list)
+
+    def _sigmoid(self, z: np.ndarray) -> np.ndarray:
+        """Sigmoid activation function with numerical stability."""
+        z = np.clip(z, -500, 500)
+        return 1 / (1 + np.exp(-z))
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        """Return probability of spam for each email."""
+        if self.weights is None:
+            raise ValueError("Model not trained. Call fit() first.")
+        z = np.dot(X, self.weights) + self.bias
+        return self._sigmoid(z)
+
+    def predict(self, X: np.ndarray, threshold: float = 0.5) -> np.ndarray:
+        """Return 1 (spam) if probability >= threshold, else 0 (not spam)."""
+        return (self.predict_proba(X) >= threshold).astype(int)
+
+    def fit(self, X: np.ndarray, y: np.ndarray) -> "LogisticRegression":
+        """Train using gradient descent on Binary Cross-Entropy."""
+        n_samples, n_features = X.shape
+        self.weights = np.zeros(n_features)
+        self.bias = 0.0
+
+        for _ in range(self.n_iterations):
+            probs = self.predict_proba(X)
+            loss = -np.mean(y * np.log(probs + 1e-9) + (1 - y) * np.log(1 - probs + 1e-9))
+            self.loss_history.append(float(loss))
+
+            dw = (1 / n_samples) * np.dot(X.T, (probs - y))
+            db = (1 / n_samples) * np.sum(probs - y)
+
+            self.weights -= self.learning_rate * dw
+            self.bias -= self.learning_rate * db
+
+        return self
+
+    def accuracy(self, X: np.ndarray, y: np.ndarray) -> float:
+        """Compute classification accuracy."""
+        predictions = self.predict(X)
+        return float(np.mean(predictions == y))
+
+    def precision(self, X: np.ndarray, y: np.ndarray) -> float:
+        """Compute precision (positive predictive value)."""
+        predictions = self.predict(X)
+        tp = np.sum((predictions == 1) & (y == 1))
+        fp = np.sum((predictions == 1) & (y == 0))
+        if tp + fp == 0:
+            return 0.0
+        return float(tp / (tp + fp))
+
+    def recall(self, X: np.ndarray, y: np.ndarray) -> float:
+        """Compute recall (sensitivity)."""
+        predictions = self.predict(X)
+        tp = np.sum((predictions == 1) & (y == 1))
+        fn = np.sum((predictions == 0) & (y == 1))
+        if tp + fn == 0:
+            return 0.0
+        return float(tp / (tp + fn))
+
+    def f1_score(self, X: np.ndarray, y: np.ndarray) -> float:
+        """Compute F1 score."""
+        p = self.precision(X, y)
+        r = self.recall(X, y)
+        if p + r == 0:
+            return 0.0
+        return float(2 * p * r / (p + r))
+
+    def roc_auc(self, X: np.ndarray, y: np.ndarray) -> float:
+        """Compute ROC AUC approximation."""
+        probs = self.predict_proba(X)
+        n_pos = np.sum(y == 1)
+        n_neg = np.sum(y == 0)
+        if n_pos == 0 or n_neg == 0:
+            return 0.5
+        rankings = np.argsort(-probs)
+        sorted_y = y[rankings]
+        rank_sum = np.sum(np.where(sorted_y == 1)[0] + 1)
+        auc = (rank_sum - n_pos * (n_pos + 1) / 2) / (n_pos * n_neg)
+        return float(auc)
+
+    def evaluate(self, X: np.ndarray, y: np.ndarray) -> dict[str, float]:
+        """Compute all evaluation metrics."""
+        return {
+            "accuracy": self.accuracy(X, y),
+            "precision": self.precision(X, y),
+            "recall": self.recall(X, y),
+            "f1": self.f1_score(X, y),
+            "roc_auc": self.roc_auc(X, y),
+        }
+
+    def save(self, path: str) -> None:
+        """Save model parameters to disk."""
+        if self.weights is None:
+            raise ValueError("Cannot save untrained model")
+        np.savez(
+            path,
+            weights=self.weights,
+            bias=self.bias,
+            learning_rate=self.learning_rate,
+            n_iterations=self.n_iterations,
+            loss_history=np.array(self.loss_history),
+        )
+
+    @classmethod
+    def load(cls, path: str) -> "LogisticRegression":
+        """Load model parameters from disk."""
+        data = np.load(path)
+        model = cls(
+            learning_rate=float(data["learning_rate"]),
+            n_iterations=int(data["n_iterations"]),
+        )
+        model.weights = data["weights"]
+        model.bias = float(data["bias"])
+        model.loss_history = list(data["loss_history"])
+        return model
 ```
 
-## ⚡ API Reference
+</details>
 
-FastAPI endpoints and model interfaces
+<details>
+<summary>train.py</summary>
 
-| Method | Endpoint |
-| --- | --- |
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/metrics` |
-| `POST` | `/reload` |
-
-## ▶ Usage
-
-Code examples and CLI commands
-
-### Training Script
-
-```python
+```
 """Production training pipeline for spam email classification."""
 
 import argparse
@@ -280,9 +486,89 @@ if __name__ == "__main__":
     main()
 ```
 
-### API Server
+</details>
 
-```python
+<details>
+<summary>data.py</summary>
+
+```
+"""Data loading and preprocessing for spam email classification."""
+
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+# Feature order MUST match what was used during training
+FEATURE_NAMES = ["free", "win", "link", "!!!", "meeting"]
+
+def load_training_data(data_path: Path | None = None) -> tuple[np.ndarray, np.ndarray]:
+    """Load spam training data from CSV or use built-in dataset.
+
+    Expected CSV format:
+        free,win,link,!!!,meeting,label
+        1,1,1,1,0,1
+        ...
+    """
+    if data_path and Path(data_path).exists():
+        df = pd.read_csv(data_path)
+        X = df[FEATURE_NAMES].values.astype(float)
+        y = df["label"].values.astype(int)
+        return X, y
+
+    # Built-in training data
+    emails = np.array(
+        [
+            [1, 1, 1, 1, 0],  # SPAM
+            [0, 0, 0, 0, 1],  # NOT
+            [1, 0, 1, 0, 0],  # SPAM
+            [0, 0, 0, 0, 1],  # NOT
+            [0, 1, 1, 1, 0],  # SPAM
+            [0, 0, 0, 0, 1],  # NOT
+            [1, 1, 1, 1, 0],  # SPAM
+            [0, 0, 0, 0, 1],  # NOT
+            [0, 1, 1, 0, 0],  # SPAM
+            [0, 0, 0, 0, 1],  # NOT
+        ],
+        dtype=float,
+    )
+
+    labels = np.array([1, 0, 1, 0, 1, 0, 1, 0, 1, 0], dtype=int)
+    return emails, labels
+
+def train_test_split(
+    X: np.ndarray, y: np.ndarray, test_size: float = 0.2, random_seed: int | None = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Split data into train and test sets."""
+    n = len(X)
+    n_test = max(1, int(n * test_size))
+
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+
+    test_idx = indices[:n_test]
+    train_idx = indices[n_test:]
+
+    return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
+
+def save_training_data(X: np.ndarray, y: np.ndarray, path: Path) -> None:
+    """Save training data to CSV for reproducibility."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    df = pd.DataFrame(X, columns=FEATURE_NAMES)
+    df["label"] = y
+    df.to_csv(path, index=False)
+```
+
+</details>
+
+<details>
+<summary>api.py</summary>
+
+```
 """Production serving API for spam email classification."""
 
 import os
@@ -620,22 +906,41 @@ def predict_email(body: EmailRequest):
     return _compute_prediction(features, body.threshold)
 ```
 
-### CLI Commands
+</details>
 
-```bash
-uv run python -m spam_classification.train --model-dir ./artifacts/models
-```
+## 4. Monorepo Integration
 
-## 📊 Benchmarks
+This example is a first-class consumer of the shared `packages/ai-core` library.
+It reuses the following foundation modules instead of re-implementing infrastructure:
 
-Test results and performance metrics
+ai_core.drift
+ai_core.fastapi_middleware
+ai_core.logging
+ai_core.metrics
+ai_core.model_registry
+ai_core.validation
 
-Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+### How it plugs in
 
-### Related Apps
 
-- [classification-email-spam](../classification-email-spam/README.md)
 
-- [snn-image-classification](../snn-image-classification/README.md)
+- **Configuration** — 12-factor config from `ai_core.config`.
 
-Generated documentation for **spam-classification**
+
+
+- **Observability** — structured logging + Prometheus metrics are wired in automatically.
+
+
+
+- **Validation** — input schema validation prevents bad data reaching the model.
+
+
+
+- **Registry** — trained artifacts are versioned and registered for reproducible serving.
+
+
+
+- **Serving** — the FastAPI app mounts shared observability middleware for tracing & metrics.
+
+Because every example shares `ai_core`, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.

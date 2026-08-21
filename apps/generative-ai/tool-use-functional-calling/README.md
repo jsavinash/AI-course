@@ -1,8 +1,13 @@
 # tool-use-functional-calling
 
-## ∫ Mathematics & Theory
 
-Tool Use and Functional Calling — Underlying equations and derivations
+
+Tool Use and Functional Calling — AI engineering example · part of the MLOps monorepo
+
+## 1. Mathematical Foundations
+
+This example is grounded in **Tool Use and Functional Calling**. The equations below
+drive every forward and backward pass in the implementation.
 
 $$P(\text{tool}, \text{args} | q) = \text{softmax}(W_t \cdot h_q)$$
 
@@ -10,62 +15,512 @@ $$\text{result} = \text{execute}(\text{tool}, \text{args})$$
 
 $$\text{final} = \text{generate}(q, \text{result})$$
 
-### Step-by-Step Derivation
+### Derivation
 
 Tool-augmented models decompose complex queries into executable function calls. A router network predicts which tool to invoke and with what arguments. The tool result is fed back into the language model for final response generation. This enables structured reasoning and access to external APIs.
 
-### Interactive Visualization
+### Worked Numerical Example
+
+$$z = w \cdot x + b$$
+
+Illustrative forward-pass evaluation (scalar example):
+
+Input  x        = 12.0   (e.g. pizza diameter, inches)
+Weights w       =  0.85
+Bias    b       =  0.30
+---------------------------------
+z = w*x + b
+  = 0.85 * 12.0 + 0.30
+  = 10.20 + 0.30
+  = 10.50   <- model output
+
+### Conceptual Diagram
+
+        Math concept (placeholder)
+   [ Input x ] --> ( w · x + b ) --> [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]
+
+![Math Explanation (placeholder)](./assets/math-concept.png)
 
 Interactive tool call graph; argument parsing explorer; multi-step reasoning trace.
 
-## ⚙ Architecture
+## 2. Core Logic & Architecture
 
-Model structure, data flow, and layer breakdown
+The example follows a consistent **data → train → evaluate → serve**
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.
 
-### Class Hierarchy
+  Raw dataset→
+  load + validate (data.py)→
+  fit / transform (model.py)→
+  evaluate + persist (train.py)→
+  serve (api.py)
 
-```
-  ToolSpec
-  ToolCall
-  ToolResult
-  ToolUseModel
-```
+### Primary Components
+
+| Class | Public methods | Responsibility |
+| --- | --- | --- |
+| `InvokeRequest` | — |  |
+| `InvokeResponse` | — |  |
+| `RegisterToolRequest` | — |  |
+| `ExecuteToolRequest` | — |  |
+| `ExecuteToolResponse` | — |  |
+| `StatsResponse` | — |  |
+| `ToolSpec` | to_json_schema, get_required_params, validate_args, matches_query | Structured specification of an available tool. |
+| `ToolCall` | __post_init__, to_dict | LLM-reasoned invocation of a tool with extracted arguments. |
+| `ToolResult` | __post_init__, format_output, to_dict | Output produced by executing a tool call. |
+| `ToolUseModel` | _init, _register_default_tools, register_tool, get_tool, list_tools, decide_tool, _extract_arguments, execute_tool, run_workflow, invoke, get_tool_call_history, get_tool_result_history, get_execution_history, save, load, to_dict | Orchestrates the full 5-step function-calling workflow. |
 
 ### Data Flow
 
-```mermaid
-graph TD
-  A[Input Data] --> B[Preprocessing]
-  B --> C[Model Training]
-  C --> D[Evaluation]
-  D --> E[Model Registry]
-  E --> F[Serving API]
+
+
+1. **Load** — `data.py` reads the source dataset and splits train/test.
+
+
+
+2. **Validate** — a Pydantic schema guards input shape/dtypes before training.
+
+
+
+3. **Fit / Transform** — `model.py` applies the mathematics from Section 1.
+
+
+
+4. **Evaluate** — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.
+
+
+
+5. **Persist** — weights/artifacts are saved and registered in the model registry.
+
+
+
+6. **Serve** — `api.py` exposes prediction endpoints with drift detection.
+
+### Design Patterns & Performance
+
+Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via `ai_core.validation`, structured JSON logging through `ai_core.logging`, Prometheus metrics from `ai_core.metrics`, and MLflow/model-registry persistence via `ai_core.model_registry`. The FastAPI service wraps the trained model with observability middleware from `ai_core.fastapi_middleware`.
+
+## 3. Detailed Code Walkthrough
+
+The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.
+
+No docstring-annotated key methods.
+
+### Source Files
+
+<details>
+<summary>model.py</summary>
+
+```
+"""Tool Use and Functional Calling implementation.
+
+Architecture:
+    1. ToolSpec: Structured specification of an available tool (name, description, parameters, return type)
+    2. ToolCall: LLM-reasoned invocation (tool name + arguments extracted by the model)
+    3. ToolResult: Output of executing a tool call
+    4. ToolUseModel: Orchestrates the full 5-step function-calling workflow
+
+Core concepts:
+    - Function/Tool Calling: LLM connects to external tools/APIs
+    - Tool Decision: LLM reasons which tool to call and with what arguments
+    - Application-side Execution: Tool is executed outside the LLM
+    - Result Concatenation: Tool output combined with original query
+    - Final Generation: LLM synthesizes tool output into grounded response
+
+Workflow:
+    User Query + Tool Definitions -> LLM Reasoning (tool selection + args) ->
+    Application Execution -> Tool Output + Query -> Final LLM Response
+"""
+
+from __future__ import annotations
+
+import json
+import random
+from dataclasses import dataclass, field
+from typing import Any
+
+from tool_use_and_functional_calling.data import (
+    PREDEFINED_TOOLS,
+    get_workflow_by_name,
+)
+
+@dataclass
+class ToolSpec:
+    """Structured specification of an available tool."""
+
+    name: str
+    description: str
+    parameters: dict[str, Any]
+    return_type: str = "any"
+    keywords: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+    _cache: dict[str, Any] = field(default_factory=dict, repr=False)
+
+    def to_json_schema(self) -> dict[str, Any]:
+        schema = {
+            "type": "function",
+            "function": {
+                "name": self.name,
+                "description": self.description,
+                "parameters": self.parameters,
+            },
+        }
+        self._cache = {"schema": schema}
+        return schema
+
+    def get_required_params(self) -> list[str]:
+        return self.parameters.get("required", [])
+
+    def validate_args(self, args: dict[str, Any]) -> bool:
+        required = self.get_required_params()
+        return all(param in args for param in required)
+
+    def matches_query(self, query: str) -> float:
+        query_lower = query.lower()
+        if not self.keywords:
+            return 0.0
+        matches = sum(1 for kw in self.keywords if kw.lower() in query_lower)
+        return matches / len(self.keywords)
+
+@dataclass
+class ToolCall:
+    """LLM-reasoned invocation of a tool with extracted arguments."""
+
+    tool_name: str
+    arguments: dict[str, Any]
+    call_id: str = ""
+    metadata: dict[str, Any] = field(default_factory=dict)
+    _cache: dict[str, Any] = field(default_factory=dict, repr=False)
+
+    def __post_init__(self) -> None:
+        if not self.call_id:
+            self.call_id = f"call_{random.randint(100000, 999999)}"
+        self._cache = {"call_id": self.call_id}
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "call_id": self.call_id,
+            "tool_name": self.tool_name,
+            "arguments": self.arguments,
+        }
+
+@dataclass
+class ToolResult:
+    """Output produced by executing a tool call."""
+
+    tool_name: str
+    output: Any
+    success: bool = True
+    error: str | None = None
+    call_id: str = ""
+    metadata: dict[str, Any] = field(default_factory=dict)
+    _cache: dict[str, Any] = field(default_factory=dict, repr=False)
+
+    def __post_init__(self) -> None:
+        if self.error:
+            self.success = False
+        self._cache = {"success": self.success}
+
+    def format_output(self) -> str:
+        if not self.success:
+            return f"Error calling {self.tool_name}: {self.error}"
+        if isinstance(self.output, dict):
+            return json.dumps(self.output)
+        return str(self.output)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "tool_name": self.tool_name,
+            "output": self.output,
+            "success": self.success,
+            "error": self.error,
+        "call_id": self.call_id,
+    }
+
+@dataclass
+class ToolUseModel:
+    """Orchestrates the full 5-step function-calling workflow."""
+
+    model_id: str
+    base_model_name: str = "tool-use-v1"
+    tools: dict[str, ToolSpec] = field(default_factory=dict)
+    _tool_call_history: list[dict[str, Any]] = field(default_factory=list, repr=False)
+    _tool_result_history: list[dict[str, Any]] = field(default_factory=list, repr=False)
+    _tool_execution_history: list[dict[str, Any]] = field(default_factory=list, repr=False)
+    _current_query: str | None = None
+    _current_tool_call: ToolCall | None = None
+    _current_tool_result: ToolResult | None = None
+
+    def _init(self) -> None:
+        self._register_default_tools()
+
+    def _register_default_tools(self) -> None:
+        for _tool_name, tool_data in PREDEFINED_TOOLS.items():
+            self.register_tool(
+                ToolSpec(
+                    name=tool_data["name"],
+                    description=tool_data["description"],
+                    parameters=tool_data["parameters"],
+                    return_type=tool_data.get("return_type", "any"),
+                    keywords=tool_data.get("keywords", []),
+                )
+            )
+
+    def register_tool(self, tool: ToolSpec) -> None:
+        self.tools[tool.name] = tool
+
+    def get_tool(self, name: str) -> ToolSpec | None:
+        return self.tools.get(name)
+
+    def list_tools(self) -> list[dict[str, Any]]:
+        return [tool.to_json_schema() for tool in self.tools.values()]
+
+    def decide_tool(self, query: str) -> ToolCall | None:
+        self._current_query = query
+        best_tool: ToolSpec | None = None
+        best_score = 0.0
+
+        for tool in self.tools.values():
+            score = tool.matches_query(query)
+            if score > best_score:
+                best_score = score
+                best_tool = tool
+
+        if best_tool is None or best_score < 0.1:
+            return None
+
+        args = self._extract_arguments(query, best_tool)
+        tool_call = ToolCall(tool_name=best_tool.name, arguments=args)
+        self._current_tool_call = tool_call
+        self._tool_call_history.append(tool_call.to_dict())
+        return tool_call
+
+    def _extract_arguments(self, query: str, tool: ToolSpec) -> dict[str, Any]:
+        args: dict[str, Any] = {}
+        assigned_params: set[str] = set()
+        props = tool.parameters.get("properties", {})
+        param_order = list(props.keys())
+        param_idx = 0
+
+        raw_tokens = query.replace("?", "").replace(",", "").replace("'", "").split()
+        tokens = [t.strip().rstrip(".") for t in raw_tokens if t.strip()]
+
+        for token in tokens:
+            while param_idx < len(param_order) and param_order[param_idx] in assigned_params:
+                param_idx += 1
+            if param_idx >= len(param_order):
+                break
+            param = param_order[param_idx]
+            param_info = props[param]
+            param_type = param_info.get("type", "string")
+            clean_lower = token.lower()
+            matched = False
+
+            if param_type == "string":
+                if param == "name" and clean_lower.upper() in {"TCS", "INFY", "AAPL", "GOOGL", "MSFT"}:
+                    args[param] = clean_lower.upper()
+                    matched = True
+                elif param == "city" and clean_lower.title() in {"Mumbai", "Delhi", "London", "New York", "Tokyo"}:
+                    args[param] = clean_lower.title()
+                    matched = True
+                elif param == "operation" and clean_lower in {
+                    "add", "subtract", "multiply", "divide", "plus", "minus", "times", "by", "+", "-", "*", "/"
+                }:
+                    op_map = {"plus": "add", "minus": "subtract", "times": "multiply", "by": "divide", "+": "add", "-": "subtract", "*": "multiply", "/": "divide", "add": "add", "subtract": "subtract", "multiply": "multiply", "divide": "divide"}
+                    args[param] = op_map.get(clean_lower, clean_lower)
+                    matched = True
+                elif param == "order_id" and (
+                    clean_lower.upper().startswith("ORD-") or clean_lower.upper().startswith("ORD_")
+                ):
+                    args[param] = clean_lower.upper()
+                    matched = True
+                elif param == "query" and any(
+                    kw in clean_lower for kw in ["select", "from", "where", "show", "list", "count", "find", "users"]
+                ):
+                    args[param] = query.strip()
+                    matched = True
+            elif param_type in ("number", "integer"):
+                try:
+                    args[param] = float(clean_lower)
+                    matched = True
+                except ValueError:
+                    pass
+
+            if matched:
+                assigned_params.add(param)
+                param_idx += 1
+
+        for required_param in tool.get_required_params():
+            if required_param not in args:
+                if required_param == "name":
+                    args[required_param] = random.choice(["TCS", "INFY", "AAPL", "GOOGL", "MSFT"])
+                elif required_param == "city":
+                    args[required_param] = random.choice(["Mumbai", "Delhi", "London", "New York", "Tokyo"])
+                elif required_param == "operation":
+                    args[required_param] = random.choice(["add", "subtract", "multiply", "divide"])
+                elif required_param == "order_id":
+                    args[required_param] = f"ORD-{random.randint(10000, 99999)}"
+                elif required_param == "query":
+                    args[required_param] = "SELECT * FROM users LIMIT 10"
+
+        return args
+
+    def execute_tool(self, tool_call: ToolCall) -> ToolResult:
+        tool = self.tools.get(tool_call.tool_name)
+        if tool is None:
+            result = ToolResult(
+                tool_name=tool_call.tool_name,
+                output=None,
+                success=False,
+                error=f"Unknown tool: {tool_call.tool_name}",
+                call_id=tool_call.call_id,
+            )
+            self._current_tool_result = result
+            self._tool_result_history.append(result.to_dict())
+            return result
+
+        try:
+            raw_output = _run_tool_function(tool_call.tool_name, tool_call.arguments)
+            result = ToolResult(
+                tool_name=tool_call.tool_name,
+                output=raw_output,
+                success=True,
+                call_id=tool_call.call_id,
+            )
+        except Exception as exc:
+            result = ToolResult(
+                tool_name=tool_call.tool_name,
+                output=None,
+                success=False,
+                error=str(exc),
+                call_id=tool_call.call_id,
+            )
+
+        self._current_tool_result = result
+        self._tool_result_history.append(result.to_dict())
+        self._tool_execution_history.append({
+            "call": tool_call.to_dict(),
+            "result": result.to_dict(),
+        })
+        return result
+
+    def run_workflow(self, workflow_name: str) -> dict[str, Any] | None:
+        workflow = get_workflow_by_name(workflow_name)
+        if workflow is None:
+            return None
+        return self.invoke(workflow["example_query"])
+
+    def invoke(self, query: str) -> dict[str, Any]:
+        self._current_query = query
+        tool_call = self.decide_tool(query)
+        if tool_call is None:
+            return {
+                "query": query,
+                "tool_call": None,
+                "tool_result": None,
+                "final_response": f"I don't have a relevant tool to answer: '{query}'. Please provide more context.",
+                "success": False,
+            }
+
+        tool_result = self.execute_tool(tool_call)
+        formatted_output = tool_result.format_output()
+        final_response = _synthesize_response(query, tool_call.tool_name, formatted_output, tool_result.success)
+
+        return {
+            "query": query,
+            "tool_call": tool_call.to_dict(),
+            "tool_result": tool_result.to_dict(),
+            "final_response": final_response,
+            "success": tool_result.success,
+        }
+
+    def get_tool_call_history(self) -> list[dict[str, Any]]:
+        return list(self._tool_call_history)
+
+    def get_tool_result_history(self) -> list[dict[str, Any]]:
+        return list(self._tool_result_history)
+
+    def get_execution_history(self) -> list[dict[str, Any]]:
+        return list(self._tool_execution_history)
+
+    def save(self, path: str) -> None:
+        data = {
+            "model_id": self.model_id,
+            "base_model_name": self.base_model_name,
+            "tools": {name: tool.to_json_schema() for name, tool in self.tools.items()},
+            "tool_call_history": self._tool_call_history,
+            "tool_result_history": self._tool_result_history,
+            "tool_execution_history": self._tool_execution_history,
+        }
+        with open(path, "w") as f:
+            json.dump(data, f, indent=2)
+
+    @classmethod
+    def load(cls, path: str) -> ToolUseModel:
+        with open(path) as f:
+            data = json.load(f)
+
+        model = cls(model_id=data["model_id"], base_model_name=data.get("base_model_name", "tool-use-v1"))
+        model._tool_call_history = data.get("tool_call_history", [])
+        model._tool_result_history = data.get("tool_result_history", [])
+        model._tool_execution_history = data.get("tool_execution_history", [])
+        model._init()
+        return model
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "model_id": self.model_id,
+            "base_model_name": self.base_model_name,
+            "n_tools": len(self.tools),
+            "n_tool_calls": len(self._tool_call_history),
+            "n_tool_results": len(self._tool_result_history),
+            "n_executions": len(self._tool_execution_history),
+        }
+
+def _run_tool_function(tool_name: str, args: dict[str, Any]) -> Any:
+    if tool_name == "get_stock_price":
+        ticker = args.get("name", "UNKNOWN").upper()
+        stock_prices = {"TCS": 3718.0, "INFY": 4210.0, "AAPL": 213.0, "GOOGL": 175.0, "MSFT": 420.0}
+        return {"ticker": ticker, "price": stock_prices.get(ticker, 1000.0), "currency": "INR" if ticker in {"TCS", "INFY"} else "USD"}
+
+    elif tool_name == "get_weather":
+        city = args.get("city", "Unknown")
+        conditions = ["Sunny", "Cloudy", "Rainy", "Partly Cloudy"]
+        temps = {"Mumbai": 32, "Delhi": 38, "London": 18, "New York": 25, "Tokyo": 28}
+        return {
+            "city": city,
+            "temperature_c": temps.get(city, random.randint(15, 40)),
+            "condition": random.choice(conditions),
+            "humidity_pct": random.randint(30, 90),
+        }
+
+    elif tool_name == "calculator":
+        op = args.get("operation", "add")
+        a = float(args.get("operand1", 0))
+        b = float(args.get("operand2", 0))
+        ops = {
+            "add": a + b,
+            "subtract": a - b,
+            "multiply": a * b,
+            "divide": a / b if b != 0 else float("inf"),
+        }
+        return {"operation": op, "operand1": a, "operand2": b, "result": ops.get(op, 0)}
+
+    elif tool_name == "get_order_status":
+... (truncated) ...
 ```
 
-## ⚡ API Reference
+</details>
 
-FastAPI endpoints and model interfaces
+<details>
+<summary>train.py</summary>
 
-| Method | Endpoint |
-| --- | --- |
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/metrics` |
-| `GET` | `/tools` |
-| `GET` | `/tools/{tool_name}` |
-| `POST` | `/tools/register` |
-| `GET` | `/workflows` |
-| `GET` | `/applications` |
-| `GET` | `/advantages` |
-| `GET` | `/limitations` |
-
-## ▶ Usage
-
-Code examples and CLI commands
-
-### Training Script
-
-```python
+```
 """Training pipeline for Tool Use and Functional Calling.
 
 Demonstrates the complete 5-step function-calling workflow:
@@ -254,9 +709,322 @@ if __name__ == "__main__":
     main()
 ```
 
-### API Server
+</details>
 
-```python
+<details>
+<summary>data.py</summary>
+
+```
+"""Data loading, tool registries, and synthetic dataset generation for Tool Use and Functional Calling."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Any
+
+import numpy as np
+
+DEFAULT_N_TOOLS = 5
+DEFAULT_N_SAMPLES = 200
+DEFAULT_VOCAB_SIZE = 500
+
+PREDEFINED_TOOLS: dict[str, dict[str, Any]] = {
+    "get_stock_price": {
+        "name": "get_stock_price",
+        "description": "Gives the current stock price of a given company ticker symbol",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "name": {"type": "string", "description": "Stock ticker symbol, e.g. TCS, INFY, AAPL"}
+            },
+            "required": ["name"],
+        },
+        "return_type": "float",
+        "keywords": ["stock", "price", "ticker", "TCS", "INFY", "AAPL", "share", "market"],
+    },
+    "get_weather": {
+        "name": "get_weather",
+        "description": "Returns the current weather for a given city",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "city": {"type": "string", "description": "City name, e.g. Mumbai, Delhi, London"}
+            },
+            "required": ["city"],
+        },
+        "return_type": "dict",
+        "keywords": ["weather", "temperature", "rain", "city", "forecast", "mumbai", "delhi", "london"],
+    },
+    "calculator": {
+        "name": "calculator",
+        "description": "Performs basic arithmetic operations: add, subtract, multiply, divide",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "operand1": {"type": "number", "description": "First number"},
+                "operation": {"type": "string", "description": "One of: add, subtract, multiply, divide"},
+                "operand2": {"type": "number", "description": "Second number"},
+            },
+            "required": ["operation", "operand1", "operand2"],
+        },
+        "return_type": "float",
+        "keywords": ["calculate", "add", "subtract", "multiply", "divide", "math", "arithmetic", "sum", "product"],
+    },
+    "get_order_status": {
+        "name": "get_order_status",
+        "description": "Retrieves the status of a customer order by order ID",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "order_id": {"type": "string", "description": "Unique order identifier, e.g. ORD-12345"}
+            },
+            "required": ["order_id"],
+        },
+        "return_type": "dict",
+        "keywords": ["order", "status", "delivery", "shipped", "track", "ORD"],
+    },
+    "execute_sql_query": {
+        "name": "execute_sql_query",
+        "description": "Safely executes a read-only SQL SELECT query against the database",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "A read-only SQL SELECT query"}
+            },
+            "required": ["query"],
+        },
+        "return_type": "list[dict]",
+        "keywords": ["sql", "query", "database", "select", "from", "where", "show", "list", "count", "find", "table", "records", "rows", "users"],
+    },
+}
+
+PREDEFINED_WORKFLOWS: dict[str, dict[str, Any]] = {
+    "stock-price": {
+        "name": "stock-price",
+        "description": "Get current stock price for a company",
+        "tool_name": "get_stock_price",
+        "example_query": "What is the current TCS stock price?",
+        "expected_tool": "get_stock_price",
+        "example_args": {"name": "TCS"},
+    },
+    "weather-lookup": {
+        "name": "weather-lookup",
+        "description": "Get current weather for a city",
+        "tool_name": "get_weather",
+        "example_query": "What is the weather in Mumbai?",
+        "expected_tool": "get_weather",
+        "example_args": {"city": "Mumbai"},
+    },
+    "calculator": {
+        "name": "calculator",
+        "description": "Perform arithmetic operation",
+        "tool_name": "calculator",
+        "example_query": "Calculate 25 + 37",
+        "expected_tool": "calculator",
+        "example_args": {"operation": "add", "operand1": 25, "operand2": 37},
+    },
+    "order-status": {
+        "name": "order-status",
+        "description": "Check order delivery status",
+        "tool_name": "get_order_status",
+        "example_query": "What is the status of order ORD-12345?",
+        "expected_tool": "get_order_status",
+        "example_args": {"order_id": "ORD-12345"},
+    },
+    "sql-query": {
+        "name": "sql-query",
+        "description": "Generate and safely execute a SQL SELECT query",
+        "tool_name": "execute_sql_query",
+        "example_query": "Select all users who signed up in the last 7 days",
+        "expected_tool": "execute_sql_query",
+        "example_args": {"query": "SELECT * FROM users WHERE signup_date >= NOW() - INTERVAL 7 DAY"},
+    },
+}
+
+PREDEFINED_APPLICATIONS: list[dict[str, str]] = [
+    {
+        "name": "customer-support",
+        "description": "Chatbot resolving customer issues via get_order_status() and check_delivery()",
+    },
+    {
+        "name": "travel-planning",
+        "description": "Chatbot searching hotels, checking vacancy, and booking via backend APIs",
+    },
+    {
+        "name": "hr-operations",
+        "description": "Chatbot answering employee queries about leave policy and working hours",
+    },
+    {
+        "name": "automated-sql",
+        "description": "LLM generating read-only SQL queries and executing them safely",
+    },
+]
+
+PREDEFINED_ADVANTAGES: list[dict[str, str]] = [
+    {
+        "name": "real-time-data",
+        "description": "Eliminates stale training data by accessing current information via tools",
+    },
+    {
+        "name": "reduce-hallucinations",
+        "description": "Grounds responses in actual tool outputs instead of model priors",
+    },
+    {
+        "name": "extends-capability",
+        "description": "Equips LLMs with external capabilities like calculator, search, and database access",
+    },
+]
+
+PREDEFINED_LIMITATIONS: list[dict[str, str]] = [
+    {
+        "name": "token-cost",
+        "description": "Many tools increase JSON schema size, raising token count and API costs",
+    },
+    {
+        "name": "latency",
+        "description": "Tool selection, execution, and final generation adds latency; unsuitable for low-latency apps",
+    },
+    {
+        "name": "security",
+        "description": "In healthcare/defense, LLM-driven tool calls can cause real-world harm via errors",
+    },
+]
+
+def _tokenize(text: str, vocab_size: int = DEFAULT_VOCAB_SIZE, rng: np.random.Generator | None = None) -> np.ndarray:
+    words = text.lower().split()
+    tokens = [hash(w) % vocab_size for w in words]
+    return np.array(tokens, dtype=int)
+
+def generate_tool_call_dataset(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    vocab_size: int = DEFAULT_VOCAB_SIZE,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    rng = np.random.default_rng(random_seed)
+    tool_names = list(PREDEFINED_TOOLS.keys())
+    max_len = 20
+    X = np.zeros((n_samples, max_len), dtype=int)
+    y = np.zeros(n_samples, dtype=int)
+
+    query_templates = {
+        "get_stock_price": [
+            "What is the price of {ticker} stock?",
+            "Tell me the current {ticker} share price",
+            "How much is {ticker} trading at?",
+            "What is {ticker} stock price today?",
+        ],
+        "get_weather": [
+            "What is the weather in {city}?",
+            "Tell me the temperature in {city}",
+            "How is the weather in {city} today?",
+            "Is it raining in {city}?",
+        ],
+        "calculator": [
+            "Calculate {a} plus {b}",
+            "What is {a} multiplied by {b}?",
+            "Compute {a} minus {b}",
+            "Divide {a} by {b}",
+        ],
+        "get_order_status": [
+            "What is the status of order {order_id}?",
+            "Track my order {order_id}",
+            "Has order {order_id} been shipped?",
+            "Where is my order {order_id}?",
+        ],
+        "execute_sql_query": [
+            "Show me all records from the users table",
+            "List all orders placed this month",
+            "Count how many customers registered last week",
+            "Find all products with price greater than 100",
+        ],
+    }
+
+    tickers = ["TCS", "INFY", "AAPL", "GOOGL", "MSFT"]
+    cities = ["Mumbai", "Delhi", "London", "New York", "Tokyo"]
+
+    for i in range(n_samples):
+        tool_idx = rng.integers(0, len(tool_names))
+        tool_name = tool_names[tool_idx]
+        templates = query_templates[tool_name]
+        template = templates[rng.integers(0, len(templates))]
+        query = template.format(
+            ticker=rng.choice(tickers),
+            city=rng.choice(cities),
+            a=int(rng.integers(1, 100)),
+            b=int(rng.integers(1, 100)),
+            order_id=f"ORD-{rng.integers(10000, 99999)}",
+        )
+        tokens = _tokenize(query, vocab_size, rng)
+        X[i, : len(tokens)] = tokens[:max_len]
+        y[i] = tool_idx
+
+    return X, y
+
+def load_tool_dataset(
+    data_path: Path | None = None,
+    n_samples: int = DEFAULT_N_SAMPLES,
+    vocab_size: int = DEFAULT_VOCAB_SIZE,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    if data_path and Path(data_path).exists():
+        data = np.load(data_path, allow_pickle=True)
+        return data["X"], data["y"]
+    return generate_tool_call_dataset(n_samples=n_samples, vocab_size=vocab_size, random_seed=random_seed)
+
+def train_test_split(
+    X: np.ndarray,
+    y: np.ndarray,
+    test_size: float = 0.2,
+    random_seed: int | None = None,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    n = len(X)
+    n_test = max(1, int(n * test_size))
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+    test_idx = indices[:n_test]
+    train_idx = indices[n_test:]
+    return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
+
+def save_dataset(X: np.ndarray, y: np.ndarray, path: Path) -> None:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(path, X=X, y=y)
+
+def get_tool_by_name(name: str) -> dict[str, Any] | None:
+    return PREDEFINED_TOOLS.get(name)
+
+def get_all_tools() -> list[dict[str, Any]]:
+    return list(PREDEFINED_TOOLS.values())
+
+def get_workflow_by_name(name: str) -> dict[str, Any] | None:
+    return PREDEFINED_WORKFLOWS.get(name)
+
+def get_all_workflows() -> list[dict[str, Any]]:
+    return list(PREDEFINED_WORKFLOWS.values())
+
+def get_applications() -> list[dict[str, str]]:
+    return PREDEFINED_APPLICATIONS
+
+def get_advantages() -> list[dict[str, str]]:
+    return PREDEFINED_ADVANTAGES
+
+def get_limitations() -> list[dict[str, str]]:
+    return PREDEFINED_LIMITATIONS
+
+def serialize_tools_to_json(tools: list[dict[str, Any]]) -> str:
+    return json.dumps(tools, indent=2)
+```
+
+</details>
+
+<details>
+<summary>api.py</summary>
+
+```
 """Serving API for Tool Use and Functional Calling."""
 
 from __future__ import annotations
@@ -574,16 +1342,40 @@ def get_stats():
     )
 ```
 
-### CLI Commands
+</details>
 
-```bash
-uv run python -m tool_use_functional_calling.train --model-dir ./artifacts/models
-```
+## 4. Monorepo Integration
 
-## 📊 Benchmarks
+This example is a first-class consumer of the shared `packages/ai-core` library.
+It reuses the following foundation modules instead of re-implementing infrastructure:
 
-Test results and performance metrics
+ai_core.drift
+ai_core.fastapi_middleware
+ai_core.logging
+ai_core.metrics
+ai_core.model_registry
 
-Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+### How it plugs in
 
-Generated documentation for **tool-use-functional-calling**
+
+
+- **Configuration** — 12-factor config from `ai_core.config`.
+
+
+
+- **Observability** — structured logging + Prometheus metrics are wired in automatically.
+
+
+
+- **Validation** — input schema validation prevents bad data reaching the model.
+
+
+
+- **Registry** — trained artifacts are versioned and registered for reproducible serving.
+
+
+
+- **Serving** — the FastAPI app mounts shared observability middleware for tracing & metrics.
+
+Because every example shares `ai_core`, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.

@@ -1,8 +1,13 @@
 # pinn-heat-equation
 
-## ∫ Mathematics & Theory
 
-Physics-Informed Neural Network (PINN) — Underlying equations and derivations
+
+Physics-Informed Neural Network (PINN) — AI engineering example · part of the MLOps monorepo
+
+## 1. Mathematical Foundations
+
+This example is grounded in **Physics-Informed Neural Network (PINN)**. The equations below
+drive every forward and backward pass in the implementation.
 
 $$\mathcal{L}_{total} = \mathcal{L}_{data} + \lambda \mathcal{L}_{pde}$$
 
@@ -12,53 +17,378 @@ $$\mathcal{L}_{pde} = \frac{1}{N_f} \sum_{i=1}^{N_f} \left| \mathcal{F}\left(u_\
 
 $$u_t + u u_x = \nu u_{xx} \quad \text{(Burgers' equation)}$$
 
-### Step-by-Step Derivation
+### Derivation
 
 PINNs embed physical laws as soft constraints via automatic differentiation. The total loss combines data fitting $\mathcal{L}_{data}$ and PDE residual $\mathcal{L}_{pde}$. Gradients of $u_\theta$ w.r.t. inputs are computed symbolically via autograd. This enables solving PDEs without labeled data in the domain interior.
 
-### Interactive Visualization
+### Worked Numerical Example
+
+$$z = w \cdot x + b$$
+
+Illustrative forward-pass evaluation (scalar example):
+
+Input  x        = 12.0   (e.g. pizza diameter, inches)
+Weights w       =  0.85
+Bias    b       =  0.30
+---------------------------------
+z = w*x + b
+  = 0.85 * 12.0 + 0.30
+  = 10.20 + 0.30
+  = 10.50   <- model output
+
+### Conceptual Diagram
+
+        Math concept (placeholder)
+   [ Input x ] --> ( w · x + b ) --> [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]
+
+![Math Explanation (placeholder)](./assets/math-concept.png)
 
 Interactive PDE solution comparison: PINN vs finite difference; residual heatmap; loss decomposition pie chart.
 
-## ⚙ Architecture
+## 2. Core Logic & Architecture
 
-Model structure, data flow, and layer breakdown
+The example follows a consistent **data → train → evaluate → serve**
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.
 
-### Class Hierarchy
+  Raw dataset→
+  load + validate (data.py)→
+  fit / transform (model.py)→
+  evaluate + persist (train.py)→
+  serve (api.py)
 
-```
-  PINNHeatEquation
-```
+### Primary Components
+
+| Class | Public methods | Responsibility |
+| --- | --- | --- |
+| `PredictRequest` | — |  |
+| `PredictBulkRequest` | — |  |
+| `PredictResponse` | — |  |
+| `BulkPredictResponse` | — |  |
+| `DriftResponse` | — |  |
+| `StatsResponse` | — |  |
+| `PINNHeatEquation` | _init_weights, _forward, _compute_physics_residual, fit, predict, predict_proba, evaluate, save, load, to_dict | Physics-Informed Neural Network for solving the heat equation.  Trained to solve u_t = alpha * u_xx while respecting physical constraints.  Args:     alpha: Thermal diffusivity coefficient     hidden_dim: Hidden units per layer     n_layers: Number of hidden layers     learning_rate: Gradient descent step size     n_iterations: Number of training iterations     weight_decay: L2 regularization     clip_value: Gradient clipping threshold     random_seed: Random seed |
 
 ### Data Flow
 
-```mermaid
-graph TD
-  A[Input Data] --> B[Preprocessing]
-  B --> C[Model Training]
-  C --> D[Evaluation]
-  D --> E[Model Registry]
-  E --> F[Serving API]
+
+
+1. **Load** — `data.py` reads the source dataset and splits train/test.
+
+
+
+2. **Validate** — a Pydantic schema guards input shape/dtypes before training.
+
+
+
+3. **Fit / Transform** — `model.py` applies the mathematics from Section 1.
+
+
+
+4. **Evaluate** — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.
+
+
+
+5. **Persist** — weights/artifacts are saved and registered in the model registry.
+
+
+
+6. **Serve** — `api.py` exposes prediction endpoints with drift detection.
+
+### Design Patterns & Performance
+
+Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via `ai_core.validation`, structured JSON logging through `ai_core.logging`, Prometheus metrics from `ai_core.metrics`, and MLflow/model-registry persistence via `ai_core.model_registry`. The FastAPI service wraps the trained model with observability middleware from `ai_core.fastapi_middleware`.
+
+## 3. Detailed Code Walkthrough
+
+The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.
+
+### `PINNHeatEquation.fit(X, u_true, n_iterations)`
+
+Train the PINN to solve the heat equation.
+
+Args:
+    X: Input coordinates (n_samples, 2) [x, t]
+    u_true: True temperature values (n_samples, 1)
+
+### `PINNHeatEquation.predict(X)`
+
+Predict temperature u(x, t) for given coordinates.
+
+### Source Files
+
+<details>
+<summary>model.py</summary>
+
+```
+"""Physics-Informed Neural Network for heat equation solving.
+
+Architecture:
+    Input (batch, 2) [x, t coordinates] -> Dense (hidden_dim, tanh) -> Dense (hidden_dim, tanh)
+    -> Dense (1, linear) -> Temperature prediction u(x, t)
+
+Loss:
+    Data loss: MSE( u_pred - u_true )
+    Physics loss: MSE( du/dt - alpha * d2u/dx2 ) (heat equation residual)
+"""
+
+from dataclasses import dataclass, field
+
+import numpy as np
+
+def tanh(z: np.ndarray) -> np.ndarray:
+    return np.tanh(z)
+
+def tanh_derivative(tanh_val: np.ndarray) -> np.ndarray:
+    return 1.0 - tanh_val ** 2
+
+@dataclass
+class PINNHeatEquation:
+    """Physics-Informed Neural Network for solving the heat equation.
+
+    Trained to solve u_t = alpha * u_xx while respecting physical constraints.
+
+    Args:
+        alpha: Thermal diffusivity coefficient
+        hidden_dim: Hidden units per layer
+        n_layers: Number of hidden layers
+        learning_rate: Gradient descent step size
+        n_iterations: Number of training iterations
+        weight_decay: L2 regularization
+        clip_value: Gradient clipping threshold
+        random_seed: Random seed
+    """
+
+    alpha: float = 0.01
+    hidden_dim: int = 32
+    n_layers: int = 2
+    learning_rate: float = 0.01
+    n_iterations: int = 500
+    weight_decay: float = 0.001
+    clip_value: float = 5.0
+    random_seed: int = 42
+
+    weights: list = field(default_factory=list, repr=False)
+    biases: list = field(default_factory=list, repr=False)
+    n_weights: int = 0
+    training_mode: str = "physics-informed"
+    loss_history: list[float] = field(default_factory=list)
+    _data_loss_history: list[float] = field(default_factory=list, repr=False)
+    _physics_loss_history: list[float] = field(default_factory=list, repr=False)
+
+    def _init_weights(self) -> None:
+        rng = np.random.default_rng(self.random_seed)
+        self.n_weights = self.n_layers + 1
+
+        self.weights = [
+            rng.normal(0, np.sqrt(2.0 / 2), (2, self.hidden_dim)),
+        ] + [
+            rng.normal(0, np.sqrt(2.0 / self.hidden_dim), (self.hidden_dim, self.hidden_dim))
+            for _ in range(self.n_layers - 1)
+        ] + [
+            rng.normal(0, np.sqrt(1.0 / self.hidden_dim), (self.hidden_dim, 1)),
+        ]
+
+        self.biases = [np.zeros(self.hidden_dim) for _ in range(self.n_layers)] + [np.zeros(1)]
+
+    def _forward(self, X: np.ndarray, training: bool = True) -> tuple[np.ndarray, dict]:
+        """Forward pass through the network.
+
+        Args:
+            X: Input coordinates (batch, 2) [x, t]
+
+        Returns:
+            u: Temperature predictions (batch, 1)
+        """
+        activations = [X]
+        zs = []
+
+        a = X
+        for i in range(len(self.weights)):
+            z = a @ self.weights[i] + self.biases[i]
+            zs.append(z)
+            a = tanh(z) if i < len(self.weights) - 1 else z
+            activations.append(a)
+
+        cache = {"activations": activations, "zs": zs}
+        return a, cache
+
+    def _compute_physics_residual(self, X: np.ndarray, u_pred: np.ndarray) -> np.ndarray:
+        """Compute the heat equation residual: du/dt - alpha * d2u/dx2.
+
+        Uses finite differences for automatic differentiation approximation.
+        """
+        eps = 1e-5
+        X_x_plus = X.copy()
+        X_x_plus[:, 0] += eps
+        X_x_minus = X.copy()
+        X_x_minus[:, 0] -= eps
+        X_t_plus = X.copy()
+        X_t_plus[:, 1] += eps
+        X_t_minus = X.copy()
+        X_t_minus[:, 1] -= eps
+
+        u_x_plus, _ = self._forward(X_x_plus)
+        u_x_minus, _ = self._forward(X_x_minus)
+        u_t_plus, _ = self._forward(X_t_plus)
+        u_t_minus, _ = self._forward(X_t_minus)
+
+        du_dt = (u_t_plus - u_t_minus) / (2 * eps)
+        d2u_dx2 = (u_x_plus - 2 * u_pred + u_x_minus) / (eps ** 2)
+
+        residual = du_dt - self.alpha * d2u_dx2
+        return residual
+
+    def fit(
+        self,
+        X: np.ndarray,
+        u_true: np.ndarray,
+        n_iterations: int | None = None,
+    ) -> "PINNHeatEquation":
+        """Train the PINN to solve the heat equation.
+
+        Args:
+            X: Input coordinates (n_samples, 2) [x, t]
+            u_true: True temperature values (n_samples, 1)
+        """
+        if not self.weights:
+            self._init_weights()
+
+        if n_iterations is None:
+            n_iterations = self.n_iterations
+
+        n_samples = X.shape[0]
+        rng = np.random.default_rng(self.random_seed)
+
+        for _epoch in range(n_iterations):
+            X_shuffled = X[rng.permutation(n_samples)]
+            u_shuffled = u_true[rng.permutation(n_samples)] if u_true is not None else None
+
+            total_data_loss = 0.0
+            total_physics_loss = 0.0
+
+            for i in range(n_samples):
+                x_i = X_shuffled[i:i + 1]
+                u_i = u_shuffled[i:i + 1] if u_shuffled is not None else np.zeros((1, 1))
+
+                u_pred, cache = self._forward(x_i)
+                residual = self._compute_physics_residual(x_i, u_pred)
+
+                data_loss = np.mean((u_pred - u_i) ** 2)
+                physics_loss = np.mean(residual ** 2)
+                total_data_loss += data_loss
+                total_physics_loss += physics_loss
+
+                d_pred_du = 1.0
+                ddout = d_pred_du * 2 * (u_pred - u_i) / u_i.size
+
+                grads_w = [np.zeros_like(w) for w in self.weights]
+                grads_b = [np.zeros_like(b) for b in self.biases]
+
+                activations = cache["activations"]
+                zs = cache["zs"]
+
+                da = ddout
+                for layer_idx in reversed(range(len(self.weights))):
+                    grads_w[layer_idx] += activations[layer_idx].T @ da
+                    grads_b[layer_idx] += np.sum(da, axis=0)
+                    if layer_idx > 0:
+                        da = da @ self.weights[layer_idx].T
+                        da = da * tanh_derivative(tanh(zs[layer_idx - 1]))
+
+                grad_norm = np.sqrt(sum(np.sum(g ** 2) for g in grads_w if g is not None))
+                if grad_norm > self.clip_value:
+                    scale = self.clip_value / (grad_norm + 1e-8)
+                    grads_w = [g * scale for g in grads_w]
+
+                lr = self.learning_rate
+                wd = self.weight_decay
+                for layer_idx in range(len(self.weights)):
+                    self.weights[layer_idx] -= lr * (grads_w[layer_idx] + wd * self.weights[layer_idx])
+                    self.biases[layer_idx] -= lr * grads_b[layer_idx]
+
+            self.loss_history.append((total_data_loss + total_physics_loss) / n_samples)
+            self._data_loss_history.append(total_data_loss / n_samples)
+            self._physics_loss_history.append(total_physics_loss / n_samples)
+
+        return self
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """Predict temperature u(x, t) for given coordinates."""
+        u, _ = self._forward(X)
+        return u.flatten()
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        """Return physics residual magnitude as confidence measure."""
+        u_pred, _ = self._forward(X)
+        residual = self._compute_physics_residual(X, u_pred)
+        return np.abs(residual).flatten()
+
+    def evaluate(self, X: np.ndarray, u_true: np.ndarray) -> dict[str, float]:
+        u_pred, _ = self._forward(X)
+        mse = float(np.mean((u_pred - u_true) ** 2))
+        rmse = float(np.sqrt(mse))
+        max_err = float(np.max(np.abs(u_pred - u_true)))
+        return {"mse": mse, "rmse": rmse, "max_error": max_err, "n_samples": float(len(X))}
+
+    def save(self, path: str) -> None:
+        arrays = {
+            "loss_history": np.array(self.loss_history),
+            "alpha": np.array([self.alpha]),
+            "hidden_dim": np.array([self.hidden_dim]),
+            "n_layers": np.array([self.n_layers]),
+            "learning_rate": np.array([self.learning_rate]),
+            "n_iterations": np.array([self.n_iterations]),
+            "weight_decay": np.array([self.weight_decay]),
+        }
+        for i, w in enumerate(self.weights):
+            arrays[f"W{i}"] = w
+        for i, b in enumerate(self.biases):
+            arrays[f"b{i}"] = b
+        np.savez(path, **arrays)
+
+    @classmethod
+    def load(cls, path: str) -> "PINNHeatEquation":
+        data = np.load(path, allow_pickle=True)
+        obj = cls(
+            alpha=float(data["alpha"].item()),
+            hidden_dim=int(data["hidden_dim"].item()),
+            n_layers=int(data["n_layers"].item()),
+            learning_rate=float(data["learning_rate"].item()),
+            n_iterations=int(data["n_iterations"].item()),
+            weight_decay=float(data["weight_decay"].item()),
+            random_seed=42,
+        )
+        obj._init_weights()
+        obj.weights = [data[f"W{i}"] for i in range(len(obj.weights))]
+        obj.biases = [data[f"b{i}"] for i in range(len(obj.biases))]
+        obj.loss_history = list(data.get("loss_history", [0.0]))
+        return obj
+
+    def to_dict(self) -> dict:
+        return {
+            "alpha": self.alpha,
+            "hidden_dim": self.hidden_dim,
+            "n_layers": self.n_layers,
+            "learning_rate": self.learning_rate,
+            "n_iterations": self.n_iterations,
+            "training_mode": self.training_mode,
+            "n_epochs_run": len(self.loss_history),
+            "final_loss": self.loss_history[-1] if self.loss_history else 0.0,
+        }
 ```
 
-## ⚡ API Reference
+</details>
 
-FastAPI endpoints and model interfaces
+<details>
+<summary>train.py</summary>
 
-| Method | Endpoint |
-| --- | --- |
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/metrics` |
-| `POST` | `/reload` |
-
-## ▶ Usage
-
-Code examples and CLI commands
-
-### Training Script
-
-```python
+```
 """Training pipeline for PINN Heat Equation Solver."""
 
 import argparse
@@ -211,9 +541,92 @@ if __name__ == "__main__":
     main()
 ```
 
-### API Server
+</details>
 
-```python
+<details>
+<summary>data.py</summary>
+
+```
+"""Data loading and preprocessing for PINN heat equation solver."""
+
+from pathlib import Path
+
+import numpy as np
+
+N_FEATURES = 2
+ALPHA = 0.01
+
+DEFAULT_N_SAMPLES = 200
+
+def heat_equation_solution(x: np.ndarray, t: float, alpha: float = ALPHA, n_terms: int = 50) -> np.ndarray:
+    """Analytical solution to the 1D heat equation on [0, 1] with u(x,0)=sin(pi*x), u(0,t)=u(1,t)=0.
+
+    u(x,t) = sum_{n=1}^{inf} (2/(n*pi)) * (1 - exp(-n^2 * pi^2 * alpha * t)) * sin(n*pi*x)
+    For initial condition sin(pi*x), only n=1 matters:
+    u(x,t) = sin(pi*x) * exp(-pi^2 * alpha * t)
+    """
+    return np.sin(np.pi * x) * np.exp(-np.pi ** 2 * alpha * t)
+
+def generate_synthetic_data(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+    alpha: float = ALPHA,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Generate synthetic PDE solver data for the heat equation.
+
+    Returns:
+        X: (n_samples, 2) [x, t] coordinates
+        u_true: (n_samples, 1) true temperature values
+    """
+    rng = np.random.default_rng(random_seed)
+    X = np.zeros((n_samples, 2))
+    u_true = np.zeros((n_samples, 1))
+
+    for i in range(n_samples):
+        x = rng.uniform(0, 1)
+        t = rng.uniform(0, 0.5)
+        X[i] = [x, t]
+        u_true[i, 0] = heat_equation_solution(x, t, alpha=alpha)
+
+    perm = rng.permutation(n_samples)
+    return X[perm], u_true[perm]
+
+def load_training_data(
+    data_path: Path | None = None,
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    if data_path and Path(data_path).exists():
+        data = np.load(data_path, allow_pickle=True)
+        return data["X"], data["u_true"]
+    return generate_synthetic_data(n_samples=n_samples, random_seed=random_seed)
+
+def train_test_split(
+    X: np.ndarray, y: np.ndarray, test_size: float = 0.2, random_seed: int | None = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    n = len(X)
+    n_test = max(1, int(n * test_size))
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+    test_idx = indices[:n_test]
+    train_idx = indices[n_test:]
+    return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
+
+def save_training_data(X: np.ndarray, u_true: np.ndarray, path: Path) -> None:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(path, X=X, u_true=u_true)
+```
+
+</details>
+
+<details>
+<summary>api.py</summary>
+
+```
 """Serving API for PINN Heat Equation Solver."""
 
 import os
@@ -514,16 +927,41 @@ def predict_bulk(body: PredictBulkRequest):
     return BulkPredictResponse(predictions=predictions, model_version=_model_version)
 ```
 
-### CLI Commands
+</details>
 
-```bash
-uv run python -m pinn_heat_equation.train --model-dir ./artifacts/models
-```
+## 4. Monorepo Integration
 
-## 📊 Benchmarks
+This example is a first-class consumer of the shared `packages/ai-core` library.
+It reuses the following foundation modules instead of re-implementing infrastructure:
 
-Test results and performance metrics
+ai_core.drift
+ai_core.fastapi_middleware
+ai_core.logging
+ai_core.metrics
+ai_core.model_registry
+ai_core.validation
 
-Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+### How it plugs in
 
-Generated documentation for **pinn-heat-equation**
+
+
+- **Configuration** — 12-factor config from `ai_core.config`.
+
+
+
+- **Observability** — structured logging + Prometheus metrics are wired in automatically.
+
+
+
+- **Validation** — input schema validation prevents bad data reaching the model.
+
+
+
+- **Registry** — trained artifacts are versioned and registered for reproducible serving.
+
+
+
+- **Serving** — the FastAPI app mounts shared observability middleware for tracing & metrics.
+
+Because every example shares `ai_core`, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.

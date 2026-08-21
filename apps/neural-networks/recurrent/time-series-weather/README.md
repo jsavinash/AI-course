@@ -1,65 +1,343 @@
 # time-series-weather
 
-## ∫ Mathematics & Theory
 
-Recurrent Neural Network (RNN) — Underlying equations and derivations
 
-$$h_t = \tanh(W_{hh}h_{t-1} + W_{xh}x_t + b_h)$$
+Machine Learning Fundamentals — AI engineering example · part of the MLOps monorepo
 
-$$\hat{y}_t = W_{hy}h_t + b_y$$
+## 1. Mathematical Foundations
 
-$$\mathcal{L} = \sum_{t=1}^{T} \mathcal{L}_t(y_t, \hat{y}_t)$$
+This example is grounded in **Machine Learning Fundamentals**. The equations below
+drive every forward and backward pass in the implementation.
 
-$$\frac{\partial \mathcal{L}}{\partial W_{hh}} = \sum_{t=1}^{T} \delta_t h_{t-1}^T$$
+$$\hat{y} = f(x; \theta)$$
 
-### Step-by-Step Derivation
+$$\mathcal{L}(\theta) = \frac{1}{n} \sum_{i=1}^{n} \ell(y_i, \hat{y}_i)$$
 
-RNNs process sequences by maintaining a hidden state $h_t$ that summarizes past inputs. At each timestep, the hidden state is updated via $h_t = \tanh(W_{hh}h_{t-1} + W_{xh}x_t)$. Backpropagation Through Time (BPTT) unrolls the network and computes gradients across all timesteps. Vanishing gradients are mitigated by gated architectures like LSTM and GRU.
+$$\theta \leftarrow \theta - \alpha \nabla_\theta \mathcal{L}(\theta)$$
 
-### Interactive Visualization
+### Derivation
 
-Interactive unfolded RNN diagram with gradient flow visualization; hidden state trajectory plot.
+Machine learning models learn parameters $\theta$ by minimizing a loss function $\mathcal{L}$. Gradient descent iteratively updates parameters in the direction of steepest descent. The learning rate $\alpha$ controls step size. Stochastic gradient descent (SGD) uses mini-batches for computational efficiency.
 
-## ⚙ Architecture
+### Worked Numerical Example
 
-Model structure, data flow, and layer breakdown
+$$z = w \cdot x + b$$
 
-### Class Hierarchy
+Illustrative forward-pass evaluation (scalar example):
 
-```
-  WeatherForecastingRNN
-```
+Input  x        = 12.0   (e.g. pizza diameter, inches)
+Weights w       =  0.85
+Bias    b       =  0.30
+---------------------------------
+z = w*x + b
+  = 0.85 * 12.0 + 0.30
+  = 10.20 + 0.30
+  = 10.50   <- model output
+
+### Conceptual Diagram
+
+        Math concept (placeholder)
+   [ Input x ] --> ( w · x + b ) --> [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]
+
+![Math Explanation (placeholder)](./assets/math-concept.png)
+
+Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
+
+## 2. Core Logic & Architecture
+
+The example follows a consistent **data → train → evaluate → serve**
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.
+
+  Raw dataset→
+  load + validate (data.py)→
+  fit / transform (model.py)→
+  evaluate + persist (train.py)→
+  serve (api.py)
+
+### Primary Components
+
+| Class | Public methods | Responsibility |
+| --- | --- | --- |
+| `PredictRequest` | — |  |
+| `PredictBulkRequest` | — |  |
+| `PredictResponse` | — |  |
+| `BulkPredictResponse` | — |  |
+| `StatsResponse` | — |  |
+| `WeatherForecastingRNN` | fit, predict, predict_proba, mse, rmse, mae, r2_score_per_feature, evaluate, save, load, to_dict | RNN for multi-feature weather regression (many-to-one).  Args:     n_features: Number of weather features per timestep     seq_len: Number of timesteps in input sequences     hidden_dim: Number of hidden units     learning_rate: Gradient descent step size     n_iterations: Number of training epochs     weight_decay: L2 regularization strength     clip_value: Maximum gradient norm     random_seed: Random seed for reproducibility |
 
 ### Data Flow
 
-```mermaid
-graph TD
-  A[Input Data] --> B[Preprocessing]
-  B --> C[Model Training]
-  C --> D[Evaluation]
-  D --> E[Model Registry]
-  E --> F[Serving API]
+
+
+1. **Load** — `data.py` reads the source dataset and splits train/test.
+
+
+
+2. **Validate** — a Pydantic schema guards input shape/dtypes before training.
+
+
+
+3. **Fit / Transform** — `model.py` applies the mathematics from Section 1.
+
+
+
+4. **Evaluate** — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.
+
+
+
+5. **Persist** — weights/artifacts are saved and registered in the model registry.
+
+
+
+6. **Serve** — `api.py` exposes prediction endpoints with drift detection.
+
+### Design Patterns & Performance
+
+Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via `ai_core.validation`, structured JSON logging through `ai_core.logging`, Prometheus metrics from `ai_core.metrics`, and MLflow/model-registry persistence via `ai_core.model_registry`. The FastAPI service wraps the trained model with observability middleware from `ai_core.fastapi_middleware`.
+
+## 3. Detailed Code Walkthrough
+
+The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.
+
+### `WeatherForecastingRNN.fit(X, y, X_val, y_val)`
+
+Train the RNN with BPTT.
+
+Args:
+    X: Weather feature sequences (n_samples, seq_len, n_features)
+    y: Target weather vectors (n_samples, n_features) — next-day values
+
+Returns:
+    self
+
+### `WeatherForecastingRNN.predict(X)`
+
+Predict next-day weather vectors for a batch of sequences.
+
+### Source Files
+
+<details>
+<summary>model.py</summary>
+
+```
+"""Recurrent neural network for weather forecasting.
+
+A SimpleRNN (Elman network) trained with Backpropagation Through Time (BPTT).
+Built from scratch with NumPy, using the shared nn_utils.rnn.SimpleRNN base.
+
+Architecture:
+    Input (seq_len, n_features) -> Hidden (hidden_dim, tanh) -> Output (n_features, linear)
+
+Loss: Mean Squared Error (many-to-one: predicts next-day weather vector)
+
+The model learns temporal patterns in a sequence of weather measurements
+(temperature, humidity, pressure, wind-speed, precipitation) and predicts
+the weather vector for the next day.
+"""
+
+from dataclasses import dataclass, field
+
+import numpy as np
+from ai_core.nn_utils.rnn import SimpleRNN
+
+@dataclass
+class WeatherForecastingRNN:
+    """RNN for multi-feature weather regression (many-to-one).
+
+    Args:
+        n_features: Number of weather features per timestep
+        seq_len: Number of timesteps in input sequences
+        hidden_dim: Number of hidden units
+        learning_rate: Gradient descent step size
+        n_iterations: Number of training epochs
+        weight_decay: L2 regularization strength
+        clip_value: Maximum gradient norm
+        random_seed: Random seed for reproducibility
+    """
+
+    n_features: int = 5
+    seq_len: int = 30
+    hidden_dim: int = 32
+    learning_rate: float = 0.01
+    n_iterations: int = 300
+    weight_decay: float = 0.001
+    clip_value: float = 5.0
+    random_seed: int = 42
+
+    model: SimpleRNN | None = field(default=None, repr=False)
+    training_mode: str = "supervised"
+    loss_history: list[float] = field(default_factory=list)
+    feature_mean_: np.ndarray | None = None
+    feature_std_: np.ndarray | None = None
+
+    def fit(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        X_val: np.ndarray | None = None,
+        y_val: np.ndarray | None = None,
+    ) -> "WeatherForecastingRNN":
+        """Train the RNN with BPTT.
+
+        Args:
+            X: Weather feature sequences (n_samples, seq_len, n_features)
+            y: Target weather vectors (n_samples, n_features) — next-day values
+
+        Returns:
+            self
+        """
+        y = np.asarray(y, dtype=float)
+        if y.ndim == 1:
+            y = y.reshape(-1, 1)
+
+        # Normalize features per-feature
+        all_X = X.reshape(-1, self.n_features)
+        self.feature_mean_ = all_X.mean(axis=0)
+        self.feature_std_ = np.where(all_X.std(axis=0) < 1e-8, 1.0, all_X.std(axis=0))
+        X_norm = (X - self.feature_mean_) / self.feature_std_
+
+        # Normalize targets per-feature
+        y_mean = y.mean(axis=0)
+        y_std = np.where(y.std(axis=0) < 1e-8, 1.0, y.std(axis=0))
+        y_norm = (y - y_mean) / y_std
+
+        self.model = SimpleRNN(
+            input_dim=self.n_features,
+            hidden_dim=self.hidden_dim,
+            output_dim=self.n_features,
+            output_activation="linear",
+            learning_rate=self.learning_rate,
+            weight_decay=self.weight_decay,
+            clip_value=self.clip_value,
+            random_seed=self.random_seed,
+            output_loss="mse",
+        )
+        self.model.fit(X_norm, y_norm, n_iterations=self.n_iterations)
+        self.loss_history = self.model.loss_history
+
+        # Store normalization params for prediction
+        self._y_mean = y_mean
+        self._y_std = y_std
+        return self
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """Predict next-day weather vectors for a batch of sequences."""
+        X = np.asarray(X, dtype=float)
+        X_norm = (X - self.feature_mean_) / self.feature_std_
+        preds_norm = self.model.predict_proba(X_norm)
+        return preds_norm * self._y_std + self._y_mean
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        """Alias for predict."""
+        return self.predict(X)
+
+    def mse(self, X: np.ndarray, y: np.ndarray) -> float:
+        y = np.asarray(y, dtype=float)
+        if y.ndim == 1:
+            y = y.reshape(-1, 1)
+        return float(np.mean((self.predict(X) - y) ** 2))
+
+    def rmse(self, X: np.ndarray, y: np.ndarray) -> float:
+        return float(np.sqrt(self.mse(X, y)))
+
+    def mae(self, X: np.ndarray, y: np.ndarray) -> float:
+        y = np.asarray(y, dtype=float)
+        if y.ndim == 1:
+            y = y.reshape(-1, 1)
+        return float(np.mean(np.abs(self.predict(X) - y)))
+
+    def r2_score_per_feature(self, X: np.ndarray, y: np.ndarray) -> float:
+        y = np.asarray(y, dtype=float)
+        if y.ndim == 1:
+            y = y.reshape(-1, 1)
+        y_pred = self.predict(X)
+        ss_res = np.sum((y - y_pred) ** 2)
+        ss_tot = np.sum((y - y.mean(axis=0)) ** 2)
+        if ss_tot == 0:
+            return 0.0
+        return float(1 - ss_res / ss_tot)
+
+    def evaluate(self, X: np.ndarray, y: np.ndarray) -> dict[str, float]:
+        return {
+            "mse": self.mse(X, y),
+            "rmse": self.rmse(X, y),
+            "mae": self.mae(X, y),
+            "r2": self.r2_score_per_feature(X, y),
+        }
+
+    def save(self, path: str) -> None:
+        if self.model is None:
+            raise ValueError("Cannot save untrained model")
+        self.model.save(path)
+        np.savez(
+            path + ".norm.npz",
+            feature_mean=self.feature_mean_,
+            feature_std=self.feature_std_,
+            y_mean=self._y_mean,
+            y_std=self._y_std,
+        )
+
+    @classmethod
+    def load(cls, path: str) -> "WeatherForecastingRNN":
+        model = SimpleRNN.load(path)
+
+        feature_mean = None
+        feature_std = None
+        y_mean = None
+        y_std = None
+        try:
+            norm_data = np.load(path + ".norm.npz")
+            feature_mean = norm_data["feature_mean"]
+            feature_std = norm_data["feature_std"]
+            y_mean = norm_data["y_mean"]
+            y_std = norm_data["y_std"]
+        except FileNotFoundError:
+            pass
+
+        obj = cls(
+            n_features=model.input_dim,
+            seq_len=20,
+            hidden_dim=model.hidden_dim,
+            learning_rate=model.learning_rate,
+            weight_decay=model.weight_decay,
+            clip_value=model.clip_value,
+            random_seed=model.random_seed,
+        )
+        obj.model = model
+        obj.loss_history = model.loss_history
+        obj.feature_mean_ = feature_mean
+        obj.feature_std_ = feature_std
+        obj._y_mean = y_mean
+        obj._y_std = y_std
+        return obj
+
+    def to_dict(self) -> dict:
+        return {
+            "n_features": self.n_features,
+            "seq_len": self.seq_len,
+            "hidden_dim": self.hidden_dim,
+            "learning_rate": self.learning_rate,
+            "n_iterations": self.n_iterations,
+            "weight_decay": self.weight_decay,
+            "random_seed": self.random_seed,
+            "training_mode": self.training_mode,
+            "n_epochs_run": len(self.loss_history),
+            "final_loss": self.loss_history[-1] if self.loss_history else 0.0,
+        }
 ```
 
-## ⚡ API Reference
+</details>
 
-FastAPI endpoints and model interfaces
+<details>
+<summary>train.py</summary>
 
-| Method | Endpoint |
-| --- | --- |
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/metrics` |
-| `POST` | `/reload` |
-| `GET` | `/drift` |
-
-## ▶ Usage
-
-Code examples and CLI commands
-
-### Training Script
-
-```python
+```
 """Training pipeline for weather forecasting (RNN)."""
 
 import argparse
@@ -282,9 +560,131 @@ if __name__ == "__main__":
     main()
 ```
 
-### API Server
+</details>
 
-```python
+<details>
+<summary>data.py</summary>
+
+```
+"""Data loading and preprocessing for weather forecasting (RNN).
+
+Generates synthetic weather time-series feature sequences for next-day forecasting.
+"""
+
+from pathlib import Path
+
+import numpy as np
+
+N_FEATURES = 5  # temperature, humidity, pressure, wind_speed, precipitation
+SEQ_LEN = 30  # days of history
+
+DEFAULT_N_SAMPLES = 500
+
+def generate_synthetic_data(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Generate synthetic weather feature sequences.
+
+    Each sample is a sequence of SEQ_LEN days, each with 5 features:
+    temperature, humidity, pressure, wind_speed, precipitation.
+
+    The target is the weather vector for the next day, derived from
+    temporal patterns (seasonal trend + autocorrelation + noise).
+
+    Returns:
+        X: (n_samples, SEQ_LEN, N_FEATURES) weather feature sequences
+        y: (n_samples, N_FEATURES) next-day weather vector
+    """
+    rng = np.random.default_rng(random_seed)
+
+    X = np.zeros((n_samples, SEQ_LEN, N_FEATURES))
+    y = np.zeros((n_samples, N_FEATURES))
+
+    for i in range(n_samples):
+        # Random seasonal phase
+        phase = rng.uniform(0, 2 * np.pi)
+
+        # Generate base pattern for temperature (seasonal + trend)
+        temps = np.zeros(SEQ_LEN + 1)
+        for t in range(SEQ_LEN + 1):
+            seasonal = np.sin(phase + t * 0.2) * 10 + 15
+            trend = t * 0.05
+            temps[t] = seasonal + trend + rng.normal(0, 2)
+
+        # Humidity (anti-correlated with temperature)
+        humidity = 80 - (temps[: SEQ_LEN + 1] - 10) * 0.5 + rng.normal(0, 3, SEQ_LEN + 1)
+        humidity = np.clip(humidity, 0, 100)
+
+        # Pressure (slowly varying)
+        pressure_base = rng.uniform(990, 1030)
+        pressure = pressure_base + np.cumsum(rng.normal(0, 0.3, SEQ_LEN + 1))
+
+        # Wind speed
+        wind = np.abs(rng.normal(8, 4, SEQ_LEN + 1)) + np.sin(np.arange(SEQ_LEN + 1) * 0.3) * 3
+
+        # Precipitation (correlated with humidity)
+        precip = np.where(
+            humidity > 75, rng.uniform(0.5, 3.0, SEQ_LEN + 1), rng.uniform(0, 0.3, SEQ_LEN + 1)
+        )
+
+        # Fill X (first SEQ_LEN days)
+        X[i, :, 0] = temps[:SEQ_LEN]  # temperature
+        X[i, :, 1] = humidity[:SEQ_LEN]  # humidity
+        X[i, :, 2] = pressure[:SEQ_LEN]  # pressure
+        X[i, :, 3] = wind[:SEQ_LEN]  # wind speed
+        X[i, :, 4] = precip[:SEQ_LEN]  # precipitation
+
+        # Target: next day (day SEQ_LEN)
+        y[i, 0] = temps[SEQ_LEN]
+        y[i, 1] = humidity[SEQ_LEN]
+        y[i, 2] = pressure[SEQ_LEN]
+        y[i, 3] = wind[SEQ_LEN]
+        y[i, 4] = precip[SEQ_LEN]
+
+    # Shuffle
+    perm = rng.permutation(n_samples)
+    return X[perm], y[perm]
+
+def load_training_data(
+    data_path: Path | None = None,
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    if data_path and Path(data_path).exists():
+        data = np.load(data_path, allow_pickle=True)
+        return data["X"], data["y"]
+    return generate_synthetic_data(n_samples=n_samples, random_seed=random_seed)
+
+def train_test_split(
+    X: np.ndarray, y: np.ndarray, test_size: float = 0.2, random_seed: int | None = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    n = len(X)
+    n_test = max(1, int(n * test_size))
+
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+
+    test_idx = indices[:n_test]
+    train_idx = indices[n_test:]
+
+    return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
+
+def save_training_data(X: np.ndarray, y: np.ndarray, path: Path) -> None:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(path, X=X, y=y)
+```
+
+</details>
+
+<details>
+<summary>api.py</summary>
+
+```
 """Serving API for weather forecasting (RNN)."""
 
 import os
@@ -585,20 +985,42 @@ def predict_bulk(body: PredictBulkRequest):
     return BulkPredictResponse(predictions=predictions, model_version=_model_version)
 ```
 
-### CLI Commands
+</details>
 
-```bash
-uv run python -m time_series_weather.train --model-dir ./artifacts/models
-```
+## 4. Monorepo Integration
 
-## 📊 Benchmarks
+This example is a first-class consumer of the shared `packages/ai-core` library.
+It reuses the following foundation modules instead of re-implementing infrastructure:
 
-Test results and performance metrics
+ai_core.drift
+ai_core.fastapi_middleware
+ai_core.logging
+ai_core.metrics
+ai_core.model_registry
+ai_core.nn_utils
+ai_core.validation
 
-Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+### How it plugs in
 
-### Related Apps
 
-- [time-series-stock](../time-series-stock/README.md)
 
-Generated documentation for **time-series-weather**
+- **Configuration** — 12-factor config from `ai_core.config`.
+
+
+
+- **Observability** — structured logging + Prometheus metrics are wired in automatically.
+
+
+
+- **Validation** — input schema validation prevents bad data reaching the model.
+
+
+
+- **Registry** — trained artifacts are versioned and registered for reproducible serving.
+
+
+
+- **Serving** — the FastAPI app mounts shared observability middleware for tracing & metrics.
+
+Because every example shares `ai_core`, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.

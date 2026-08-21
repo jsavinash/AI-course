@@ -1,8 +1,13 @@
 # nlp-sentiment-analysis
 
-## ∫ Mathematics & Theory
 
-Machine Learning Fundamentals — Underlying equations and derivations
+
+Machine Learning Fundamentals — AI engineering example · part of the MLOps monorepo
+
+## 1. Mathematical Foundations
+
+This example is grounded in **Machine Learning Fundamentals**. The equations below
+drive every forward and backward pass in the implementation.
 
 $$\hat{y} = f(x; \theta)$$
 
@@ -10,54 +15,298 @@ $$\mathcal{L}(\theta) = \frac{1}{n} \sum_{i=1}^{n} \ell(y_i, \hat{y}_i)$$
 
 $$\theta \leftarrow \theta - \alpha \nabla_\theta \mathcal{L}(\theta)$$
 
-### Step-by-Step Derivation
+### Derivation
 
 Machine learning models learn parameters $\theta$ by minimizing a loss function $\mathcal{L}$. Gradient descent iteratively updates parameters in the direction of steepest descent. The learning rate $\alpha$ controls step size. Stochastic gradient descent (SGD) uses mini-batches for computational efficiency.
 
-### Interactive Visualization
+### Worked Numerical Example
+
+$$z = w \cdot x + b$$
+
+Illustrative forward-pass evaluation (scalar example):
+
+Input  x        = 12.0   (e.g. pizza diameter, inches)
+Weights w       =  0.85
+Bias    b       =  0.30
+---------------------------------
+z = w*x + b
+  = 0.85 * 12.0 + 0.30
+  = 10.20 + 0.30
+  = 10.50   <- model output
+
+### Conceptual Diagram
+
+        Math concept (placeholder)
+   [ Input x ] --> ( w · x + b ) --> [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]
+
+![Math Explanation (placeholder)](./assets/math-concept.png)
 
 Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
 
-## ⚙ Architecture
+## 2. Core Logic & Architecture
 
-Model structure, data flow, and layer breakdown
+The example follows a consistent **data → train → evaluate → serve**
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.
 
-### Class Hierarchy
+  Raw dataset→
+  load + validate (data.py)→
+  fit / transform (model.py)→
+  evaluate + persist (train.py)→
+  serve (api.py)
 
-```
-  SentimentAnalysisRNN
-```
+### Primary Components
+
+| Class | Public methods | Responsibility |
+| --- | --- | --- |
+| `PredictRequest` | — |  |
+| `PredictBulkRequest` | — |  |
+| `PredictResponse` | — |  |
+| `BulkPredictResponse` | — |  |
+| `DriftResponse` | — |  |
+| `StatsResponse` | — |  |
+| `SentimentAnalysisRNN` | _to_onehot, _to_onehot_seq, _to_onehot_batch, fit, predict_proba, predict, accuracy, precision, recall, f1_score, evaluate, save, load, to_dict | RNN for binary sentiment classification (many-to-one).  Args:     vocab_size: Size of the token vocabulary     seq_len: Length of input token sequences     hidden_dim: Number of hidden units     learning_rate: Gradient descent step size     n_iterations: Number of training epochs     weight_decay: L2 regularization strength     clip_value: Maximum gradient norm     random_seed: Random seed for reproducibility |
 
 ### Data Flow
 
-```mermaid
-graph TD
-  A[Input Data] --> B[Preprocessing]
-  B --> C[Model Training]
-  C --> D[Evaluation]
-  D --> E[Model Registry]
-  E --> F[Serving API]
+
+
+1. **Load** — `data.py` reads the source dataset and splits train/test.
+
+
+
+2. **Validate** — a Pydantic schema guards input shape/dtypes before training.
+
+
+
+3. **Fit / Transform** — `model.py` applies the mathematics from Section 1.
+
+
+
+4. **Evaluate** — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.
+
+
+
+5. **Persist** — weights/artifacts are saved and registered in the model registry.
+
+
+
+6. **Serve** — `api.py` exposes prediction endpoints with drift detection.
+
+### Design Patterns & Performance
+
+Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via `ai_core.validation`, structured JSON logging through `ai_core.logging`, Prometheus metrics from `ai_core.metrics`, and MLflow/model-registry persistence via `ai_core.model_registry`. The FastAPI service wraps the trained model with observability middleware from `ai_core.fastapi_middleware`.
+
+## 3. Detailed Code Walkthrough
+
+The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.
+
+### `SentimentAnalysisRNN.fit(X, y, X_val, y_val)`
+
+Train the RNN with BPTT.
+
+Args:
+    X: Token index sequences (n_samples, seq_len)
+    y: Sentiment labels (n_samples,) — 1=positive, 0=negative
+
+Returns:
+    self
+
+### `SentimentAnalysisRNN.predict(X, threshold)`
+
+Return 1 (positive) if probability >= threshold, else 0.
+
+### Source Files
+
+<details>
+<summary>model.py</summary>
+
+```
+"""Recurrent neural network for sentiment analysis.
+
+A SimpleRNN (Elman network) trained with Backpropagation Through Time (BPTT).
+Built from scratch with NumPy, using the shared nn_utils.rnn.SimpleRNN base.
+
+Architecture:
+    Input (seq_len, vocab_size) -> Hidden (hidden_dim, tanh) -> Output (1, sigmoid)
+
+Loss: Binary Cross-Entropy (many-to-one: classifies sentiment at final timestep)
+"""
+
+from dataclasses import dataclass, field
+
+import numpy as np
+from ai_core.nn_utils.rnn import SimpleRNN
+
+@dataclass
+class SentimentAnalysisRNN:
+    """RNN for binary sentiment classification (many-to-one).
+
+    Args:
+        vocab_size: Size of the token vocabulary
+        seq_len: Length of input token sequences
+        hidden_dim: Number of hidden units
+        learning_rate: Gradient descent step size
+        n_iterations: Number of training epochs
+        weight_decay: L2 regularization strength
+        clip_value: Maximum gradient norm
+        random_seed: Random seed for reproducibility
+    """
+
+    vocab_size: int = 50
+    seq_len: int = 10
+    hidden_dim: int = 32
+    learning_rate: float = 0.05
+    n_iterations: int = 300
+    weight_decay: float = 0.001
+    clip_value: float = 5.0
+    random_seed: int = 42
+
+    model: SimpleRNN | None = field(default=None, repr=False)
+    training_mode: str = "supervised"
+    loss_history: list[float] = field(default_factory=list)
+
+    def _to_onehot(self, indices: np.ndarray, dim: int) -> np.ndarray:
+        """Convert class indices to one-hot vectors."""
+        result = np.zeros((len(indices), dim))
+        for i, idx in enumerate(indices):
+            result[i, int(idx) % dim] = 1.0
+        return result
+
+    def _to_onehot_seq(self, seq: np.ndarray, dim: int) -> np.ndarray:
+        """Convert a 1-D sequence of indices to (seq_len, dim) one-hot."""
+        seq = np.atleast_1d(seq).astype(int)
+        result = np.zeros((len(seq), dim))
+        result[np.arange(len(seq)), seq % dim] = 1.0
+        return result
+
+    def _to_onehot_batch(self, X: np.ndarray) -> np.ndarray:
+        """Convert batch of index sequences to one-hot sequences."""
+        n_samples = X.shape[0]
+        seq_len = X.shape[1]
+        result = np.zeros((n_samples, seq_len, self.vocab_size))
+        for i in range(n_samples):
+            result[i] = self._to_onehot_seq(X[i], self.vocab_size)
+        return result
+
+    def fit(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        X_val: np.ndarray | None = None,
+        y_val: np.ndarray | None = None,
+    ) -> "SentimentAnalysisRNN":
+        """Train the RNN with BPTT.
+
+        Args:
+            X: Token index sequences (n_samples, seq_len)
+            y: Sentiment labels (n_samples,) — 1=positive, 0=negative
+
+        Returns:
+            self
+        """
+        X_onehot = self._to_onehot_batch(X)
+        y_col = np.asarray(y, dtype=float).flatten()
+
+        self.model = SimpleRNN(
+            input_dim=self.vocab_size,
+            hidden_dim=self.hidden_dim,
+            output_dim=1,
+            output_activation="sigmoid",
+            learning_rate=self.learning_rate,
+            weight_decay=self.weight_decay,
+            clip_value=self.clip_value,
+            random_seed=self.random_seed,
+            output_loss="binary_crossentropy",
+        )
+        self.model.fit(X_onehot, y_col, n_iterations=self.n_iterations)
+        self.loss_history = self.model.loss_history
+        return self
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        """Return positive-sentiment probabilities for each sample."""
+        X_oh = self._to_onehot_batch(X)
+        probas = self.model.predict_proba(X_oh)
+        return probas.flatten()
+
+    def predict(self, X: np.ndarray, threshold: float = 0.5) -> np.ndarray:
+        """Return 1 (positive) if probability >= threshold, else 0."""
+        return (self.predict_proba(X) >= threshold).astype(int)
+
+    def accuracy(self, X: np.ndarray, y: np.ndarray) -> float:
+        return float(np.mean(self.predict(X) == y))
+
+    def precision(self, X: np.ndarray, y: np.ndarray) -> float:
+        preds = self.predict(X)
+        tp = np.sum((preds == 1) & (y == 1))
+        fp = np.sum((preds == 1) & (y == 0))
+        return float(tp / (tp + fp)) if (tp + fp) > 0 else 0.0
+
+    def recall(self, X: np.ndarray, y: np.ndarray) -> float:
+        preds = self.predict(X)
+        tp = np.sum((preds == 1) & (y == 1))
+        fn = np.sum((preds == 0) & (y == 1))
+        return float(tp / (tp + fn)) if (tp + fn) > 0 else 0.0
+
+    def f1_score(self, X: np.ndarray, y: np.ndarray) -> float:
+        p, r = self.precision(X, y), self.recall(X, y)
+        return float(2 * p * r / (p + r)) if (p + r) > 0 else 0.0
+
+    def evaluate(self, X: np.ndarray, y: np.ndarray) -> dict[str, float]:
+        return {
+            "accuracy": self.accuracy(X, y),
+            "precision": self.precision(X, y),
+            "recall": self.recall(X, y),
+            "f1": self.f1_score(X, y),
+        }
+
+    def save(self, path: str) -> None:
+        if self.model is None:
+            raise ValueError("Cannot save untrained model")
+        self.model.save(path)
+
+    @classmethod
+    def load(cls, path: str) -> "SentimentAnalysisRNN":
+        model = SimpleRNN.load(path)
+        obj = cls(
+            vocab_size=model.input_dim,
+            seq_len=10,
+            hidden_dim=model.hidden_dim,
+            learning_rate=model.learning_rate,
+            weight_decay=model.weight_decay,
+            clip_value=model.clip_value,
+            random_seed=model.random_seed,
+        )
+        obj.model = model
+        obj.loss_history = model.loss_history
+        return obj
+
+    def to_dict(self) -> dict:
+        return {
+            "vocab_size": self.vocab_size,
+            "seq_len": self.seq_len,
+            "hidden_dim": self.hidden_dim,
+            "learning_rate": self.learning_rate,
+            "n_iterations": self.n_iterations,
+            "weight_decay": self.weight_decay,
+            "random_seed": self.random_seed,
+            "training_mode": self.training_mode,
+            "n_epochs_run": len(self.loss_history),
+            "final_loss": self.loss_history[-1] if self.loss_history else 0.0,
+        }
 ```
 
-## ⚡ API Reference
+</details>
 
-FastAPI endpoints and model interfaces
+<details>
+<summary>train.py</summary>
 
-| Method | Endpoint |
-| --- | --- |
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/metrics` |
-| `POST` | `/reload` |
-| `GET` | `/drift` |
-
-## ▶ Usage
-
-Code examples and CLI commands
-
-### Training Script
-
-```python
+```
 """Training pipeline for sentiment analysis (RNN)."""
 
 import argparse
@@ -277,9 +526,107 @@ if __name__ == "__main__":
     main()
 ```
 
-### API Server
+</details>
 
-```python
+<details>
+<summary>data.py</summary>
+
+```
+"""Data loading and preprocessing for sentiment analysis (RNN).
+
+Generates synthetic word-index sequences labeled with positive/negative sentiment.
+"""
+
+from pathlib import Path
+
+import numpy as np
+
+VOCAB_SIZE = 50
+SEQ_LEN = 10
+
+DEFAULT_N_SAMPLES = 500
+
+def generate_synthetic_data(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Generate synthetic word-index sequences with sentiment labels.
+
+    Positive sequences tend to use 'positive' words (low indices),
+    while negative sequences tend to use 'negative' words (high indices).
+
+    Returns:
+        X: (n_samples, SEQ_LEN) word indices
+        y: (n_samples,) labels — 1=positive, 0=negative
+    """
+    rng = np.random.default_rng(random_seed)
+
+    n_positive = n_samples // 2
+    n_negative = n_samples - n_positive
+
+    X = np.zeros((n_samples, SEQ_LEN), dtype=int)
+    y = np.zeros(n_samples, dtype=int)
+
+    # Positive sequences: more words from index range [0, 20)
+    # Negative sequences: more words from index range [30, 50)
+    p_pos = np.concatenate([np.full(20, 3.0), np.full(30, 2.0)])
+    p_pos = p_pos / p_pos.sum()
+    p_neg = np.concatenate([np.full(30, 2.0), np.full(20, 3.0)])
+    p_neg = p_neg / p_neg.sum()
+
+    for i in range(n_positive):
+        seq = rng.choice(50, size=SEQ_LEN, p=p_pos)
+        X[i] = seq
+        y[i] = 1
+
+    for i in range(n_negative):
+        seq = rng.choice(50, size=SEQ_LEN, p=p_neg)
+        X[n_positive + i] = seq
+        y[n_positive + i] = 0
+
+    # Shuffle
+    perm = rng.permutation(n_samples)
+    return X[perm], y[perm]
+
+def load_training_data(
+    data_path: Path | None = None,
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    if data_path and Path(data_path).exists():
+        data = np.load(data_path, allow_pickle=True)
+        return data["X"], data["y"]
+    return generate_synthetic_data(n_samples=n_samples, random_seed=random_seed)
+
+def train_test_split(
+    X: np.ndarray, y: np.ndarray, test_size: float = 0.2, random_seed: int | None = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    n = len(X)
+    n_test = max(1, int(n * test_size))
+
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+
+    test_idx = indices[:n_test]
+    train_idx = indices[n_test:]
+
+    return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
+
+def save_training_data(X: np.ndarray, y: np.ndarray, path: Path) -> None:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(path, X=X, y=y)
+```
+
+</details>
+
+<details>
+<summary>api.py</summary>
+
+```
 """Serving API for sentiment analysis (RNN)."""
 
 import os
@@ -584,22 +931,42 @@ def predict_bulk(body: PredictBulkRequest):
     return BulkPredictResponse(predictions=predictions, model_version=_model_version)
 ```
 
-### CLI Commands
+</details>
 
-```bash
-uv run python -m nlp_sentiment_analysis.train --model-dir ./artifacts/models
-```
+## 4. Monorepo Integration
 
-## 📊 Benchmarks
+This example is a first-class consumer of the shared `packages/ai-core` library.
+It reuses the following foundation modules instead of re-implementing infrastructure:
 
-Test results and performance metrics
+ai_core.drift
+ai_core.fastapi_middleware
+ai_core.logging
+ai_core.metrics
+ai_core.model_registry
+ai_core.nn_utils
+ai_core.validation
 
-Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+### How it plugs in
 
-### Related Apps
 
-- [nlp-language-translation](../nlp-language-translation/README.md)
 
-- [nlp-text-generation](../nlp-text-generation/README.md)
+- **Configuration** — 12-factor config from `ai_core.config`.
 
-Generated documentation for **nlp-sentiment-analysis**
+
+
+- **Observability** — structured logging + Prometheus metrics are wired in automatically.
+
+
+
+- **Validation** — input schema validation prevents bad data reaching the model.
+
+
+
+- **Registry** — trained artifacts are versioned and registered for reproducible serving.
+
+
+
+- **Serving** — the FastAPI app mounts shared observability middleware for tracing & metrics.
+
+Because every example shares `ai_core`, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.

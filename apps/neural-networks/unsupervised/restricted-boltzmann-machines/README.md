@@ -1,64 +1,320 @@
 # restricted-boltzmann-machines
 
-## ∫ Mathematics & Theory
 
-Autoencoder — Underlying equations and derivations
 
-$$z = f(x) = \sigma(W_e x + b_e) \quad \text{(encoder)}$$
+Machine Learning Fundamentals — AI engineering example · part of the MLOps monorepo
 
-$$\hat{x} = g(z) = \sigma(W_d z + b_d) \quad \text{(decoder)}$$
+## 1. Mathematical Foundations
 
-$$\mathcal{L} = \|x - \hat{x}\|^2 + \lambda (\|W_e\|^2 + \|W_d\|^2)$$
+This example is grounded in **Machine Learning Fundamentals**. The equations below
+drive every forward and backward pass in the implementation.
 
-$$z^* = \arg\min_z \|x - g(f(x))\|^2$$
+$$\hat{y} = f(x; \theta)$$
 
-### Step-by-Step Derivation
+$$\mathcal{L}(\theta) = \frac{1}{n} \sum_{i=1}^{n} \ell(y_i, \hat{y}_i)$$
 
-Autoencoders learn compressed representations by minimizing reconstruction error. The encoder maps input $x$ to a latent code $z$. The decoder reconstructs $\hat{x}$ from $z$. L2 regularization and bottleneck architecture prevent trivial identity solutions.
+$$\theta \leftarrow \theta - \alpha \nabla_\theta \mathcal{L}(\theta)$$
 
-### Interactive Visualization
+### Derivation
 
-Interactive latent space traversal; reconstruction error vs latent dimension; bottleneck visualization.
+Machine learning models learn parameters $\theta$ by minimizing a loss function $\mathcal{L}$. Gradient descent iteratively updates parameters in the direction of steepest descent. The learning rate $\alpha$ controls step size. Stochastic gradient descent (SGD) uses mini-batches for computational efficiency.
 
-## ⚙ Architecture
+### Worked Numerical Example
 
-Model structure, data flow, and layer breakdown
+$$z = w \cdot x + b$$
 
-### Class Hierarchy
+Illustrative forward-pass evaluation (scalar example):
 
-```
-  RBM
-```
+Input  x        = 12.0   (e.g. pizza diameter, inches)
+Weights w       =  0.85
+Bias    b       =  0.30
+---------------------------------
+z = w*x + b
+  = 0.85 * 12.0 + 0.30
+  = 10.20 + 0.30
+  = 10.50   <- model output
+
+### Conceptual Diagram
+
+        Math concept (placeholder)
+   [ Input x ] --> ( w · x + b ) --> [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]
+
+![Math Explanation (placeholder)](./assets/math-concept.png)
+
+Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
+
+## 2. Core Logic & Architecture
+
+The example follows a consistent **data → train → evaluate → serve**
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.
+
+  Raw dataset→
+  load + validate (data.py)→
+  fit / transform (model.py)→
+  evaluate + persist (train.py)→
+  serve (api.py)
+
+### Primary Components
+
+| Class | Public methods | Responsibility |
+| --- | --- | --- |
+| `PredictRequest` | — |  |
+| `PredictBulkRequest` | — |  |
+| `PredictResponse` | — |  |
+| `BulkPredictResponse` | — |  |
+| `DriftResponse` | — |  |
+| `StatsResponse` | — |  |
+| `RBM` | _init_weights, _sample_h, _sample_v, fit, transform, reconstruct, predict_proba, predict, evaluate, save, load, to_dict | Restricted Boltzmann Machine for unsupervised feature learning.  Learns a probability distribution over binary inputs and extracts hierarchical features through its hidden representation.  Args:     n_features: Number of visible units (input features)     n_hidden: Number of hidden units     learning_rate: Learning rate     n_cd_steps: Contrastive Divergence steps (CD-k)     n_epochs: Number of training epochs     weight_decay: L2 regularization     random_seed: Random seed |
 
 ### Data Flow
 
-```mermaid
-graph TD
-  A[Input Data] --> B[Preprocessing]
-  B --> C[Model Training]
-  C --> D[Evaluation]
-  D --> E[Model Registry]
-  E --> F[Serving API]
+
+
+1. **Load** — `data.py` reads the source dataset and splits train/test.
+
+
+
+2. **Validate** — a Pydantic schema guards input shape/dtypes before training.
+
+
+
+3. **Fit / Transform** — `model.py` applies the mathematics from Section 1.
+
+
+
+4. **Evaluate** — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.
+
+
+
+5. **Persist** — weights/artifacts are saved and registered in the model registry.
+
+
+
+6. **Serve** — `api.py` exposes prediction endpoints with drift detection.
+
+### Design Patterns & Performance
+
+Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via `ai_core.validation`, structured JSON logging through `ai_core.logging`, Prometheus metrics from `ai_core.metrics`, and MLflow/model-registry persistence via `ai_core.model_registry`. The FastAPI service wraps the trained model with observability middleware from `ai_core.fastapi_middleware`.
+
+## 3. Detailed Code Walkthrough
+
+The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.
+
+### `RBM.fit(X, n_epochs)`
+
+Train the RBM using Contrastive Divergence.
+
+Args:
+    X: Binary input data (n_samples, n_features) in [0, 1]
+
+### `RBM.predict(X)`
+
+Return hidden representations (binary samples).
+
+### Source Files
+
+<details>
+<summary>model.py</summary>
+
+```
+"""Restricted Boltzmann Machine for feature learning.
+
+Architecture:
+    Binary visible units (n_features) <-> Hidden units (n_hidden)
+    Fully connected undirected bipartite graph
+
+Training: Contrastive Divergence (CD-k)
+Loss: Reconstruction cross-entropy
+"""
+
+from dataclasses import dataclass, field
+
+import numpy as np
+
+def _sigmoid(z: np.ndarray) -> np.ndarray:
+    z = np.clip(z, -500, 500)
+    return 1.0 / (1.0 + np.exp(-z))
+
+def _bernoulli_sample(probs: np.ndarray, rng: np.random.Generator) -> np.ndarray:
+    return (rng.random(probs.shape) < probs).astype(float)
+
+@dataclass
+class RBM:
+    """Restricted Boltzmann Machine for unsupervised feature learning.
+
+    Learns a probability distribution over binary inputs and extracts
+    hierarchical features through its hidden representation.
+
+    Args:
+        n_features: Number of visible units (input features)
+        n_hidden: Number of hidden units
+        learning_rate: Learning rate
+        n_cd_steps: Contrastive Divergence steps (CD-k)
+        n_epochs: Number of training epochs
+        weight_decay: L2 regularization
+        random_seed: Random seed
+    """
+
+    n_features: int = 32
+    n_hidden: int = 16
+    learning_rate: float = 0.05
+    n_cd_steps: int = 1
+    n_epochs: int = 100
+    weight_decay: float = 0.001
+    random_seed: int = 42
+
+    W: np.ndarray | None = None
+    b: np.ndarray | None = None
+    c: np.ndarray | None = None
+    loss_history: list[float] = field(default_factory=list)
+    training_mode: str = "unsupervised"
+
+    def _init_weights(self) -> None:
+        rng = np.random.default_rng(self.random_seed)
+        self.W = rng.normal(0, 0.01, (self.n_features, self.n_hidden))
+        self.b = np.zeros(self.n_features)
+        self.c = np.zeros(self.n_hidden)
+
+    def _sample_h(self, v: np.ndarray, rng: np.random.Generator) -> tuple[np.ndarray, np.ndarray]:
+        probs = _sigmoid(v @ self.W + self.c)
+        samples = _bernoulli_sample(probs, rng)
+        return probs, samples
+
+    def _sample_v(self, h: np.ndarray, rng: np.random.Generator) -> tuple[np.ndarray, np.ndarray]:
+        probs = _sigmoid(h @ self.W.T + self.b)
+        samples = _bernoulli_sample(probs, rng)
+        return probs, samples
+
+    def fit(
+        self,
+        X: np.ndarray,
+        n_epochs: int | None = None,
+    ) -> "RBM":
+        """Train the RBM using Contrastive Divergence.
+
+        Args:
+            X: Binary input data (n_samples, n_features) in [0, 1]
+        """
+        if self.W is None:
+            self._init_weights()
+
+        if n_epochs is None:
+            n_epochs = self.n_epochs
+
+        rng = np.random.default_rng(self.random_seed)
+        n_samples = X.shape[0]
+
+        for _epoch in range(n_epochs):
+            epoch_loss = 0.0
+            X_shuffled = X[rng.permutation(n_samples)]
+
+            for i in range(n_samples):
+                v = X_shuffled[i:i + 1]
+
+                h_prob, h_sample = self._sample_h(v, rng)
+
+                for _ in range(self.n_cd_steps - 1):
+                    v_prob, v_sample = self._sample_v(h_sample, rng)
+                    h_prob, h_sample = self._sample_h(v_prob, rng)
+
+                v_k_prob, v_k_sample = self._sample_v(h_sample, rng)
+                h_k_prob, _ = self._sample_h(v_k_sample, rng)
+
+                dW = np.outer(v[0], h_prob[0]) - np.outer(v_k_prob[0], h_k_prob[0])
+                db = v[0] - v_k_prob[0]
+                dc = h_prob[0] - h_k_prob[0]
+
+                self.W -= self.learning_rate * (dW + self.weight_decay * self.W)
+                self.b -= self.learning_rate * db
+                self.c -= self.learning_rate * dc
+
+                epoch_loss += np.mean((v[0] - v_k_prob[0]) ** 2)
+
+            self.loss_history.append(epoch_loss / n_samples)
+
+        return self
+
+    def transform(self, X: np.ndarray) -> np.ndarray:
+        """Encode input data to hidden representation."""
+        return _sigmoid(X @ self.W + self.c)
+
+    def reconstruct(self, X: np.ndarray) -> np.ndarray:
+        """Reconstruct input through the RBM."""
+        h = _sigmoid(X @ self.W + self.c)
+        return _sigmoid(h @ self.W.T + self.b)
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        """Return hidden feature activations."""
+        return self.transform(X)
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """Return hidden representations (binary samples)."""
+        h_probs = _sigmoid(X @ self.W + self.c)
+        return (h_probs > 0.5).astype(float)
+
+    def evaluate(self, X: np.ndarray) -> dict[str, float]:
+        recon = self.reconstruct(X)
+        mse = float(np.mean((X - recon) ** 2))
+        return {"reconstruction_error": mse, "n_samples": float(len(X))}
+
+    def save(self, path: str) -> None:
+        arrays = {
+            "loss_history": np.array(self.loss_history),
+            "W": self.W, "b": self.b, "c": self.c,
+            "n_features": np.array([self.n_features]),
+            "n_hidden": np.array([self.n_hidden]),
+            "learning_rate": np.array([self.learning_rate]),
+            "n_cd_steps": np.array([self.n_cd_steps]),
+            "n_epochs": np.array([self.n_epochs]),
+            "weight_decay": np.array([self.weight_decay]),
+            "random_seed": np.array([self.random_seed]),
+        }
+        np.savez(path, **arrays)
+
+    @classmethod
+    def load(cls, path: str) -> "RBM":
+        data = np.load(path)
+        obj = cls(
+            n_features=int(data["n_features"].item()),
+            n_hidden=int(data["n_hidden"].item()),
+            learning_rate=float(data["learning_rate"].item()),
+            n_cd_steps=int(data["n_cd_steps"].item()),
+            n_epochs=int(data["n_epochs"].item()),
+            weight_decay=float(data["weight_decay"].item()),
+            random_seed=int(data["random_seed"].item()),
+        )
+        obj.W = data["W"]
+        obj.b = data["b"]
+        obj.c = data["c"]
+        obj.loss_history = list(data.get("loss_history", [0.0]))
+        return obj
+
+    def to_dict(self) -> dict:
+        return {
+            "n_features": self.n_features,
+            "n_hidden": self.n_hidden,
+            "learning_rate": self.learning_rate,
+            "n_cd_steps": self.n_cd_steps,
+            "n_epochs": self.n_epochs,
+            "weight_decay": self.weight_decay,
+            "training_mode": self.training_mode,
+            "n_epochs_run": len(self.loss_history),
+            "final_loss": self.loss_history[-1] if self.loss_history else 0.0,
+        }
 ```
 
-## ⚡ API Reference
+</details>
 
-FastAPI endpoints and model interfaces
+<details>
+<summary>train.py</summary>
 
-| Method | Endpoint |
-| --- | --- |
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/metrics` |
-| `POST` | `/reload` |
-
-## ▶ Usage
-
-Code examples and CLI commands
-
-### Training Script
-
-```python
+```
 """Training pipeline for RBM Feature Learning."""
 
 import argparse
@@ -211,9 +467,88 @@ if __name__ == "__main__":
     main()
 ```
 
-### API Server
+</details>
 
-```python
+<details>
+<summary>data.py</summary>
+
+```
+"""Data loading and preprocessing for RBM feature learning."""
+
+from pathlib import Path
+
+import numpy as np
+
+N_FEATURES = 32
+N_HIDDEN = 16
+
+DEFAULT_N_SAMPLES = 500
+
+def generate_synthetic_data(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    noise_level: float = 0.1,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Generate synthetic binary feature data for RBM training.
+
+    Returns:
+        X: (n_samples, N_FEATURES) binary feature vectors in {0, 1}
+        y: (n_samples,) uniform labels (placeholder)
+    """
+    rng = np.random.default_rng(random_seed)
+    X = np.zeros((n_samples, N_FEATURES), dtype=float)
+
+    for i in range(n_samples):
+        pattern = rng.integers(0, 3)
+        if pattern == 0:
+            X[i, :N_FEATURES // 4] = 1.0
+            X[i, rng.random(N_FEATURES) > 0.95] = 1.0
+        elif pattern == 1:
+            X[i, N_FEATURES // 4:N_FEATURES // 2] = 1.0
+            X[i, rng.random(N_FEATURES) > 0.95] = 1.0
+        else:
+            X[i, :N_FEATURES // 2] = (rng.random(N_FEATURES // 2) > noise_level).astype(float)
+
+    y = np.ones(n_samples, dtype=int)
+    perm = rng.permutation(n_samples)
+    return X[perm], y[perm]
+
+def load_training_data(
+    data_path: Path | None = None,
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    if data_path and Path(data_path).exists():
+        data = np.load(data_path, allow_pickle=True)
+        return data["X"], data["y"]
+    return generate_synthetic_data(n_samples=n_samples, random_seed=random_seed)
+
+def train_test_split(
+    X: np.ndarray, y: np.ndarray, test_size: float = 0.2, random_seed: int | None = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    n = len(X)
+    n_test = max(1, int(n * test_size))
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+    test_idx = indices[:n_test]
+    train_idx = indices[n_test:]
+    return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
+
+def save_training_data(X: np.ndarray, y: np.ndarray, path: Path) -> None:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(path, X=X, y=y)
+```
+
+</details>
+
+<details>
+<summary>api.py</summary>
+
+```
 """Serving API for RBM Feature Learning."""
 
 import os
@@ -505,16 +840,41 @@ def predict_bulk(body: PredictBulkRequest):
     return BulkPredictResponse(predictions=predictions, model_version=_model_version)
 ```
 
-### CLI Commands
+</details>
 
-```bash
-uv run python -m restricted_boltzmann_machines.train --model-dir ./artifacts/models
-```
+## 4. Monorepo Integration
 
-## 📊 Benchmarks
+This example is a first-class consumer of the shared `packages/ai-core` library.
+It reuses the following foundation modules instead of re-implementing infrastructure:
 
-Test results and performance metrics
+ai_core.drift
+ai_core.fastapi_middleware
+ai_core.logging
+ai_core.metrics
+ai_core.model_registry
+ai_core.validation
 
-Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+### How it plugs in
 
-Generated documentation for **restricted-boltzmann-machines**
+
+
+- **Configuration** — 12-factor config from `ai_core.config`.
+
+
+
+- **Observability** — structured logging + Prometheus metrics are wired in automatically.
+
+
+
+- **Validation** — input schema validation prevents bad data reaching the model.
+
+
+
+- **Registry** — trained artifacts are versioned and registered for reproducible serving.
+
+
+
+- **Serving** — the FastAPI app mounts shared observability middleware for tracing & metrics.
+
+Because every example shares `ai_core`, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.

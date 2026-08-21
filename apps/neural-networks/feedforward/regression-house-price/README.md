@@ -1,8 +1,13 @@
 # regression-house-price
 
-## ∫ Mathematics & Theory
 
-Linear Regression — Underlying equations and derivations
+
+Linear Regression — AI engineering example · part of the MLOps monorepo
+
+## 1. Mathematical Foundations
+
+This example is grounded in **Linear Regression**. The equations below
+drive every forward and backward pass in the implementation.
 
 $$\hat{y} = w \cdot x + b$$
 
@@ -14,53 +19,428 @@ $$\frac{\partial \mathcal{L}}{\partial b} = -\frac{2}{n} \sum_{i=1}^{n} (y_i - \
 
 $$w \leftarrow w - \alpha \cdot \frac{\partial \mathcal{L}}{\partial w}, \quad b \leftarrow b - \alpha \cdot \frac{\partial \mathcal{L}}{\partial b}$$
 
-### Step-by-Step Derivation
+### Derivation
 
 Starting from the hypothesis $h(x) = wx + b$, we minimize the MSE loss. Taking partial derivatives w.r.t. $w$ and $b$ and applying gradient descent yields the update rules. The learning rate $\alpha$ controls step size; too large causes divergence, too small causes slow convergence.
 
-### Interactive Visualization
+### Worked Numerical Example
+
+$$z = w \cdot x + b$$
+
+Illustrative forward-pass evaluation (scalar example):
+
+Input  x        = 12.0   (e.g. pizza diameter, inches)
+Weights w       =  0.85
+Bias    b       =  0.30
+---------------------------------
+z = w*x + b
+  = 0.85 * 12.0 + 0.30
+  = 10.20 + 0.30
+  = 10.50   <- model output
+
+### Conceptual Diagram
+
+        Math concept (placeholder)
+   [ Input x ] --> ( w · x + b ) --> [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]
+
+![Math Explanation (placeholder)](./assets/math-concept.png)
 
 Interactive scatter plot with regression line, showing loss descent over iterations.
 
-## ⚙ Architecture
+## 2. Core Logic & Architecture
 
-Model structure, data flow, and layer breakdown
+The example follows a consistent **data → train → evaluate → serve**
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.
 
-### Class Hierarchy
+  Raw dataset→
+  load + validate (data.py)→
+  fit / transform (model.py)→
+  evaluate + persist (train.py)→
+  serve (api.py)
 
-```
-  HousePriceNN
-```
+### Primary Components
+
+| Class | Public methods | Responsibility |
+| --- | --- | --- |
+| `PredictRequest` | — | House price prediction request. |
+| `PredictBulkRequest` | — | Bulk house price prediction request. |
+| `PredictResponse` | — | Prediction response. |
+| `BulkPredictResponse` | — | Bulk prediction response. |
+| `DriftResponse` | — | Drift detection response. |
+| `StatsResponse` | — | Model statistics response. |
+| `HousePriceNN` | _he_init, _xavier_init, _forward, fit, predict, mse, rmse, mae, r2_score, evaluate, save, load, to_dict | Feedforward neural network for house price regression.  Architecture: Input -> Hidden (ReLU) -> Output (Linear)  Args:     hidden_dim: Number of neurons in the hidden layer     learning_rate: Gradient descent step size     n_iterations: Maximum number of training iterations     weight_decay: L2 regularization strength     hidden_activation: Activation for hidden layer ('relu' or 'tanh')     random_seed: Random seed for reproducibility |
 
 ### Data Flow
 
-```mermaid
-graph TD
-  A[Input Data] --> B[Preprocessing]
-  B --> C[Model Training]
-  C --> D[Evaluation]
-  D --> E[Model Registry]
-  E --> F[Serving API]
+
+
+1. **Load** — `data.py` reads the source dataset and splits train/test.
+
+
+
+2. **Validate** — a Pydantic schema guards input shape/dtypes before training.
+
+
+
+3. **Fit / Transform** — `model.py` applies the mathematics from Section 1.
+
+
+
+4. **Evaluate** — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.
+
+
+
+5. **Persist** — weights/artifacts are saved and registered in the model registry.
+
+
+
+6. **Serve** — `api.py` exposes prediction endpoints with drift detection.
+
+### Design Patterns & Performance
+
+Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via `ai_core.validation`, structured JSON logging through `ai_core.logging`, Prometheus metrics from `ai_core.metrics`, and MLflow/model-registry persistence via `ai_core.model_registry`. The FastAPI service wraps the trained model with observability middleware from `ai_core.fastapi_middleware`.
+
+## 3. Detailed Code Walkthrough
+
+The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.
+
+### `HousePriceNN.fit(X, y, X_val, y_val)`
+
+Train the neural network using batch gradient descent.
+
+Args:
+    X: Training features (n_samples, n_features)
+    y: Training targets (n_samples,) — house prices
+    X_val: Optional validation features
+    y_val: Optional validation targets
+
+Returns:
+    self
+
+### `HousePriceNN.predict(X)`
+
+Predict house prices for given features.
+
+### `HousePriceNN.evaluate(X, y)`
+
+Compute all evaluation metrics.
+
+### Source Files
+
+<details>
+<summary>model.py</summary>
+
+```
+"""Feedforward neural network for house price prediction (regression).
+
+A multi-layer perceptron (MLP) with one hidden layer, trained via
+backpropagation and batch gradient descent. Built from scratch with NumPy.
+
+Architecture:
+    Input (n_features) -> Hidden (hidden_dim, ReLU) -> Output (1, Linear)
+
+Loss: Mean Squared Error
+Optimizer: Gradient Descent with He initialization
+"""
+
+from dataclasses import dataclass, field
+from typing import Literal
+
+import numpy as np
+
+def _relu(z: np.ndarray) -> np.ndarray:
+    """ReLU activation function."""
+    return np.maximum(0, z)
+
+def _relu_derivative(z: np.ndarray) -> np.ndarray:
+    """Derivative of ReLU."""
+    return (z > 0).astype(z.dtype)
+
+def _tanh(z: np.ndarray) -> np.ndarray:
+    """Tanh activation function."""
+    return np.tanh(z)
+
+def _mse_loss(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """Mean squared error loss."""
+    return float(np.mean((y_true - y_pred) ** 2))
+
+@dataclass
+class HousePriceNN:
+    """Feedforward neural network for house price regression.
+
+    Architecture: Input -> Hidden (ReLU) -> Output (Linear)
+
+    Args:
+        hidden_dim: Number of neurons in the hidden layer
+        learning_rate: Gradient descent step size
+        n_iterations: Maximum number of training iterations
+        weight_decay: L2 regularization strength
+        hidden_activation: Activation for hidden layer ('relu' or 'tanh')
+        random_seed: Random seed for reproducibility
+    """
+
+    hidden_dim: int = 32
+    learning_rate: float = 0.001
+    n_iterations: int = 2000
+    weight_decay: float = 0.0001
+    hidden_activation: Literal["relu", "tanh"] = "relu"
+    random_seed: int = 42
+
+    # Learned parameters
+    input_dim: int = 0
+    W1: np.ndarray | None = None
+    b1: np.ndarray | None = None
+    W2: np.ndarray | None = None
+    b2: np.ndarray | None = None
+
+    # Training metadata
+    training_mode: str = "supervised"
+    loss_history: list[float] = field(default_factory=list)
+    val_loss_history: list[float] = field(default_factory=list)
+    mean_: np.ndarray | None = None
+    std_: np.ndarray | None = None
+    y_mean_: float | None = None
+    y_std_: float | None = None
+
+    def _he_init(self, n_in: int, n_out: int, rng: np.random.Generator) -> np.ndarray:
+        """He initialization for ReLU networks."""
+        return rng.normal(0, np.sqrt(2.0 / n_in), (n_in, n_out))
+
+    def _xavier_init(self, n_in: int, n_out: int, rng: np.random.Generator) -> np.ndarray:
+        """Xavier initialization for tanh networks."""
+        return rng.normal(0, np.sqrt(1.0 / n_in), (n_in, n_out))
+
+    def _forward(self, X: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Forward pass through the network.
+
+        Returns: (output, hidden_activations, z1)
+        """
+        z1 = np.dot(X, self.W1) + self.b1
+
+        a1 = _relu(z1) if self.hidden_activation == "relu" else _tanh(z1)
+
+        z2 = np.dot(a1, self.W2) + self.b2
+        return z2.flatten(), a1, z1
+
+    def fit(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        X_val: np.ndarray | None = None,
+        y_val: np.ndarray | None = None,
+    ) -> "HousePriceNN":
+        """Train the neural network using batch gradient descent.
+
+        Args:
+            X: Training features (n_samples, n_features)
+            y: Training targets (n_samples,) — house prices
+            X_val: Optional validation features
+            y_val: Optional validation targets
+
+        Returns:
+            self
+        """
+        rng = np.random.default_rng(self.random_seed)
+
+        X = np.asarray(X, dtype=float)
+        y = np.asarray(y, dtype=float).flatten()
+
+        n_samples, n_features = X.shape
+        self.input_dim = n_features
+
+        # Normalize features
+        self.mean_ = X.mean(axis=0)
+        self.std_ = np.where(X.std(axis=0) < 1e-8, 1.0, X.std(axis=0))
+        X_norm = (X - self.mean_) / self.std_
+
+        # Normalize targets
+        self.y_mean_ = float(y.mean())
+        self.y_std_ = float(y.std()) if y.std() > 1e-8 else 1.0
+        y_norm = (y - self.y_mean_) / self.y_std_
+
+        # Normalize validation set
+        X_val_norm = None
+        if X_val is not None and y_val is not None:
+            X_val_norm = (X_val - self.mean_) / self.std_
+            self.val_loss_history = []
+
+        # Initialize weights
+        if self.hidden_activation == "relu":
+            self.W1 = self._he_init(n_features, self.hidden_dim, rng)
+        else:
+            self.W1 = self._xavier_init(n_features, self.hidden_dim, rng)
+        self.b1 = np.zeros(self.hidden_dim)
+        self.W2 = self._xavier_init(self.hidden_dim, 1, rng)
+        self.b2 = np.zeros(1)
+
+        self.loss_history = []
+
+        for epoch in range(self.n_iterations):
+            # Forward pass
+            output, a1, z1 = self._forward(X_norm)
+            loss = _mse_loss(y_norm, output)
+
+            # L2 regularization term
+            l2_penalty = self.weight_decay * (np.sum(self.W1**2) + np.sum(self.W2**2))
+            loss += l2_penalty
+
+            self.loss_history.append(loss)
+
+            # Backpropagation
+            m = n_samples
+            dz2 = 2 * (output - y_norm) / m  # dL/dz2
+            dW2 = np.dot(a1.T, dz2.reshape(-1, 1)) + self.weight_decay * self.W2
+            db2 = np.sum(dz2)
+
+            da1 = np.dot(dz2.reshape(-1, 1), self.W2.T)
+            if self.hidden_activation == "relu":
+                dz1 = da1 * _relu_derivative(z1)
+            else:
+                dz1 = da1 * (1 - _tanh(z1) ** 2)
+
+            dW1 = np.dot(X_norm.T, dz1) + self.weight_decay * self.W1
+            db1 = np.sum(dz1, axis=0)
+
+            # Gradient descent
+            self.W1 -= self.learning_rate * dW1
+            self.b1 -= self.learning_rate * db1
+            self.W2 -= self.learning_rate * dW2
+            self.b2 -= self.learning_rate * db2
+
+            # Track validation loss
+            if X_val_norm is not None and y_val is not None and epoch % 50 == 0:
+                val_output, _, _ = self._forward(X_val_norm)
+                y_val_norm = (y_val - self.y_mean_) / self.y_std_
+                val_loss = _mse_loss(y_val_norm, val_output)
+                self.val_loss_history.append(val_loss)
+
+            # Early stopping
+            if epoch > 100 and abs(self.loss_history[-1] - self.loss_history[-100]) < 1e-7:
+                break
+
+        return self
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """Predict house prices for given features."""
+        X = np.asarray(X, dtype=float)
+        X_norm = (X - self.mean_) / self.std_
+        output, _, _ = self._forward(X_norm)
+        return output * self.y_std_ + self.y_mean_
+
+    def mse(self, X: np.ndarray, y: np.ndarray) -> float:
+        """Compute Mean Squared Error."""
+        return float(np.mean((self.predict(X) - y) ** 2))
+
+    def rmse(self, X: np.ndarray, y: np.ndarray) -> float:
+        """Compute Root Mean Squared Error."""
+        return float(np.sqrt(self.mse(X, y)))
+
+    def mae(self, X: np.ndarray, y: np.ndarray) -> float:
+        """Compute Mean Absolute Error."""
+        return float(np.mean(np.abs(self.predict(X) - y)))
+
+    def r2_score(self, X: np.ndarray, y: np.ndarray) -> float:
+        """Compute R² (coefficient of determination) score."""
+        y_pred = self.predict(X)
+        ss_res = np.sum((y - y_pred) ** 2)
+        ss_tot = np.sum((y - np.mean(y)) ** 2)
+        if ss_tot == 0:
+            return 1.0 if ss_res == 0 else 0.0
+        return float(1 - ss_res / ss_tot)
+
+    def evaluate(self, X: np.ndarray, y: np.ndarray) -> dict[str, float]:
+        """Compute all evaluation metrics."""
+        return {
+            "mse": self.mse(X, y),
+            "rmse": self.rmse(X, y),
+            "mae": self.mae(X, y),
+            "r2": self.r2_score(X, y),
+        }
+
+    def save(self, path: str) -> None:
+        """Save model parameters to disk."""
+        if self.W1 is None:
+            raise ValueError("Cannot save untrained model")
+
+        np.savez(
+            path,
+            W1=self.W1,
+            b1=self.b1,
+            W2=self.W2,
+            b2=self.b2,
+            input_dim=np.array([self.input_dim]),
+            hidden_dim=np.array([self.hidden_dim]),
+            learning_rate=np.array([self.learning_rate]),
+            n_iterations=np.array([self.n_iterations]),
+            weight_decay=np.array([self.weight_decay]),
+            hidden_activation=np.array([self.hidden_activation]),
+            random_seed=np.array([self.random_seed]),
+            mean_=self.mean_,
+            std_=self.std_,
+            y_mean_=np.array([self.y_mean_]) if self.y_mean_ is not None else np.array([0.0]),
+            y_std_=np.array([self.y_std_]) if self.y_std_ is not None else np.array([1.0]),
+            loss_history=np.array(self.loss_history),
+            val_loss_history=np.array(self.val_loss_history),
+            training_mode=np.array([self.training_mode]),
+        )
+
+    @classmethod
+    def load(cls, path: str) -> "HousePriceNN":
+        """Load model parameters from disk."""
+        data = np.load(path)
+
+        model = cls(
+            hidden_dim=int(data["hidden_dim"].item()),
+            learning_rate=float(data["learning_rate"].item()),
+            n_iterations=int(data["n_iterations"].item()),
+            weight_decay=float(data["weight_decay"].item()),
+            hidden_activation=str(data["hidden_activation"].item()),
+            random_seed=int(data["random_seed"].item()),
+        )
+
+        model.W1 = data["W1"]
+        model.b1 = data["b1"]
+        model.W2 = data["W2"]
+        model.b2 = data["b2"]
+        model.input_dim = int(data["input_dim"].item())
+        model.mean_ = data["mean_"]
+        model.std_ = data["std_"]
+        model.y_mean_ = float(data["y_mean_"].item())
+        model.y_std_ = float(data["y_std_"].item())
+        model.loss_history = list(data["loss_history"])
+        model.val_loss_history = list(data["val_loss_history"])
+        model.training_mode = str(data["training_mode"].item())
+
+        return model
+
+    def to_dict(self) -> dict:
+        """Return model configuration as a dict."""
+        return {
+            "input_dim": self.input_dim,
+            "hidden_dim": self.hidden_dim,
+            "learning_rate": self.learning_rate,
+            "n_iterations": self.n_iterations,
+            "weight_decay": self.weight_decay,
+            "hidden_activation": self.hidden_activation,
+            "random_seed": self.random_seed,
+            "training_mode": self.training_mode,
+            "n_epochs_run": len(self.loss_history),
+            "final_loss": self.loss_history[-1] if self.loss_history else 0.0,
+        }
 ```
 
-## ⚡ API Reference
+</details>
 
-FastAPI endpoints and model interfaces
+<details>
+<summary>train.py</summary>
 
-| Method | Endpoint |
-| --- | --- |
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/metrics` |
-| `POST` | `/reload` |
-
-## ▶ Usage
-
-Code examples and CLI commands
-
-### Training Script
-
-```python
+```
 """Training pipeline for house price prediction using a feedforward neural network."""
 
 import argparse
@@ -284,9 +664,145 @@ if __name__ == "__main__":
     main()
 ```
 
-### API Server
+</details>
 
-```python
+<details>
+<summary>data.py</summary>
+
+```
+"""Data generation and preprocessing for house price prediction."""
+
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+FEATURE_NAMES = [
+    "sqft",
+    "bedrooms",
+    "bathrooms",
+    "location_score",
+    "age",
+    "garage",
+    "lot_size",
+    "year_built",
+    "property_type",
+    "school_rating",
+]
+
+# Location multipliers for synthetic data
+LOCATIONS = ["downtown", "suburban", "riverside", "mountain", "beach"]
+LOCATION_SCORES = {"downtown": 85, "suburban": 70, "riverside": 60, "mountain": 55, "beach": 90}
+
+DEFAULT_N_SAMPLES = 1000
+
+def generate_synthetic_data(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Generate synthetic house data with features and prices.
+
+    Returns:
+        Tuple of (X, y) where X is feature matrix and y is house prices.
+    """
+    rng = np.random.default_rng(random_seed)
+
+    sqft = rng.integers(800, 5000, n_samples).astype(float)
+    bedrooms = rng.integers(1, 7, n_samples).astype(float)
+    bathrooms = rng.integers(1, 5, n_samples).astype(float)
+    location_indices = rng.integers(0, len(LOCATIONS), n_samples)
+    location_score = np.array([LOCATION_SCORES[LOCATIONS[i]] for i in location_indices]).astype(
+        float
+    )
+    age = rng.integers(0, 80, n_samples).astype(float)
+    garage = rng.integers(0, 4, n_samples).astype(float)
+    lot_size = rng.integers(2000, 15000, n_samples).astype(float)
+    year_built = 2024 - age
+    property_type = rng.integers(0, 4, n_samples).astype(
+        float
+    )  # 0=single, 1=condo, 2=townhome, 3=villa
+    school_rating = rng.uniform(4.0, 10.0, n_samples)
+
+    # Price formula: base + sqft * factor + location premium + other features + noise
+    price = (
+        50000
+        + sqft * rng.uniform(80, 150, n_samples)
+        + bedrooms * 15000
+        + bathrooms * 20000
+        + location_score * 1500
+        - age * 1500
+        + garage * 8000
+        + lot_size * 2
+        + school_rating * 25000
+        + property_type * 30000
+        + rng.normal(0, 20000, n_samples)
+    )
+    price = np.round(price, 2)
+
+    X = np.column_stack(
+        [
+            sqft,
+            bedrooms,
+            bathrooms,
+            location_score,
+            age,
+            garage,
+            lot_size,
+            year_built,
+            property_type,
+            school_rating,
+        ]
+    )
+
+    return X.astype(float), price
+
+def load_training_data(
+    data_path: Path | None = None,
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Load or generate house data for training."""
+    if data_path and Path(data_path).exists():
+        df = pd.read_csv(data_path)
+        X = df[FEATURE_NAMES].values.astype(float)
+        y = df["price"].values.astype(float)
+        return X, y
+
+    return generate_synthetic_data(n_samples=n_samples, random_seed=random_seed)
+
+def save_training_data(X: np.ndarray, y: np.ndarray, path: Path) -> None:
+    """Save training data to CSV."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    df = pd.DataFrame(X, columns=FEATURE_NAMES)
+    df["price"] = y
+    df.to_csv(path, index=False)
+
+def train_test_split(
+    X: np.ndarray, y: np.ndarray, test_size: float = 0.2, random_seed: int | None = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Split data into train and test sets."""
+    n = len(X)
+    n_test = max(1, int(n * test_size))
+
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+
+    test_idx = indices[:n_test]
+    train_idx = indices[n_test:]
+
+    return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
+```
+
+</details>
+
+<details>
+<summary>api.py</summary>
+
+```
 """Production serving API for house price prediction via feedforward neural network."""
 
 import os
@@ -661,20 +1177,41 @@ def predict_bulk(body: PredictBulkRequest):
         raise HTTPException(status_code=500, detail="Bulk prediction failed") from e
 ```
 
-### CLI Commands
+</details>
 
-```bash
-uv run python -m regression_house_price.train --model-dir ./artifacts/models
-```
+## 4. Monorepo Integration
 
-## 📊 Benchmarks
+This example is a first-class consumer of the shared `packages/ai-core` library.
+It reuses the following foundation modules instead of re-implementing infrastructure:
 
-Test results and performance metrics
+ai_core.drift
+ai_core.fastapi_middleware
+ai_core.logging
+ai_core.metrics
+ai_core.model_registry
+ai_core.validation
 
-Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+### How it plugs in
 
-### Related Apps
 
-- [pizza-price](../pizza-price/README.md)
 
-Generated documentation for **regression-house-price**
+- **Configuration** — 12-factor config from `ai_core.config`.
+
+
+
+- **Observability** — structured logging + Prometheus metrics are wired in automatically.
+
+
+
+- **Validation** — input schema validation prevents bad data reaching the model.
+
+
+
+- **Registry** — trained artifacts are versioned and registered for reproducible serving.
+
+
+
+- **Serving** — the FastAPI app mounts shared observability middleware for tracing & metrics.
+
+Because every example shares `ai_core`, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.

@@ -1,63 +1,341 @@
 # nlp-text-generation
 
-## ∫ Mathematics & Theory
 
-Text Generation — Underlying equations and derivations
 
-$$P(w_t | w_{
+Text Generation — AI engineering example · part of the MLOps monorepo
+
+## 1. Mathematical Foundations
+
+This example is grounded in **Text Generation**. The equations below
+drive every forward and backward pass in the implementation.
+
+$$P(w_t | w_{<t}) = \text{softmax}(W_h h_t + b_h)$$
 
 $$h_t = \text{LSTM}(x_t, h_{t-1})$$
 
-$$\mathcal{L} = -\sum_{t=1}^{T} \log P(w_t | w_{
+$$\mathcal{L} = -\sum_{t=1}^{T} \log P(w_t | w_{<t})$$
 
-### Step-by-Step Derivation
+### Derivation
 
 Text generation models learn to predict the next token given past context. Temperature scaling controls randomness: high temperature yields creative but incoherent text; low temperature yields repetitive but safe text. Top-k and nucleus sampling truncate the probability mass to improve diversity.
 
-### Interactive Visualization
+### Worked Numerical Example
+
+$$z = w \cdot x + b$$
+
+Illustrative forward-pass evaluation (scalar example):
+
+Input  x        = 12.0   (e.g. pizza diameter, inches)
+Weights w       =  0.85
+Bias    b       =  0.30
+---------------------------------
+z = w*x + b
+  = 0.85 * 12.0 + 0.30
+  = 10.20 + 0.30
+  = 10.50   <- model output
+
+### Conceptual Diagram
+
+        Math concept (placeholder)
+   [ Input x ] --> ( w · x + b ) --> [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]
+
+![Math Explanation (placeholder)](./assets/math-concept.png)
 
 Interactive temperature slider; generated text preview; perplexity vs context length.
 
-## ⚙ Architecture
+## 2. Core Logic & Architecture
 
-Model structure, data flow, and layer breakdown
+The example follows a consistent **data → train → evaluate → serve**
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.
 
-### Class Hierarchy
+  Raw dataset→
+  load + validate (data.py)→
+  fit / transform (model.py)→
+  evaluate + persist (train.py)→
+  serve (api.py)
 
-```
-  TextGenerationRNN
-```
+### Primary Components
+
+| Class | Public methods | Responsibility |
+| --- | --- | --- |
+| `PredictRequest` | — |  |
+| `PredictBulkRequest` | — |  |
+| `PredictResponse` | — |  |
+| `BulkPredictResponse` | — |  |
+| `StatsResponse` | — |  |
+| `TextGenerationRNN` | _to_onehot_seq, _to_onehot_batch, fit, predict_proba, predict, generate, perplexity, evaluate, save, load, to_dict | RNN language model for character-level text generation (many-to-many).  Args:     vocab_size: Size of the character vocabulary     seq_len: Length of input character sequences     hidden_dim: Number of hidden units     learning_rate: Gradient descent step size     n_iterations: Number of training epochs     weight_decay: L2 regularization strength     clip_value: Maximum gradient norm     random_seed: Random seed for reproducibility |
 
 ### Data Flow
 
-```mermaid
-graph TD
-  A[Input Data] --> B[Preprocessing]
-  B --> C[Model Training]
-  C --> D[Evaluation]
-  D --> E[Model Registry]
-  E --> F[Serving API]
+
+
+1. **Load** — `data.py` reads the source dataset and splits train/test.
+
+
+
+2. **Validate** — a Pydantic schema guards input shape/dtypes before training.
+
+
+
+3. **Fit / Transform** — `model.py` applies the mathematics from Section 1.
+
+
+
+4. **Evaluate** — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.
+
+
+
+5. **Persist** — weights/artifacts are saved and registered in the model registry.
+
+
+
+6. **Serve** — `api.py` exposes prediction endpoints with drift detection.
+
+### Design Patterns & Performance
+
+Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via `ai_core.validation`, structured JSON logging through `ai_core.logging`, Prometheus metrics from `ai_core.metrics`, and MLflow/model-registry persistence via `ai_core.model_registry`. The FastAPI service wraps the trained model with observability middleware from `ai_core.fastapi_middleware`.
+
+## 3. Detailed Code Walkthrough
+
+The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.
+
+### `TextGenerationRNN.fit(X, y, X_val, y_val)`
+
+Train the RNN with BPTT.
+
+For language modeling, y is derived from X by shifting by one position.
+The target at position t is X[t+1], i.e., predict the next character.
+
+Args:
+    X: Token index sequences (n_samples, seq_len)
+    y: Optional explicit targets (n_samples, seq_len). If None, shift X.
+
+Returns:
+    self
+
+### `TextGenerationRNN.predict(X_seq)`
+
+Greedy sampling: predict one token at each position.
+
+### Source Files
+
+<details>
+<summary>model.py</summary>
+
+```
+"""Recurrent neural network for text generation (character-level language model).
+
+A SimpleRNN (Elman network) trained with Backpropagation Through Time (BPTT).
+Built from scratch with NumPy, using the shared nn_utils.rnn.SimpleRNN base.
+
+Architecture:
+    Input (seq_len, vocab_size) -> Hidden (hidden_dim, tanh) -> Output (vocab_size, softmax)
+
+Loss: Cross-Entropy (many-to-many: predicts next character at each timestep)
+
+The model is trained to predict the next character in a sequence, enabling
+autoregressive text generation by feeding the predicted character back as input.
+"""
+
+from dataclasses import dataclass, field
+
+import numpy as np
+from ai_core.nn_utils.rnn import SimpleRNN
+
+@dataclass
+class TextGenerationRNN:
+    """RNN language model for character-level text generation (many-to-many).
+
+    Args:
+        vocab_size: Size of the character vocabulary
+        seq_len: Length of input character sequences
+        hidden_dim: Number of hidden units
+        learning_rate: Gradient descent step size
+        n_iterations: Number of training epochs
+        weight_decay: L2 regularization strength
+        clip_value: Maximum gradient norm
+        random_seed: Random seed for reproducibility
+    """
+
+    vocab_size: int = 26
+    seq_len: int = 20
+    hidden_dim: int = 32
+    learning_rate: float = 0.1
+    n_iterations: int = 500
+    weight_decay: float = 0.001
+    clip_value: float = 5.0
+    random_seed: int = 42
+
+    model: SimpleRNN | None = field(default=None, repr=False)
+    training_mode: str = "self-supervised"
+    loss_history: list[float] = field(default_factory=list)
+
+    def _to_onehot_seq(self, seq: np.ndarray, dim: int) -> np.ndarray:
+        seq = np.atleast_1d(seq).astype(int)
+        result = np.zeros((len(seq), dim))
+        result[np.arange(len(seq)), seq % dim] = 1.0
+        return result
+
+    def _to_onehot_batch(self, X: np.ndarray) -> np.ndarray:
+        n_samples = X.shape[0]
+        seq_len = X.shape[1]
+        result = np.zeros((n_samples, seq_len, self.vocab_size))
+        for i in range(n_samples):
+            result[i] = self._to_onehot_seq(X[i], self.vocab_size)
+        return result
+
+    def fit(
+        self,
+        X: np.ndarray,
+        y: np.ndarray | None = None,
+        X_val: np.ndarray | None = None,
+        y_val: np.ndarray | None = None,
+    ) -> "TextGenerationRNN":
+        """Train the RNN with BPTT.
+
+        For language modeling, y is derived from X by shifting by one position.
+        The target at position t is X[t+1], i.e., predict the next character.
+
+        Args:
+            X: Token index sequences (n_samples, seq_len)
+            y: Optional explicit targets (n_samples, seq_len). If None, shift X.
+
+        Returns:
+            self
+        """
+        X_onehot = self._to_onehot_batch(X)
+
+        # Next-token prediction: target = input shifted by 1
+        y_shifted = np.roll(X, -1, axis=1) if y is None else y
+
+        y_onehot = np.zeros((X_onehot.shape[0], X_onehot.shape[1], self.vocab_size))
+        for i in range(X_onehot.shape[0]):
+            for t in range(X_onehot.shape[1]):
+                idx = int(y_shifted[i, t]) % self.vocab_size
+                y_onehot[i, t, idx] = 1.0
+
+        self.model = SimpleRNN(
+            input_dim=self.vocab_size,
+            hidden_dim=self.hidden_dim,
+            output_dim=self.vocab_size,
+            output_activation="softmax",
+            learning_rate=self.learning_rate,
+            weight_decay=self.weight_decay,
+            clip_value=self.clip_value,
+            random_seed=self.random_seed,
+            output_loss="cross_entropy",
+        )
+        self.model.fit(X_onehot, y_onehot, n_iterations=self.n_iterations)
+        self.loss_history = self.model.loss_history
+        return self
+
+    def predict_proba(self, X_seq: np.ndarray) -> np.ndarray:
+        """Predict next-token probabilities for each position.
+
+        Args:
+            X_seq: (seq_len,) token indices
+
+        Returns:
+            (seq_len, vocab_size) softmax probabilities
+        """
+        X_oh = self._to_onehot_seq(X_seq, self.vocab_size)
+        return self.model.predict_many_to_many(X_oh)
+
+    def predict(self, X_seq: np.ndarray) -> np.ndarray:
+        """Greedy sampling: predict one token at each position."""
+        probas = self.predict_proba(X_seq)
+        return np.argmax(probas, axis=1)
+
+    def generate(self, seed_seq: np.ndarray, n_tokens: int = 10) -> np.ndarray:
+        """Autoregressively generate n_tokens following a seed sequence.
+
+        Args:
+            seed_seq: (seed_len,) token indices
+            n_tokens: Number of tokens to generate
+
+        Returns:
+            (seed_len + n_tokens,) token indices
+        """
+        generated = list(seed_seq)
+        current_seq = seed_seq.copy()
+
+        for _ in range(n_tokens):
+            X_oh = self._to_onehot_seq(current_seq, self.vocab_size)
+            outputs = self.model.predict_many_to_many(X_oh)
+            next_probs = outputs[-1]  # softmax at last timestep
+            next_idx = int(np.argmax(next_probs))
+            generated.append(next_idx)
+            current_seq = np.array(generated[-self.seq_len :])
+
+        return np.array(generated)
+
+    def perplexity(self, X: np.ndarray) -> float:
+        """Compute perplexity of the model on given sequences."""
+        total_loss = 0.0
+        n_tokens = 0
+        for i in range(X.shape[0]):
+            y_shifted = np.roll(X[i], -1)
+            probas = self.predict_proba(X[i])
+            for t in range(len(y_shifted) - 1):
+                idx = int(y_shifted[t]) % self.vocab_size
+                p = max(probas[t, idx], 1e-9)
+                total_loss += -np.log(p)
+                n_tokens += 1
+        avg_loss = total_loss / max(n_tokens, 1)
+        return float(np.exp(avg_loss))
+
+    def evaluate(self, X: np.ndarray) -> dict[str, float]:
+        ppl = self.perplexity(X)
+        return {"perplexity": ppl, "n_sequences": float(X.shape[0])}
+
+    def save(self, path: str) -> None:
+        if self.model is None:
+            raise ValueError("Cannot save untrained model")
+        self.model.save(path)
+
+    @classmethod
+    def load(cls, path: str) -> "TextGenerationRNN":
+        model = SimpleRNN.load(path)
+        obj = cls(
+            vocab_size=model.input_dim,
+            seq_len=20,
+            hidden_dim=model.hidden_dim,
+            learning_rate=model.learning_rate,
+            weight_decay=model.weight_decay,
+            clip_value=model.clip_value,
+            random_seed=model.random_seed,
+        )
+        obj.model = model
+        obj.loss_history = model.loss_history
+        return obj
+
+    def to_dict(self) -> dict:
+        return {
+            "vocab_size": self.vocab_size,
+            "seq_len": self.seq_len,
+            "hidden_dim": self.hidden_dim,
+            "learning_rate": self.learning_rate,
+            "n_iterations": self.n_iterations,
+            "weight_decay": self.weight_decay,
+            "random_seed": self.random_seed,
+            "training_mode": self.training_mode,
+            "n_epochs_run": len(self.loss_history),
+            "final_loss": self.loss_history[-1] if self.loss_history else 0.0,
+        }
 ```
 
-## ⚡ API Reference
+</details>
 
-FastAPI endpoints and model interfaces
+<details>
+<summary>train.py</summary>
 
-| Method | Endpoint |
-| --- | --- |
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/metrics` |
-| `POST` | `/reload` |
-| `GET` | `/drift` |
-
-## ▶ Usage
-
-Code examples and CLI commands
-
-### Training Script
-
-```python
+```
 """Training pipeline for text generation (RNN language model)."""
 
 import argparse
@@ -275,9 +553,107 @@ if __name__ == "__main__":
     main()
 ```
 
-### API Server
+</details>
 
-```python
+<details>
+<summary>data.py</summary>
+
+```
+"""Data loading and preprocessing for text generation (RNN language model).
+
+Generates synthetic character-level sequences for language modeling.
+Characters are indexed as integers: a=0, b=1, ..., z=25.
+"""
+
+from pathlib import Path
+
+import numpy as np
+
+VOCAB_SIZE = 26
+SEQ_LEN = 20
+
+DEFAULT_N_SAMPLES = 500
+
+def _int_to_char(idx: int) -> str:
+    """Map integer index to lowercase letter (0->'a', 1->'b', ...)."""
+    return chr(ord("a") + idx % 26)
+
+def generate_synthetic_data(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> np.ndarray:
+    """Generate synthetic character-index sequences for language modeling.
+
+    Sequences are generated from simple probabilistic patterns so the RNN
+    can learn next-character prediction.
+
+    Returns:
+        X: (n_samples, SEQ_LEN) character indices
+    """
+    rng = np.random.default_rng(random_seed)
+
+    X = np.zeros((n_samples, SEQ_LEN), dtype=int)
+
+    for i in range(n_samples):
+        seq = np.zeros(SEQ_LEN, dtype=int)
+        seq[0] = rng.integers(0, VOCAB_SIZE)
+        for t in range(1, SEQ_LEN):
+            # Bias toward repeating or incrementing (patterns the RNN can learn)
+            if rng.random() < 0.6:
+                seq[t] = (seq[t - 1] + rng.integers(-1, 2)) % VOCAB_SIZE
+            else:
+                seq[t] = rng.integers(0, VOCAB_SIZE)
+        X[i] = seq
+
+    return X
+
+def save_training_data(X: np.ndarray, y: np.ndarray, path: Path) -> None:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(path, X=X, y=y)
+
+def load_training_data(
+    data_path: Path | None = None,
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> np.ndarray:
+    if data_path and Path(data_path).exists():
+        data = np.load(data_path, allow_pickle=True)
+        return data["X"]
+    return generate_synthetic_data(n_samples=n_samples, random_seed=random_seed)
+
+def train_test_split(
+    X: np.ndarray,
+    y: np.ndarray | None = None,
+    test_size: float = 0.2,
+    random_seed: int | None = None,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    n = len(X)
+    n_test = max(1, int(n * test_size))
+
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+
+    test_idx = indices[:n_test]
+    train_idx = indices[n_test:]
+
+    return (
+        X[train_idx],
+        X[test_idx],
+        (X[train_idx] if y is None else y[train_idx]),
+        (X[test_idx] if y is None else y[test_idx]),
+    )
+```
+
+</details>
+
+<details>
+<summary>api.py</summary>
+
+```
 """Serving API for text generation (RNN language model)."""
 
 import os
@@ -594,26 +970,42 @@ def predict_bulk(body: PredictBulkRequest):
     return BulkPredictResponse(predictions=predictions, model_version=_model_version)
 ```
 
-### CLI Commands
+</details>
 
-```bash
-uv run python -m nlp_text_generation.train --model-dir ./artifacts/models
-```
+## 4. Monorepo Integration
 
-## 📊 Benchmarks
+This example is a first-class consumer of the shared `packages/ai-core` library.
+It reuses the following foundation modules instead of re-implementing infrastructure:
 
-Test results and performance metrics
+ai_core.drift
+ai_core.fastapi_middleware
+ai_core.logging
+ai_core.metrics
+ai_core.model_registry
+ai_core.nn_utils
+ai_core.validation
 
-Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+### How it plugs in
 
-### Related Apps
 
-- [code-generation](../code-generation/README.md)
 
-- [image-generation](../image-generation/README.md)
+- **Configuration** — 12-factor config from `ai_core.config`.
 
-- [retrieval-augmented-generation](../retrieval-augmented-generation/README.md)
 
-- [text-generation](../text-generation/README.md)
 
-Generated documentation for **nlp-text-generation**
+- **Observability** — structured logging + Prometheus metrics are wired in automatically.
+
+
+
+- **Validation** — input schema validation prevents bad data reaching the model.
+
+
+
+- **Registry** — trained artifacts are versioned and registered for reproducible serving.
+
+
+
+- **Serving** — the FastAPI app mounts shared observability middleware for tracing & metrics.
+
+Because every example shares `ai_core`, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.

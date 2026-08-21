@@ -1,8 +1,13 @@
 # multimodal-llm
 
-## ∫ Mathematics & Theory
 
-Multimodal Learning — Underlying equations and derivations
+
+Multimodal Learning — AI engineering example · part of the MLOps monorepo
+
+## 1. Mathematical Foundations
+
+This example is grounded in **Multimodal Learning**. The equations below
+drive every forward and backward pass in the implementation.
 
 $$h = \text{CrossAttention}(Q_{\text{text}}, K_{\text{image}}, V_{\text{image}})$$
 
@@ -10,64 +15,511 @@ $$\mathcal{L} = \mathcal{L}_{\text{image-text}} + \lambda_1 \mathcal{L}_{\text{i
 
 $$\text{cosine}(u, v) = \frac{u^T v}{\|u\| \|v\|}$$
 
-### Step-by-Step Derivation
+### Derivation
 
 Multimodal models align representations from different modalities in a shared embedding space. Cross-attention allows one modality to query another. Contrastive learning pulls matched pairs together and pushes unmatched pairs apart. The total loss balances cross-modal alignment with unimodal task losses.
 
-### Interactive Visualization
+### Worked Numerical Example
+
+$$z = w \cdot x + b$$
+
+Illustrative forward-pass evaluation (scalar example):
+
+Input  x        = 12.0   (e.g. pizza diameter, inches)
+Weights w       =  0.85
+Bias    b       =  0.30
+---------------------------------
+z = w*x + b
+  = 0.85 * 12.0 + 0.30
+  = 10.20 + 0.30
+  = 10.50   <- model output
+
+### Conceptual Diagram
+
+        Math concept (placeholder)
+   [ Input x ] --> ( w · x + b ) --> [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]
+
+![Math Explanation (placeholder)](./assets/math-concept.png)
 
 Interactive embedding alignment plot; cross-attention weight heatmap; modality contribution explorer.
 
-## ⚙ Architecture
+## 2. Core Logic & Architecture
 
-Model structure, data flow, and layer breakdown
+The example follows a consistent **data → train → evaluate → serve**
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.
 
-### Class Hierarchy
+  Raw dataset→
+  load + validate (data.py)→
+  fit / transform (model.py)→
+  evaluate + persist (train.py)→
+  serve (api.py)
 
-```
-  TextEncoder
-  ImageEncoder
-  AudioEncoder
-  Connector
-  FusionMechanism
-  MultiHeadAttention
-  FeedForward
-  AddNorm
-  TransformerEncoder
-  TransformerDecoder
-  LLMBackbone
-  MultimodalLLM
-```
+### Primary Components
+
+| Class | Public methods | Responsibility |
+| --- | --- | --- |
+| `MultimodalPredictRequest` | — |  |
+| `MultimodalPredictResponse` | — |  |
+| `DriftResponse` | — |  |
+| `StatsResponse` | — |  |
+| `TextEncoder` | init_weights, forward |  |
+| `ImageEncoder` | __post_init__, init_weights, forward |  |
+| `AudioEncoder` | init_weights, forward |  |
+| `Connector` | init_weights, forward |  |
+| `FusionMechanism` | init_weights, early_fusion, late_fusion, hybrid_fusion, forward |  |
+| `MultiHeadAttention` | __post_init__, init_weights, _split_heads, _combine_heads, set_enc_output, forward, backward, update_params |  |
+| `FeedForward` | init_weights, forward, backward, update_params |  |
+| `AddNorm` | init_params, forward, backward |  |
+| `TransformerEncoder` | __post_init__, forward |  |
+| `TransformerDecoder` | __post_init__, forward |  |
+| `LLMBackbone` | _init, forward |  |
+| `MultimodalLLM` | _init, encode_modalities, fit, predict, evaluate, save, load, to_dict |  |
 
 ### Data Flow
 
-```mermaid
-graph TD
-  A[Input Data] --> B[Preprocessing]
-  B --> C[Model Training]
-  C --> D[Evaluation]
-  D --> E[Model Registry]
-  E --> F[Serving API]
+
+
+1. **Load** — `data.py` reads the source dataset and splits train/test.
+
+
+
+2. **Validate** — a Pydantic schema guards input shape/dtypes before training.
+
+
+
+3. **Fit / Transform** — `model.py` applies the mathematics from Section 1.
+
+
+
+4. **Evaluate** — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.
+
+
+
+5. **Persist** — weights/artifacts are saved and registered in the model registry.
+
+
+
+6. **Serve** — `api.py` exposes prediction endpoints with drift detection.
+
+### Design Patterns & Performance
+
+Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via `ai_core.validation`, structured JSON logging through `ai_core.logging`, Prometheus metrics from `ai_core.metrics`, and MLflow/model-registry persistence via `ai_core.model_registry`. The FastAPI service wraps the trained model with observability middleware from `ai_core.fastapi_middleware`.
+
+## 3. Detailed Code Walkthrough
+
+The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.
+
+No docstring-annotated key methods.
+
+### Source Files
+
+<details>
+<summary>model.py</summary>
+
+```
+"""Multimodal Large Language Model implementation from scratch using NumPy.
+
+Architecture (following GeeksforGeeks MLLM article):
+
+    1. Modality Encoders:
+       - TextEncoder: token embedding + positional encoding
+       - ImageEncoder: patch embedding + projection
+       - AudioEncoder: mel spectrogram + projection
+
+    2. Connector (Aligner/Projector):
+       - MLP-based projection to align modality embeddings to LLM space
+
+    3. Fusion Mechanism:
+       - Early fusion: combine raw embeddings before processing
+       - Late fusion: combine after independent processing
+       - Hybrid fusion: combine at multiple layers
+
+    4. LLM Backbone:
+       - Simplified transformer with self-attention
+       - Generates text conditioned on all modalities
+
+Core concepts:
+    - Cross-Modal Attention: attention between different modality tokens
+    - Joint Representation: unified embedding space for all modalities
+    - Feature Extraction: extract relevant features from each modality
+
+Training objective:
+    - Data loss: cross-entropy on next-token prediction
+    - Multimodal alignment: contrastive loss between modalities
+
+Args:
+    vocab_size: vocabulary size for text
+    d_model: model dimension
+    n_heads: number of attention heads
+    text_encoder_dim: text embedding dimension
+    image_encoder_dim: image patch embedding dimension
+    audio_encoder_dim: audio embedding dimension
+    connector_dim: connector projection dimension
+    fusion_type: "early", "late", or "hybrid"
+    max_seq_len: maximum sequence length
+    n_encoder_layers: number of transformer encoder layers
+    n_decoder_layers: number of transformer decoder layers
+    d_ff: feed-forward inner dimension
+    learning_rate: gradient descent step size
+    n_iterations: number of training epochs
+    dropout_rate: dropout probability
+    weight_decay: L2 regularization
+    random_seed: random seed
+"""
+
+from dataclasses import dataclass, field
+
+import numpy as np
+
+def gelu(x: np.ndarray) -> np.ndarray:
+    return 0.5 * x * (1.0 + np.tanh(np.sqrt(2.0 / np.pi) * (x + 0.044715 * x ** 3)))
+
+def softmax(z: np.ndarray, axis: int = -1) -> np.ndarray:
+    z_shifted = z - np.max(z, axis=axis, keepdims=True)
+    exp_z = np.exp(z_shifted)
+    return exp_z / np.sum(exp_z, axis=axis, keepdims=True)
+
+def layer_norm(x: np.ndarray, gamma: np.ndarray, beta: np.ndarray, eps: float = 1e-5) -> np.ndarray:
+    mean = np.mean(x, axis=-1, keepdims=True)
+    var = np.var(x, axis=-1, keepdims=True)
+    return gamma * (x - mean) / np.sqrt(var + eps) + beta
+
+def scaled_dot_product_attention(
+    Q: np.ndarray, K: np.ndarray, V: np.ndarray, mask: np.ndarray | None = None
+) -> np.ndarray:
+    d_k = Q.shape[-1]
+    scores = Q @ np.swapaxes(K, -2, -1) / np.sqrt(d_k)
+
+    if mask is not None:
+        scores = scores + (mask * -1e9)
+
+    attn = softmax(scores, axis=-1)
+    return attn @ V
+
+def positional_encoding(max_len: int, d_model: int) -> np.ndarray:
+    pe = np.zeros((max_len, d_model))
+    for pos in range(max_len):
+        for i in range(d_model):
+            angle = pos / (10000 ** (2 * (i // 2) / d_model))
+            if i % 2 == 0:
+                pe[pos, i] = np.sin(angle)
+            else:
+                pe[pos, i] = np.cos(angle)
+    return pe
+
+def cross_modal_attention(
+    query: np.ndarray, key: np.ndarray, value: np.ndarray, mask: np.ndarray | None = None
+) -> np.ndarray:
+    d_k = query.shape[-1]
+    scores = query @ np.swapaxes(key, -2, -1) / np.sqrt(d_k)
+
+    if mask is not None:
+        scores = scores + (mask * -1e9)
+
+    attn_weights = softmax(scores, axis=-1)
+    return attn_weights @ value
+
+@dataclass
+class TextEncoder:
+    vocab_size: int = 1000
+    d_model: int = 256
+    max_seq_len: int = 128
+    random_seed: int = 42
+
+    embedding: np.ndarray | None = None
+    pos_encoding: np.ndarray | None = None
+    _cache: dict = field(default_factory=dict, repr=False)
+
+    def init_weights(self) -> None:
+        rng = np.random.default_rng(self.random_seed)
+        scale = np.sqrt(2.0 / self.d_model)
+        self.embedding = rng.normal(0, scale, (self.vocab_size, self.d_model))
+        self.pos_encoding = positional_encoding(self.max_seq_len, self.d_model)
+
+    def forward(self, tokens: np.ndarray) -> np.ndarray:
+        if self.embedding is None:
+            self.init_weights()
+
+        seq_len = tokens.shape[1] if tokens.ndim > 1 else 1
+        embedded = self.embedding[tokens] * np.sqrt(self.d_model)
+
+        if tokens.ndim == 1:
+            embedded = embedded + self.pos_encoding[:len(tokens)]
+        else:
+            embedded = embedded + self.pos_encoding[:seq_len]
+
+        self._cache = {"tokens": tokens, "embedded": embedded}
+        return embedded
+
+@dataclass
+class ImageEncoder:
+    image_dim: int = 3
+    patch_size: int = 16
+    n_patches: int = 49
+    d_model: int = 256
+    random_seed: int = 42
+
+    patch_projection: np.ndarray | None = None
+    pos_encoding: np.ndarray | None = None
+    _cache: dict = field(default_factory=dict, repr=False)
+
+    def __post_init__(self):
+        self._patch_dim = self.image_dim * self.patch_size * self.patch_size
+        if self.n_patches == 0:
+            self.n_patches = (self.image_dim // self.patch_size) ** 2
+
+    def init_weights(self) -> None:
+        rng = np.random.default_rng(self.random_seed)
+        scale = np.sqrt(2.0 / self.d_model)
+        self.patch_projection = rng.normal(0, scale, (self._patch_dim, self.d_model))
+        self.pos_encoding = positional_encoding(self.n_patches + 1, self.d_model)
+
+    def forward(self, image_patches: np.ndarray) -> np.ndarray:
+        if self.patch_projection is None:
+            self.init_weights()
+
+        batch_size = image_patches.shape[0]
+        patches_flat = image_patches.reshape(batch_size, self.n_patches, -1)
+        projected = patches_flat @ self.patch_projection
+
+        cls_token = np.zeros((batch_size, 1, self.d_model))
+        projected = np.concatenate([cls_token, projected], axis=1)
+
+        projected = projected + self.pos_encoding
+
+        self._cache = {"image_patches": image_patches, "projected": projected}
+        return projected
+
+@dataclass
+class AudioEncoder:
+    n_mels: int = 80
+    n_time_steps: int = 100
+    d_model: int = 256
+    random_seed: int = 42
+
+    mel_projection: np.ndarray | None = None
+    pos_encoding: np.ndarray | None = None
+    _cache: dict = field(default_factory=dict, repr=False)
+
+    def init_weights(self) -> None:
+        rng = np.random.default_rng(self.random_seed)
+        scale = np.sqrt(2.0 / self.d_model)
+        self.mel_projection = rng.normal(0, scale, (self.n_mels, self.d_model))
+        self.pos_encoding = positional_encoding(self.n_time_steps, self.d_model)
+
+    def forward(self, mel_spectrogram: np.ndarray) -> np.ndarray:
+        if self.mel_projection is None:
+            self.init_weights()
+
+        projected = mel_spectrogram @ self.mel_projection
+        projected = projected + self.pos_encoding
+
+        self._cache = {"mel_spectrogram": mel_spectrogram, "projected": projected}
+        return projected
+
+@dataclass
+class Connector:
+    input_dim: int = 256
+    connector_dim: int = 512
+    random_seed: int = 42
+
+    W1: np.ndarray | None = None
+    b1: np.ndarray | None = None
+    W2: np.ndarray | None = None
+    b2: np.ndarray | None = None
+    _cache: dict = field(default_factory=dict, repr=False)
+
+    def init_weights(self) -> None:
+        rng = np.random.default_rng(self.random_seed)
+        scale1 = np.sqrt(2.0 / self.input_dim)
+        scale2 = np.sqrt(2.0 / self.connector_dim)
+        self.W1 = rng.normal(0, scale1, (self.input_dim, self.connector_dim))
+        self.b1 = np.zeros(self.connector_dim)
+        self.W2 = rng.normal(0, scale2, (self.connector_dim, self.connector_dim))
+        self.b2 = np.zeros(self.connector_dim)
+
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        if self.W1 is None:
+            self.init_weights()
+
+        z1 = x @ self.W1 + self.b1
+        a1 = gelu(z1)
+        z2 = a1 @ self.W2 + self.b2
+        out = gelu(z2)
+
+        self._cache = {"x": x, "z1": z1, "a1": a1, "out": out}
+        return out
+
+@dataclass
+class FusionMechanism:
+    d_model: int = 512
+    fusion_type: str = "hybrid"
+    random_seed: int = 42
+
+    W_fusion: np.ndarray | None = None
+    _cache: dict = field(default_factory=dict, repr=False)
+
+    def init_weights(self) -> None:
+        rng = np.random.default_rng(self.random_seed)
+        scale = np.sqrt(2.0 / self.d_model)
+        self.W_fusion = rng.normal(0, scale, (self.d_model * 3, self.d_model))
+
+    def early_fusion(self, text: np.ndarray, image: np.ndarray | None = None, audio: np.ndarray | None = None) -> np.ndarray:
+        modalities = [text]
+        if image is not None:
+            modalities.append(image)
+        if audio is not None:
+            modalities.append(audio)
+
+        min_len = min(m.shape[1] for m in modalities)
+        truncated = [m[:, :min_len, :] for m in modalities]
+        fused = np.mean(truncated, axis=0)
+
+        self._cache = {"modalities": modalities, "fused": fused}
+        return fused
+
+    def late_fusion(self, text_repr: np.ndarray, image_repr: np.ndarray | None = None, audio_repr: np.ndarray | None = None) -> np.ndarray:
+        features = [text_repr]
+
+        if image_repr is not None:
+            if image_repr.ndim == 2:
+                image_repr = image_repr.reshape(image_repr.shape[0], 1, -1)
+            image_mean = np.mean(image_repr, axis=1, keepdims=True)
+            image_tiled = np.tile(image_mean, (1, text_repr.shape[1], 1))
+            features.append(image_tiled)
+
+        if audio_repr is not None:
+            if audio_repr.ndim == 2:
+                audio_repr = audio_repr.reshape(audio_repr.shape[0], 1, -1)
+            audio_mean = np.mean(audio_repr, axis=1, keepdims=True)
+            audio_tiled = np.tile(audio_mean, (1, text_repr.shape[1], 1))
+            features.append(audio_tiled)
+
+        fused = np.concatenate(features, axis=-1)
+        if self.W_fusion is None:
+            self.init_weights()
+
+        batch_size, seq_len, _ = fused.shape
+        fused = fused.reshape(batch_size * seq_len, -1)
+        fused = fused @ self.W_fusion[:fused.shape[1]]
+        fused = fused.reshape(batch_size, seq_len, self.d_model)
+
+        self._cache = {"features": features, "fused": fused}
+        return fused
+
+    def hybrid_fusion(self, text: np.ndarray, image: np.ndarray | None = None, audio: np.ndarray | None = None) -> np.ndarray:
+        early_fused = self.early_fusion(text, image, audio)
+
+        text_mean = np.mean(text, axis=1, keepdims=True)
+        features = [text_mean]
+
+        if image is not None:
+            image_mean = np.mean(image, axis=1, keepdims=True)
+            features.append(image_mean)
+        if audio is not None:
+            audio_mean = np.mean(audio, axis=1, keepdims=True)
+            features.append(audio_mean)
+
+        late_fused = np.concatenate(features, axis=-1)
+        if self.W_fusion is None:
+            self.init_weights()
+
+        batch_size, seq_len, _ = early_fused.shape
+        late_tiled = np.tile(late_fused, (1, seq_len, 1))
+
+        combined = np.concatenate([early_fused, late_tiled], axis=-1)
+        combined_dim = combined.shape[-1]
+
+        if self.W_fusion.shape[0] != combined_dim:
+            rng = np.random.default_rng(self.random_seed)
+            scale = np.sqrt(2.0 / combined_dim)
+            self.W_fusion = rng.normal(0, scale, (combined_dim, self.d_model))
+
+        combined_flat = combined.reshape(batch_size * seq_len, combined_dim)
+        fused = combined_flat @ self.W_fusion
+        fused = fused.reshape(batch_size, seq_len, self.d_model)
+
+        self._cache = {"early_fused": early_fused, "late_fused": late_fused, "fused": fused}
+        return fused
+
+    def forward(self, text: np.ndarray, image: np.ndarray | None = None, audio: np.ndarray | None = None, fusion_type: str | None = None) -> np.ndarray:
+        ft = fusion_type or self.fusion_type
+        if ft == "early":
+            return self.early_fusion(text, image, audio)
+        elif ft == "late":
+            return self.late_fusion(text, image, audio)
+        else:
+            return self.hybrid_fusion(text, image, audio)
+
+@dataclass
+class MultiHeadAttention:
+    d_model: int = 512
+    n_heads: int = 8
+    random_seed: int = 42
+
+    d_k: int = field(init=False)
+    W_q: np.ndarray | None = None
+    W_k: np.ndarray | None = None
+    W_v: np.ndarray | None = None
+    W_o: np.ndarray | None = None
+    dW_q: np.ndarray | None = None
+    dW_k: np.ndarray | None = None
+    dW_v: np.ndarray | None = None
+    dW_o: np.ndarray | None = None
+    _cache: dict = field(default_factory=dict, repr=False)
+
+    def __post_init__(self):
+        self.d_k = self.d_model // self.n_heads
+
+    def init_weights(self) -> None:
+        rng = np.random.default_rng(self.random_seed)
+        scale = np.sqrt(2.0 / self.d_model)
+        self.W_q = rng.normal(0, scale, (self.d_model, self.d_model))
+        self.W_k = rng.normal(0, scale, (self.d_model, self.d_model))
+        self.W_v = rng.normal(0, scale, (self.d_model, self.d_model))
+        self.W_o = rng.normal(0, scale, (self.d_model, self.d_model))
+
+    def _split_heads(self, x: np.ndarray) -> np.ndarray:
+        batch_size, seq_len, _ = x.shape
+        x = x.reshape(batch_size, seq_len, self.n_heads, self.d_k)
+        return np.transpose(x, (0, 2, 1, 3))
+
+    def _combine_heads(self, x: np.ndarray) -> np.ndarray:
+        batch_size, _, seq_len, _ = x.shape
+        x = np.transpose(x, (0, 2, 1, 3))
+        return x.reshape(batch_size, seq_len, self.d_model)
+
+    def set_enc_output(self, enc_output: np.ndarray) -> None:
+        """Set encoder output for cross-attention (encoder-decoder attention)."""
+        self._enc_output = enc_output
+        self._is_cross = True
+
+    def forward(self, x: np.ndarray, mask: np.ndarray | None = None) -> np.ndarray:
+        if self.W_q is None:
+            self.init_weights()
+
+        Q = x @ self.W_q
+
+        is_cross = getattr(self, "_is_cross", False) and hasattr(self, "_enc_output")
+        if is_cross:
+            enc = self._enc_output
+            K = enc @ self.W_k
+            V = enc @ self.W_v
+... (truncated) ...
 ```
 
-## ⚡ API Reference
+</details>
 
-FastAPI endpoints and model interfaces
+<details>
+<summary>train.py</summary>
 
-| Method | Endpoint |
-| --- | --- |
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/metrics` |
-| `POST` | `/reload` |
-
-## ▶ Usage
-
-Code examples and CLI commands
-
-### Training Script
-
-```python
+```
 """Training pipeline for Multimodal Language Modeling."""
 
 import argparse
@@ -285,9 +737,113 @@ if __name__ == "__main__":
     main()
 ```
 
-### API Server
+</details>
 
-```python
+<details>
+<summary>data.py</summary>
+
+```
+"""Data loading and preprocessing for Multimodal Language Modeling."""
+
+from pathlib import Path
+
+import numpy as np
+
+VOCAB_SIZE = 1000
+MAX_SEQ_LEN = 64
+DEFAULT_N_SAMPLES = 500
+
+TEXT_DIM = 256
+IMAGE_DIM = 768
+AUDIO_DIM = 80
+IMAGE_PATCH_SIZE = 16
+N_PATCHES = 49
+AUDIO_TIME_STEPS = 100
+
+def generate_synthetic_text(n_samples: int = DEFAULT_N_SAMPLES, seq_len: int = MAX_SEQ_LEN, vocab_size: int = VOCAB_SIZE, random_seed: int = 42) -> tuple[np.ndarray, np.ndarray]:
+    rng = np.random.default_rng(random_seed)
+    X = rng.integers(0, vocab_size, size=(n_samples, seq_len))
+    y = np.zeros_like(X)
+    y[:, :-1] = X[:, 1:]
+    y[:, -1] = rng.integers(0, vocab_size)
+    return X, y
+
+def generate_synthetic_image_patches(n_samples: int = DEFAULT_N_SAMPLES, n_patches: int = N_PATCHES, patch_size: int = IMAGE_PATCH_SIZE, random_seed: int = 42) -> np.ndarray:
+    rng = np.random.default_rng(random_seed)
+    patch_dim = patch_size * patch_size * 3
+    patches = rng.normal(0, 1, size=(n_samples, n_patches, patch_dim))
+    return patches
+
+def generate_synthetic_audio(n_samples: int = DEFAULT_N_SAMPLES, n_mels: int = AUDIO_DIM, n_time_steps: int = AUDIO_TIME_STEPS, random_seed: int = 42) -> np.ndarray:
+    rng = np.random.default_rng(random_seed)
+    mel_spec = rng.normal(0, 1, size=(n_samples, n_time_steps, n_mels))
+    return mel_spec
+
+def generate_synthetic_multimodal_data(n_samples: int = DEFAULT_N_SAMPLES, vocab_size: int = VOCAB_SIZE, seq_len: int = MAX_SEQ_LEN, random_seed: int = 42, include_image: bool = True, include_audio: bool = True) -> dict:
+    text_X, text_y = generate_synthetic_text(n_samples, seq_len, vocab_size, random_seed)
+    data = {"text_tokens": text_X, "text_targets": text_y}
+
+    if include_image:
+        data["image_patches"] = generate_synthetic_image_patches(n_samples, random_seed=random_seed)
+
+    if include_audio:
+        data["mel_spectrogram"] = generate_synthetic_audio(n_samples, random_seed=random_seed)
+
+    return data
+
+def extract_text_features(tokens: np.ndarray, vocab_size: int = VOCAB_SIZE) -> np.ndarray:
+    features = np.zeros((tokens.shape[0], vocab_size))
+    for i in range(tokens.shape[0]):
+        for j in range(tokens.shape[1]):
+            features[i, int(tokens[i, j])] += 1
+    return features
+
+def extract_image_features(patches: np.ndarray) -> np.ndarray:
+    return np.mean(patches, axis=-1)
+
+def extract_audio_features(mel_spec: np.ndarray) -> np.ndarray:
+    return np.mean(mel_spec, axis=-1)
+
+def create_joint_representation(text_features: np.ndarray, image_features: np.ndarray | None = None, audio_features: np.ndarray | None = None) -> np.ndarray:
+    joint = text_features
+    if image_features is not None:
+        joint = np.concatenate([joint, image_features], axis=-1)
+    if audio_features is not None:
+        joint = np.concatenate([joint, audio_features], axis=-1)
+    return joint
+
+def load_multimodal_data(data_path: Path | None = None, n_samples: int = DEFAULT_N_SAMPLES, vocab_size: int = VOCAB_SIZE, seq_len: int = MAX_SEQ_LEN, random_seed: int = 42, include_image: bool = True, include_audio: bool = True) -> dict:
+    if data_path and Path(data_path).exists():
+        data = np.load(data_path, allow_pickle=True)
+        return {key: data[key] for key in data.files}
+    return generate_synthetic_multimodal_data(n_samples, vocab_size, seq_len, random_seed, include_image, include_audio)
+
+def train_test_split_multimodal(data: dict, test_size: float = 0.2, random_seed: int | None = None) -> tuple[dict, dict]:
+    n = data["text_tokens"].shape[0]
+    n_test = max(1, int(n * test_size))
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+    test_idx = indices[:n_test]
+    train_idx = indices[n_test:]
+    train_data = {k: v[train_idx] for k, v in data.items()}
+    test_data = {k: v[test_idx] for k, v in data.items()}
+    return train_data, test_data
+
+def save_multimodal_data(data: dict, path: Path) -> None:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(path, **data)
+```
+
+</details>
+
+<details>
+<summary>api.py</summary>
+
+```
 """Serving API for Multimodal Language Modeling."""
 
 import os
@@ -581,16 +1137,40 @@ def predict(body: MultimodalPredictRequest):
         raise HTTPException(status_code=500, detail="Prediction failed") from e
 ```
 
-### CLI Commands
+</details>
 
-```bash
-uv run python -m multimodal_llm.train --model-dir ./artifacts/models
-```
+## 4. Monorepo Integration
 
-## 📊 Benchmarks
+This example is a first-class consumer of the shared `packages/ai-core` library.
+It reuses the following foundation modules instead of re-implementing infrastructure:
 
-Test results and performance metrics
+ai_core.drift
+ai_core.fastapi_middleware
+ai_core.logging
+ai_core.metrics
+ai_core.model_registry
 
-Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+### How it plugs in
 
-Generated documentation for **multimodal-llm**
+
+
+- **Configuration** — 12-factor config from `ai_core.config`.
+
+
+
+- **Observability** — structured logging + Prometheus metrics are wired in automatically.
+
+
+
+- **Validation** — input schema validation prevents bad data reaching the model.
+
+
+
+- **Registry** — trained artifacts are versioned and registered for reproducible serving.
+
+
+
+- **Serving** — the FastAPI app mounts shared observability middleware for tracing & metrics.
+
+Because every example shares `ai_core`, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.

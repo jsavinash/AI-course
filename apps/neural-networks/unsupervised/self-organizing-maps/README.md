@@ -1,64 +1,329 @@
 # self-organizing-maps
 
-## ∫ Mathematics & Theory
 
-Generative Adversarial Network (GAN) — Underlying equations and derivations
 
-$$\min_G \max_D V(D, G) = \mathbb{E}_{x \sim p_{data}}[\log D(x)] + \mathbb{E}_{z \sim p_z}[\log(1 - D(G(z)))]$$
+Machine Learning Fundamentals — AI engineering example · part of the MLOps monorepo
 
-$$G^*(x) = \arg\min_G \max_D V(D, G)$$
+## 1. Mathematical Foundations
 
-$$\nabla_\theta G \frac{1}{m} \sum_{i=1}^{m} \log(1 - D(G(z^{(i)})))$$
+This example is grounded in **Machine Learning Fundamentals**. The equations below
+drive every forward and backward pass in the implementation.
 
-$$\mathcal{L}_{D} = -\frac{1}{m} \sum_{i=1}^{m} [\log D(x^{(i)}) + \log(1 - D(G(z^{(i)})))]$$
+$$\hat{y} = f(x; \theta)$$
 
-### Step-by-Step Derivation
+$$\mathcal{L}(\theta) = \frac{1}{n} \sum_{i=1}^{n} \ell(y_i, \hat{y}_i)$$
 
-GANs consist of two networks competing in a minimax game. The discriminator $D$ maximizes its ability to distinguish real from fake samples. The generator $G$ minimizes the probability of its samples being detected as fake. At Nash equilibrium, $G$ reproduces the true data distribution $p_{data}$.
+$$\theta \leftarrow \theta - \alpha \nabla_\theta \mathcal{L}(\theta)$$
 
-### Interactive Visualization
+### Derivation
 
-Interactive GAN training dashboard: generator/discriminator loss curves, sample evolution grid, decision boundary.
+Machine learning models learn parameters $\theta$ by minimizing a loss function $\mathcal{L}$. Gradient descent iteratively updates parameters in the direction of steepest descent. The learning rate $\alpha$ controls step size. Stochastic gradient descent (SGD) uses mini-batches for computational efficiency.
 
-## ⚙ Architecture
+### Worked Numerical Example
 
-Model structure, data flow, and layer breakdown
+$$z = w \cdot x + b$$
 
-### Class Hierarchy
+Illustrative forward-pass evaluation (scalar example):
 
-```
-  SelfOrganizingMap
-```
+Input  x        = 12.0   (e.g. pizza diameter, inches)
+Weights w       =  0.85
+Bias    b       =  0.30
+---------------------------------
+z = w*x + b
+  = 0.85 * 12.0 + 0.30
+  = 10.20 + 0.30
+  = 10.50   <- model output
+
+### Conceptual Diagram
+
+        Math concept (placeholder)
+   [ Input x ] --> ( w · x + b ) --> [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]
+
+![Math Explanation (placeholder)](./assets/math-concept.png)
+
+Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
+
+## 2. Core Logic & Architecture
+
+The example follows a consistent **data → train → evaluate → serve**
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.
+
+  Raw dataset→
+  load + validate (data.py)→
+  fit / transform (model.py)→
+  evaluate + persist (train.py)→
+  serve (api.py)
+
+### Primary Components
+
+| Class | Public methods | Responsibility |
+| --- | --- | --- |
+| `PredictRequest` | — |  |
+| `PredictBulkRequest` | — |  |
+| `PredictResponse` | — |  |
+| `BulkPredictResponse` | — |  |
+| `DriftResponse` | — |  |
+| `StatsResponse` | — |  |
+| `SelfOrganizingMap` | n_neurons, _init_weights, _find_bmu, _neighborhood, fit, predict_proba, predict, transform, evaluate, save, load, to_dict | Self-Organizing Map for unsupervised clustering and visualization.  Produces a low-dimensional (2D grid) discretized representation of the input space.  Args:     n_features: Number of input features     grid_height: Height of the 2D neuron grid     grid_width: Width of the 2D neuron grid     learning_rate: Initial learning rate     n_iterations: Number of training iterations     sigma: Initial neighborhood radius     random_seed: Random seed |
 
 ### Data Flow
 
-```mermaid
-graph TD
-  A[Input Data] --> B[Preprocessing]
-  B --> C[Model Training]
-  C --> D[Evaluation]
-  D --> E[Model Registry]
-  E --> F[Serving API]
+
+
+1. **Load** — `data.py` reads the source dataset and splits train/test.
+
+
+
+2. **Validate** — a Pydantic schema guards input shape/dtypes before training.
+
+
+
+3. **Fit / Transform** — `model.py` applies the mathematics from Section 1.
+
+
+
+4. **Evaluate** — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.
+
+
+
+5. **Persist** — weights/artifacts are saved and registered in the model registry.
+
+
+
+6. **Serve** — `api.py` exposes prediction endpoints with drift detection.
+
+### Design Patterns & Performance
+
+Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via `ai_core.validation`, structured JSON logging through `ai_core.logging`, Prometheus metrics from `ai_core.metrics`, and MLflow/model-registry persistence via `ai_core.model_registry`. The FastAPI service wraps the trained model with observability middleware from `ai_core.fastapi_middleware`.
+
+## 3. Detailed Code Walkthrough
+
+The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.
+
+### `SelfOrganizingMap.fit(X, n_iterations)`
+
+Train the SOM on input data using batch learning.
+
+Args:
+    X: Input data (n_samples, n_features)
+
+### `SelfOrganizingMap.predict(X)`
+
+Return BMU coordinates (row, col) for each input sample.
+
+### Source Files
+
+<details>
+<summary>model.py</summary>
+
+```
+"""Self-Organizing Map for unsupervised clustering.
+
+Architecture:
+    Input (n_features,) -> Competitive layer (grid_height x grid_width neurons)
+    Each neuron has a weight vector of dimension n_features.
+
+    Training: For each input, find Best Matching Unit (BMU) and update
+    weights of BMU and its neighbors (Gaussian neighborhood function).
+
+Loss: Average quantization error (distance to BMU)
+"""
+
+from dataclasses import dataclass, field
+
+import numpy as np
+
+@dataclass
+class SelfOrganizingMap:
+    """Self-Organizing Map for unsupervised clustering and visualization.
+
+    Produces a low-dimensional (2D grid) discretized representation of the input space.
+
+    Args:
+        n_features: Number of input features
+        grid_height: Height of the 2D neuron grid
+        grid_width: Width of the 2D neuron grid
+        learning_rate: Initial learning rate
+        n_iterations: Number of training iterations
+        sigma: Initial neighborhood radius
+        random_seed: Random seed
+    """
+
+    n_features: int = 32
+    grid_height: int = 5
+    grid_width: int = 5
+    learning_rate: float = 0.5
+    n_iterations: int = 300
+    sigma: float = 2.0
+    random_seed: int = 42
+
+    weights: np.ndarray | None = None
+    loss_history: list[float] = field(default_factory=list)
+    training_mode: str = "unsupervised"
+
+    @property
+    def n_neurons(self) -> int:
+        return self.grid_height * self.grid_width
+
+    def _init_weights(self, X: np.ndarray, rng: np.random.Generator) -> None:
+        """Initialize weights by sampling from the data distribution."""
+        n = self.n_neurons
+        indices = rng.choice(len(X), size=min(n, len(X)), replace=len(X) < n)
+        self.weights = X[indices].copy()
+        if len(self.weights) < n:
+            extra = X[rng.choice(len(X), n - len(self.weights))]
+            self.weights = np.vstack([self.weights, extra])
+
+    def _find_bmu(self, x: np.ndarray) -> tuple[int, int]:
+        """Find Best Matching Unit (neuron closest to input)."""
+        distances = np.sqrt(np.sum((self.weights - x) ** 2, axis=1))
+        bmu_idx = np.argmin(distances)
+        row = bmu_idx // self.grid_width
+        col = bmu_idx % self.grid_width
+        return int(row), int(col)
+
+    def _neighborhood(self, bmu_row: int, bmu_col: int, sigma: float) -> np.ndarray:
+        """Compute Gaussian neighborhood function for all neurons."""
+        neighborhood = np.zeros((self.grid_height, self.grid_width))
+        for r in range(self.grid_height):
+            for c in range(self.grid_width):
+                dist = np.sqrt((r - bmu_row) ** 2 + (c - bmu_col) ** 2)
+                neighborhood[r, c] = np.exp(-dist ** 2 / (2 * sigma ** 2 + 1e-8))
+        return neighborhood.flatten()
+
+    def fit(
+        self,
+        X: np.ndarray,
+        n_iterations: int | None = None,
+    ) -> "SelfOrganizingMap":
+        """Train the SOM on input data using batch learning.
+
+        Args:
+            X: Input data (n_samples, n_features)
+        """
+        if self.weights is None:
+            rng = np.random.default_rng(self.random_seed)
+            self._init_weights(X, rng)
+
+        if n_iterations is None:
+            n_iterations = self.n_iterations
+
+        rng = np.random.default_rng(self.random_seed)
+        n_samples = X.shape[0]
+
+        for iteration in range(n_iterations):
+            t = iteration / n_iterations
+            lr = self.learning_rate * (1 - t)
+            sigma = self.sigma * (1 - t)
+
+            epoch_loss = 0.0
+            for _i in range(n_samples):
+                x = X[rng.integers(0, n_samples)]
+                bmu_row, bmu_col = self._find_bmu(x)
+                bmu_idx = bmu_row * self.grid_width + bmu_col
+
+                neighborhood = self._neighborhood(bmu_row, bmu_col, sigma)
+
+                for n in range(self.n_neurons):
+                    delta = lr * neighborhood[n] * (x - self.weights[n])
+                    self.weights[n] += delta
+
+                epoch_loss += np.sum((x - self.weights[bmu_idx]) ** 2)
+
+            self.loss_history.append(epoch_loss / n_samples)
+
+        return self
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        """Return quantization error (distance to BMU) for each sample."""
+        errors = []
+        for x in X:
+            _, bmu_idx = self._find_bmu(x)
+            errors.append(np.sqrt(np.sum((x - self.weights[bmu_idx]) ** 2)))
+        return np.array(errors)
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """Return BMU coordinates (row, col) for each input sample."""
+        results = []
+        for x in X:
+            bmu_row, bmu_col = self._find_bmu(x)
+            results.append((bmu_row, bmu_col))
+        return np.array(results)
+
+    def transform(self, X: np.ndarray) -> np.ndarray:
+        """Return BMU neuron indices for each input sample."""
+        indices = []
+        for x in X:
+            bmu_row, bmu_col = self._find_bmu(x)
+            indices.append(bmu_row * self.grid_width + bmu_col)
+        return np.array(indices)
+
+    def evaluate(self, X: np.ndarray) -> dict[str, float]:
+        errors = self.predict_proba(X)
+        return {
+            "quantization_error": float(np.mean(errors)),
+            "n_samples": float(len(X)),
+            "unique_neurons_used": float(len(set(self.transform(X).tolist()))),
+            "grid_size": float(self.n_neurons),
+        }
+
+    def save(self, path: str) -> None:
+        arrays = {
+            "loss_history": np.array(self.loss_history),
+            "weights": self.weights,
+            "n_features": np.array([self.n_features]),
+            "grid_height": np.array([self.grid_height]),
+            "grid_width": np.array([self.grid_width]),
+            "learning_rate": np.array([self.learning_rate]),
+            "n_iterations": np.array([self.n_iterations]),
+            "sigma": np.array([self.sigma]),
+            "random_seed": np.array([self.random_seed]),
+        }
+        np.savez(path, **arrays)
+
+    @classmethod
+    def load(cls, path: str) -> "SelfOrganizingMap":
+        data = np.load(path)
+        obj = cls(
+            n_features=int(data["n_features"].item()),
+            grid_height=int(data["grid_height"].item()),
+            grid_width=int(data["grid_width"].item()),
+            learning_rate=float(data["learning_rate"].item()),
+            n_iterations=int(data["n_iterations"].item()),
+            sigma=float(data["sigma"].item()),
+            random_seed=int(data["random_seed"].item()),
+        )
+        obj.weights = data["weights"]
+        obj.loss_history = list(data.get("loss_history", [0.0]))
+        return obj
+
+    def to_dict(self) -> dict:
+        return {
+            "n_features": self.n_features,
+            "grid_height": self.grid_height,
+            "grid_width": self.grid_width,
+            "n_neurons": self.n_neurons,
+            "learning_rate": self.learning_rate,
+            "n_iterations": self.n_iterations,
+            "sigma": self.sigma,
+            "training_mode": self.training_mode,
+            "n_epochs_run": len(self.loss_history),
+            "final_loss": self.loss_history[-1] if self.loss_history else 0.0,
+        }
 ```
 
-## ⚡ API Reference
+</details>
 
-FastAPI endpoints and model interfaces
+<details>
+<summary>train.py</summary>
 
-| Method | Endpoint |
-| --- | --- |
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/metrics` |
-| `POST` | `/reload` |
-
-## ▶ Usage
-
-Code examples and CLI commands
-
-### Training Script
-
-```python
+```
 """Training pipeline for Self-Organizing Maps."""
 
 import argparse
@@ -210,9 +475,98 @@ if __name__ == "__main__":
     main()
 ```
 
-### API Server
+</details>
 
-```python
+<details>
+<summary>data.py</summary>
+
+```
+"""Data loading and preprocessing for Self-Organizing Maps."""
+
+from pathlib import Path
+
+import numpy as np
+
+N_FEATURES = 32
+GRID_HEIGHT = 5
+GRID_WIDTH = 5
+
+DEFAULT_N_SAMPLES = 500
+
+def generate_synthetic_data(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    noise_level: float = 0.1,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Generate synthetic feature data for SOM training.
+
+    Returns:
+        X: (n_samples, N_FEATURES) feature vectors in [0, 1]
+        y: (n_samples,) cluster labels (for evaluation only)
+    """
+    rng = np.random.default_rng(random_seed)
+    X = np.zeros((n_samples, N_FEATURES), dtype=float)
+    y = np.zeros(n_samples, dtype=int)
+
+    n_per_cluster = n_samples // 5
+    cluster_centers = np.array([
+        np.full(N_FEATURES, 0.2),
+        np.full(N_FEATURES, 0.4),
+        np.full(N_FEATURES, 0.6),
+        np.full(N_FEATURES, 0.8),
+        np.zeros(N_FEATURES),
+    ])
+    cluster_centers[4, :N_FEATURES // 2] = 0.8
+    cluster_centers[4, N_FEATURES // 2:] = 0.2
+
+    for cluster_idx in range(5):
+        start = cluster_idx * n_per_cluster
+        end = start + n_per_cluster
+        for i in range(start, min(end, n_samples)):
+            X[i] = cluster_centers[cluster_idx] + rng.normal(0, noise_level, N_FEATURES)
+            y[i] = cluster_idx
+
+    X = np.clip(X, 0, 1)
+    perm = rng.permutation(n_samples)
+    return X[perm], y[perm]
+
+def load_training_data(
+    data_path: Path | None = None,
+    n_samples: int = DEFAULT_N_SAMPLES,
+    noise_level: float = 0.1,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    if data_path and Path(data_path).exists():
+        data = np.load(data_path, allow_pickle=True)
+        return data["X"], data["y"]
+    return generate_synthetic_data(n_samples=n_samples, noise_level=noise_level, random_seed=random_seed)
+
+def train_test_split(
+    X: np.ndarray, y: np.ndarray, test_size: float = 0.2, random_seed: int | None = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    n = len(X)
+    n_test = max(1, int(n * test_size))
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+    test_idx = indices[:n_test]
+    train_idx = indices[n_test:]
+    return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
+
+def save_training_data(X: np.ndarray, y: np.ndarray, path: Path) -> None:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(path, X=X, y=y)
+```
+
+</details>
+
+<details>
+<summary>api.py</summary>
+
+```
 """Serving API for Self-Organizing Maps."""
 
 import os
@@ -502,20 +856,41 @@ def predict_bulk(body: PredictBulkRequest):
     return BulkPredictResponse(predictions=predictions, model_version=_model_version)
 ```
 
-### CLI Commands
+</details>
 
-```bash
-uv run python -m self_organizing_maps.train --model-dir ./artifacts/models
-```
+## 4. Monorepo Integration
 
-## 📊 Benchmarks
+This example is a first-class consumer of the shared `packages/ai-core` library.
+It reuses the following foundation modules instead of re-implementing infrastructure:
 
-Test results and performance metrics
+ai_core.drift
+ai_core.fastapi_middleware
+ai_core.logging
+ai_core.metrics
+ai_core.model_registry
+ai_core.validation
 
-Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+### How it plugs in
 
-### Related Apps
 
-- [self-supervised-monitoring](../self-supervised-monitoring/README.md)
 
-Generated documentation for **self-organizing-maps**
+- **Configuration** — 12-factor config from `ai_core.config`.
+
+
+
+- **Observability** — structured logging + Prometheus metrics are wired in automatically.
+
+
+
+- **Validation** — input schema validation prevents bad data reaching the model.
+
+
+
+- **Registry** — trained artifacts are versioned and registered for reproducible serving.
+
+
+
+- **Serving** — the FastAPI app mounts shared observability middleware for tracing & metrics.
+
+Because every example shares `ai_core`, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.

@@ -1,8 +1,13 @@
 # semi-supervised-email
 
-## ∫ Mathematics & Theory
 
-Semi-Supervised Learning — Underlying equations and derivations
+
+Semi-Supervised Learning — AI engineering example · part of the MLOps monorepo
+
+## 1. Mathematical Foundations
+
+This example is grounded in **Semi-Supervised Learning**. The equations below
+drive every forward and backward pass in the implementation.
 
 $$\mathcal{L} = \mathcal{L}_{sup} + \lambda_t \mathcal{L}_{unsup}$$
 
@@ -10,54 +15,479 @@ $$\mathcal{L}_{unsup} = \text{MSE}(f_\theta(x'), f_\theta(x)) \quad \text{(Mean 
 
 $$p_t = \min\left(1, \frac{T}{T_0}\right)$$
 
-### Step-by-Step Derivation
+### Derivation
 
 Semi-supervised learning leverages unlabeled data by enforcing consistency. Given an input $x$, augmented views $x'$ should produce similar predictions. The total loss combines supervised cross-entropy on labeled data and consistency regularization on all data. A time-dependent weight $\lambda_t$ ramps up the unsupervised loss.
 
-### Interactive Visualization
+### Worked Numerical Example
+
+$$z = w \cdot x + b$$
+
+Illustrative forward-pass evaluation (scalar example):
+
+Input  x        = 12.0   (e.g. pizza diameter, inches)
+Weights w       =  0.85
+Bias    b       =  0.30
+---------------------------------
+z = w*x + b
+  = 0.85 * 12.0 + 0.30
+  = 10.20 + 0.30
+  = 10.50   <- model output
+
+### Conceptual Diagram
+
+        Math concept (placeholder)
+   [ Input x ] --> ( w · x + b ) --> [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]
+
+![Math Explanation (placeholder)](./assets/math-concept.png)
 
 Interactive pseudo-label confidence distribution; labeled vs unlabeled loss curves; decision boundary animation.
 
-## ⚙ Architecture
+## 2. Core Logic & Architecture
 
-Model structure, data flow, and layer breakdown
+The example follows a consistent **data → train → evaluate → serve**
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.
 
-### Class Hierarchy
+  Raw dataset→
+  load + validate (data.py)→
+  fit / transform (model.py)→
+  evaluate + persist (train.py)→
+  serve (api.py)
 
-```
-  LogisticRegression
-  SelfTrainingClassifier
-```
+### Primary Components
+
+| Class | Public methods | Responsibility |
+| --- | --- | --- |
+| `PredictRequest` | — | Single email classification request. |
+| `PredictResponse` | — | Email classification response. |
+| `BulkPredictResponse` | — | Bulk email classification response. |
+| `StatsResponse` | — | Model statistics response. |
+| `DriftResponse` | — | Drift detection response. |
+| `LogisticRegression` | predict_proba, predict, fit, evaluate, save, load | Logistic regression for binary classification (from scratch).  Model: z = X·w + b,  p = sigmoid(z),  prediction = 1 if p >= threshold else 0 |
+| `SelfTrainingClassifier` | fit, predict, predict_proba, evaluate, _get_labeled, _get_unlabeled, save, load, to_dict | Self-training classifier for semi-supervised learning.  Iteratively: 1. Train on labeled data 2. Predict on unlabeled data 3. Add high-confidence predictions to labeled set 4. Retrain until convergence or max iterations  Args:     base_model: Base classifier to use (default: LogisticRegression)     confidence_threshold: Minimum probability to add pseudo-label (0.0 to 1.0)     max_iterations: Maximum number of self-training iterations     min_labeled_ratio: Stop if labeled ratio exceeds this (prevents overfitting)     random_seed: Random seed for reproducibility |
 
 ### Data Flow
 
-```mermaid
-graph TD
-  A[Input Data] --> B[Preprocessing]
-  B --> C[Model Training]
-  C --> D[Evaluation]
-  D --> E[Model Registry]
-  E --> F[Serving API]
+
+
+1. **Load** — `data.py` reads the source dataset and splits train/test.
+
+
+
+2. **Validate** — a Pydantic schema guards input shape/dtypes before training.
+
+
+
+3. **Fit / Transform** — `model.py` applies the mathematics from Section 1.
+
+
+
+4. **Evaluate** — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.
+
+
+
+5. **Persist** — weights/artifacts are saved and registered in the model registry.
+
+
+
+6. **Serve** — `api.py` exposes prediction endpoints with drift detection.
+
+### Design Patterns & Performance
+
+Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via `ai_core.validation`, structured JSON logging through `ai_core.logging`, Prometheus metrics from `ai_core.metrics`, and MLflow/model-registry persistence via `ai_core.model_registry`. The FastAPI service wraps the trained model with observability middleware from `ai_core.fastapi_middleware`.
+
+## 3. Detailed Code Walkthrough
+
+The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.
+
+### `LogisticRegression.predict(X, threshold)`
+
+Return 1 (positive) if probability >= threshold, else 0 (negative).
+
+### `LogisticRegression.fit(X, y)`
+
+Train using gradient descent on Binary Cross-Entropy.
+
+### `LogisticRegression.evaluate(X, y)`
+
+Evaluate the model on labeled data.
+
+### `SelfTrainingClassifier.fit(X, y, X_test, y_test)`
+
+Fit the self-training classifier.
+
+Args:
+    X: Feature matrix of shape (n_samples, n_features)
+    y: Label vector with -1 for unlabeled samples
+    X_test: Optional test features for tracking accuracy
+    y_test: Optional test labels for tracking accuracy
+
+Returns:
+    self
+
+### `SelfTrainingClassifier.predict(X)`
+
+Predict labels for new data.
+
+### `SelfTrainingClassifier.evaluate(X, y)`
+
+Evaluate the model on labeled data.
+
+### Source Files
+
+<details>
+<summary>model.py</summary>
+
+```
+"""Semi-supervised learning model using self-training with logistic regression.
+
+Implements a production-ready semi-supervised learning pipeline with:
+- Base model: Logistic Regression (from scratch, numpy-only)
+- Self-training: iteratively labels high-confidence unlabeled samples
+- Confidence thresholding: only adds pseudo-labels above confidence threshold
+- Early stopping: prevents overfitting to noisy pseudo-labels
+- Proper serialization with metadata
+
+Semi-supervised learning is useful when:
+- Labeled data is scarce or expensive to obtain
+- Large amounts of unlabeled data are available
+- The model can benefit from the structure of the unlabeled data distribution
+"""
+
+from dataclasses import dataclass, field
+from typing import Literal
+
+import numpy as np
+
+def _sigmoid(z: np.ndarray) -> np.ndarray:
+    """Sigmoid activation function with numerical stability."""
+    z = np.clip(z, -500, 500)
+    return 1 / (1 + np.exp(-z))
+
+@dataclass
+class LogisticRegression:
+    """Logistic regression for binary classification (from scratch).
+
+    Model: z = X·w + b,  p = sigmoid(z),  prediction = 1 if p >= threshold else 0
+    """
+
+    learning_rate: float = 0.1
+    n_iterations: int = 2000
+    weights: np.ndarray | None = None
+    bias: float = 0.0
+    loss_history: list[float] = field(default_factory=list)
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        """Return probability of positive class for each sample."""
+        if self.weights is None:
+            raise ValueError("Model not trained. Call fit() first.")
+        z = np.dot(X, self.weights) + self.bias
+        return _sigmoid(z)
+
+    def predict(self, X: np.ndarray, threshold: float = 0.5) -> np.ndarray:
+        """Return 1 (positive) if probability >= threshold, else 0 (negative)."""
+        return (self.predict_proba(X) >= threshold).astype(int)
+
+    def fit(self, X: np.ndarray, y: np.ndarray) -> "LogisticRegression":
+        """Train using gradient descent on Binary Cross-Entropy."""
+        n_samples, n_features = X.shape
+        self.weights = np.zeros(n_features)
+        self.bias = 0.0
+        self.loss_history = []
+
+        for _ in range(self.n_iterations):
+            probs = self.predict_proba(X)
+            loss = -np.mean(y * np.log(probs + 1e-9) + (1 - y) * np.log(1 - probs + 1e-9))
+            self.loss_history.append(float(loss))
+
+            dw = (1 / n_samples) * np.dot(X.T, (probs - y))
+            db = (1 / n_samples) * np.sum(probs - y)
+
+            self.weights -= self.learning_rate * dw
+            self.bias -= self.learning_rate * db
+
+        return self
+
+    def evaluate(self, X: np.ndarray, y: np.ndarray) -> dict[str, float]:
+        """Evaluate the model on labeled data."""
+        predictions = self.predict(X)
+        accuracy = float(np.mean(predictions == y))
+
+        tp = int(np.sum((predictions == 1) & (y == 1)))
+        fp = int(np.sum((predictions == 1) & (y == 0)))
+        fn = int(np.sum((predictions == 0) & (y == 1)))
+
+        precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+        recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
+
+        return {
+            "accuracy": accuracy,
+            "precision": precision,
+            "recall": recall,
+            "f1": f1,
+        }
+
+    def save(self, path: str) -> None:
+        """Save model parameters to disk."""
+        if self.weights is None:
+            raise ValueError("Cannot save untrained model")
+        np.savez(
+            path,
+            weights=self.weights,
+            bias=self.bias,
+            learning_rate=self.learning_rate,
+            n_iterations=self.n_iterations,
+            loss_history=np.array(self.loss_history),
+        )
+
+    @classmethod
+    def load(cls, path: str) -> "LogisticRegression":
+        """Load model parameters from disk."""
+        data = np.load(path)
+        model = cls(
+            learning_rate=float(data["learning_rate"]),
+            n_iterations=int(data["n_iterations"]),
+        )
+        model.weights = data["weights"]
+        model.bias = float(data["bias"])
+        model.loss_history = list(data["loss_history"])
+        return model
+
+@dataclass
+class SelfTrainingClassifier:
+    """Self-training classifier for semi-supervised learning.
+
+    Iteratively:
+    1. Train on labeled data
+    2. Predict on unlabeled data
+    3. Add high-confidence predictions to labeled set
+    4. Retrain until convergence or max iterations
+
+    Args:
+        base_model: Base classifier to use (default: LogisticRegression)
+        confidence_threshold: Minimum probability to add pseudo-label (0.0 to 1.0)
+        max_iterations: Maximum number of self-training iterations
+        min_labeled_ratio: Stop if labeled ratio exceeds this (prevents overfitting)
+        random_seed: Random seed for reproducibility
+    """
+
+    confidence_threshold: float = 0.95
+    max_iterations: int = 10
+    min_labeled_ratio: float = 0.8
+    random_seed: int = 42
+
+    # Learned state
+    model: LogisticRegression | None = None
+    n_features: int = 0
+    n_labeled_history: list[int] = field(default_factory=list)
+    accuracy_history: list[float] = field(default_factory=list)
+    n_iterations_used: int = 0
+    training_mode: Literal["supervised", "semi-supervised"] = "supervised"
+
+    def fit(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        X_test: np.ndarray | None = None,
+        y_test: np.ndarray | None = None,
+    ) -> "SelfTrainingClassifier":
+        """Fit the self-training classifier.
+
+        Args:
+            X: Feature matrix of shape (n_samples, n_features)
+            y: Label vector with -1 for unlabeled samples
+            X_test: Optional test features for tracking accuracy
+            y_test: Optional test labels for tracking accuracy
+
+        Returns:
+            self
+        """
+        X = np.asarray(X, dtype=float)
+        y = np.asarray(y, dtype=int)
+        n_samples = len(X)
+        self.n_features = X.shape[1]
+
+        # Get initial labeled data
+        X_labeled, y_labeled = self._get_labeled(X, y)
+        X_unlabeled = self._get_unlabeled(X, y)
+
+        self.n_labeled_history = [len(X_labeled)]
+        self.accuracy_history = []
+        self.n_iterations_used = 0
+
+        for _iteration in range(self.max_iterations):
+            # Train base model on current labeled data
+            self.model = LogisticRegression(learning_rate=0.1, n_iterations=2000)
+            self.model.fit(X_labeled, y_labeled)
+            self.n_iterations_used += 1
+
+            # Track accuracy on test set if provided
+            if X_test is not None and y_test is not None:
+                test_metrics = self.model.evaluate(X_test, y_test)
+                self.accuracy_history.append(test_metrics["accuracy"])
+
+            # Check if we should stop
+            labeled_ratio = len(X_labeled) / n_samples
+            if labeled_ratio >= self.min_labeled_ratio:
+                self.training_mode = "semi-supervised"
+                break
+
+            if len(X_unlabeled) == 0:
+                self.training_mode = "semi-supervised"
+                break
+
+            # Predict on unlabeled data
+            probas = self.model.predict_proba(X_unlabeled)
+
+            # For binary classification, confidence is max(proba, 1 - proba)
+            max_probas = np.maximum(probas, 1 - probas)
+
+            # Find high-confidence predictions
+            confident_mask = max_probas >= self.confidence_threshold
+            confident_indices = np.where(confident_mask)[0]
+
+            if len(confident_indices) == 0:
+                # No confident predictions, stop early
+                self.training_mode = (
+                    "semi-supervised" if len(X_labeled) > np.sum(y != -1) else "supervised"
+                )
+                break
+
+            # Add confident predictions to labeled set
+            # Pseudo-label: 1 if proba >= 0.5, else 0
+            pseudo_labels = (probas[confident_indices] >= 0.5).astype(int)
+            X_labeled = np.vstack([X_labeled, X_unlabeled[confident_indices]])
+            y_labeled = np.concatenate([y_labeled, pseudo_labels])
+
+            # Remove added samples from unlabeled set
+            mask = np.ones(len(X_unlabeled), dtype=bool)
+            mask[confident_indices] = False
+            X_unlabeled = X_unlabeled[mask]
+
+            self.n_labeled_history.append(len(X_labeled))
+            self.training_mode = "semi-supervised"
+
+        # Final training on all accumulated labeled data
+        self.model = LogisticRegression(learning_rate=0.1, n_iterations=2000)
+        self.model.fit(X_labeled, y_labeled)
+        self.n_iterations_used += 1
+
+        # If we never added pseudo-labels, mark as supervised
+        if (
+            len(self.n_labeled_history) == 1
+            or self.n_labeled_history[-1] == self.n_labeled_history[0]
+        ):
+            self.training_mode = "supervised"
+
+        return self
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """Predict labels for new data."""
+        if self.model is None:
+            raise ValueError("Model not trained. Call fit() first.")
+        return self.model.predict(X)
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        """Predict probabilities for new data."""
+        if self.model is None:
+            raise ValueError("Model not trained. Call fit() first.")
+        return self.model.predict_proba(X)
+
+    def evaluate(self, X: np.ndarray, y: np.ndarray) -> dict[str, float]:
+        """Evaluate the model on labeled data."""
+        if self.model is None:
+            raise ValueError("Model not trained. Call fit() first.")
+        return self.model.evaluate(X, y)
+
+    def _get_labeled(self, X: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        """Extract labeled samples."""
+        mask = y != -1
+        return X[mask], y[mask]
+
+    def _get_unlabeled(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
+        """Extract unlabeled samples."""
+        mask = y == -1
+        return X[mask]
+
+    def save(self, path: str) -> None:
+        """Save model parameters to disk."""
+        if self.model is None:
+            raise ValueError("Cannot save untrained model")
+        np.savez(
+            path,
+            model_weights=self.model.weights,
+            model_bias=self.model.bias,
+            model_learning_rate=np.array([self.model.learning_rate]),
+            model_n_iterations=np.array([self.model.n_iterations]),
+            model_loss_history=np.array(self.model.loss_history),
+            n_features=np.array([self.n_features]),
+            confidence_threshold=np.array([self.confidence_threshold]),
+            max_iterations=np.array([self.max_iterations]),
+            min_labeled_ratio=np.array([self.min_labeled_ratio]),
+            random_seed=np.array([self.random_seed]),
+            n_iterations_used=np.array([self.n_iterations_used]),
+            training_mode=np.array([self.training_mode]),
+            n_labeled_history=np.array(self.n_labeled_history),
+            accuracy_history=np.array(self.accuracy_history),
+        )
+
+    @classmethod
+    def load(cls, path: str) -> "SelfTrainingClassifier":
+        """Load model parameters from disk."""
+        data = np.load(path)
+
+        model = LogisticRegression(
+            learning_rate=float(data["model_learning_rate"].item()),
+            n_iterations=int(data["model_n_iterations"].item()),
+        )
+        model.weights = data["model_weights"]
+        model.bias = float(data["model_bias"].item())
+        model.loss_history = list(data["model_loss_history"])
+
+        clf = cls(
+            confidence_threshold=float(data["confidence_threshold"].item()),
+            max_iterations=int(data["max_iterations"].item()),
+            min_labeled_ratio=float(data["min_labeled_ratio"].item()),
+            random_seed=int(data["random_seed"].item()),
+        )
+        clf.model = model
+        clf.n_features = int(data["n_features"].item())
+        clf.n_iterations_used = int(data["n_iterations_used"].item())
+        clf.training_mode = str(data["training_mode"].item())
+        clf.n_labeled_history = list(data["n_labeled_history"])
+        clf.accuracy_history = list(data["accuracy_history"])
+
+        return clf
+
+    def to_dict(self) -> dict:
+        """Return model parameters as a dict."""
+        return {
+            "n_features": self.n_features,
+            "confidence_threshold": self.confidence_threshold,
+            "max_iterations": self.max_iterations,
+            "min_labeled_ratio": self.min_labeled_ratio,
+            "n_iterations_used": self.n_iterations_used,
+            "training_mode": self.training_mode,
+            "n_labeled_history": self.n_labeled_history,
+            "accuracy_history": self.accuracy_history,
+            "final_n_labeled": self.n_labeled_history[-1] if self.n_labeled_history else 0,
+            "final_accuracy": self.accuracy_history[-1] if self.accuracy_history else 0.0,
+        }
 ```
 
-## ⚡ API Reference
+</details>
 
-FastAPI endpoints and model interfaces
+<details>
+<summary>train.py</summary>
 
-| Method | Endpoint |
-| --- | --- |
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/metrics` |
-| `POST` | `/reload` |
-
-## ▶ Usage
-
-Code examples and CLI commands
-
-### Training Script
-
-```python
+```
 """Production training pipeline for semi-supervised email classification."""
 
 import argparse
@@ -305,9 +735,198 @@ if __name__ == "__main__":
     main()
 ```
 
-### API Server
+</details>
 
-```python
+<details>
+<summary>data.py</summary>
+
+```
+"""Data loading and preprocessing for semi-supervised email classification.
+
+Generates a realistic synthetic email dataset with:
+- A small labeled subset (10-20% of data)
+- A large unlabeled subset (80-90% of data)
+- Email text features: keyword presence, length, special characters
+- Binary labels: 1 = spam, 0 = ham
+
+This demonstrates semi-supervised learning where the model leverages
+both labeled and unlabeled data to improve classification accuracy.
+"""
+
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+# Feature order MUST match what was used during training
+FEATURE_NAMES = [
+    "has_free",
+    "has_win",
+    "has_link",
+    "has_exclamation",
+    "has_meeting",
+    "length_score",
+    "has_caps",
+]
+
+# Default labeled ratio (fraction of data that is labeled)
+DEFAULT_LABELED_RATIO = 0.1
+DEFAULT_N_SAMPLES = 1000
+
+def _generate_synthetic_emails(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Generate synthetic email feature data with known spam/ham patterns.
+
+    Returns:
+        Tuple of (X, y) where X is feature matrix and y is labels.
+        All data is initially labeled.
+    """
+    rng = np.random.default_rng(random_seed)
+
+    X = []
+    y = []
+
+    for _i in range(n_samples):
+        is_spam = rng.random() < 0.4  # 40% spam, 60% ham
+
+        if is_spam:
+            features = [
+                1 if rng.random() < 0.8 else 0,  # has_free
+                1 if rng.random() < 0.7 else 0,  # has_win
+                1 if rng.random() < 0.6 else 0,  # has_link
+                1 if rng.random() < 0.75 else 0,  # has_exclamation
+                0 if rng.random() < 0.7 else 1,  # has_meeting
+                rng.integers(5, 10),  # length_score (spam tends to be longer)
+                1 if rng.random() < 0.6 else 0,  # has_caps
+            ]
+        else:
+            features = [
+                0 if rng.random() < 0.7 else 1,  # has_free
+                0 if rng.random() < 0.8 else 1,  # has_win
+                0 if rng.random() < 0.8 else 1,  # has_link
+                0 if rng.random() < 0.8 else 1,  # has_exclamation
+                1 if rng.random() < 0.6 else 0,  # has_meeting
+                rng.integers(1, 5),  # length_score (ham tends to be shorter)
+                0 if rng.random() < 0.8 else 1,  # has_caps
+            ]
+
+        X.append(features)
+        y.append(1 if is_spam else 0)
+
+    return np.array(X, dtype=float), np.array(y, dtype=int)
+
+def load_training_data(
+    data_path: Path | None = None,
+    labeled_ratio: float = DEFAULT_LABELED_RATIO,
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray | None]:
+    """Load semi-supervised email data with labeled and unlabeled subsets.
+
+    Args:
+        data_path: Optional path to CSV file. If provided, loads from CSV.
+        labeled_ratio: Fraction of data to keep labeled (0.0 to 1.0).
+        n_samples: Number of samples to generate if no data_path.
+        random_seed: Random seed for reproducibility.
+
+    Returns:
+        Tuple of (X, y, is_labeled) where:
+        - X: Feature matrix of shape (n_samples, n_features)
+        - y: Label vector of shape (n_samples,). Unlabeled samples have label -1.
+        - is_labeled: Boolean mask of shape (n_samples,) indicating labeled samples.
+    """
+    if data_path and Path(data_path).exists():
+        df = pd.read_csv(data_path)
+        X = df[FEATURE_NAMES].values.astype(float)
+        y_raw = df["label"].values.astype(int)
+
+        # If CSV has "is_labeled" column, use it; otherwise treat all as labeled
+        if "is_labeled" in df.columns:
+            is_labeled = df["is_labeled"].values.astype(bool)
+            y = np.where(is_labeled, y_raw, -1)
+        else:
+            is_labeled = np.ones(len(X), dtype=bool)
+            y = y_raw
+
+        return X, y, is_labeled
+
+    # Generate synthetic data
+    X, y_full = _generate_synthetic_emails(n_samples=n_samples, random_seed=random_seed)
+
+    # Create labeled/unlabeled split
+    rng = np.random.default_rng(random_seed)
+    n_labeled = max(1, int(n_samples * labeled_ratio))
+    labeled_indices = rng.choice(n_samples, size=n_labeled, replace=False)
+    is_labeled = np.zeros(n_samples, dtype=bool)
+    is_labeled[labeled_indices] = True
+
+    # Unlabeled samples get label -1
+    y = np.where(is_labeled, y_full, -1)
+
+    return X, y, is_labeled
+
+def get_labeled_data(X: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Extract only the labeled subset of the data.
+
+    Args:
+        X: Feature matrix of shape (n_samples, n_features)
+        y: Label vector of shape (n_samples,) with -1 for unlabeled
+
+    Returns:
+        Tuple of (X_labeled, y_labeled) with only labeled samples
+    """
+    mask = y != -1
+    return X[mask], y[mask]
+
+def get_unlabeled_data(X: np.ndarray, y: np.ndarray) -> np.ndarray:
+    """Extract only the unlabeled subset of the data.
+
+    Args:
+        X: Feature matrix of shape (n_samples, n_features)
+        y: Label vector of shape (n_samples,) with -1 for unlabeled
+
+    Returns:
+        X_unlabeled with only unlabeled samples
+    """
+    mask = y == -1
+    return X[mask]
+
+def save_training_data(X: np.ndarray, y: np.ndarray, is_labeled: np.ndarray, path: Path) -> None:
+    """Save semi-supervised training data to CSV for reproducibility."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    df = pd.DataFrame(X, columns=FEATURE_NAMES)
+    df["label"] = y
+    df["is_labeled"] = is_labeled.astype(int)
+    df.to_csv(path, index=False)
+
+def train_test_split(
+    X: np.ndarray, y: np.ndarray, test_size: float = 0.2, random_seed: int | None = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Split data into train and test sets."""
+    n = len(X)
+    n_test = max(1, int(n * test_size))
+
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+
+    test_idx = indices[:n_test]
+    train_idx = indices[n_test:]
+
+    return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
+```
+
+</details>
+
+<details>
+<summary>api.py</summary>
+
+```
 """Production serving API for semi-supervised email classification."""
 
 import os
@@ -689,76 +1308,44 @@ def predict_single(body: PredictRequest):
 def predict_bulk(body: list[PredictRequest]):
     """Classify multiple emails (1 to 100)."""
     global _recent_predictions
-    if _model is None or _metrics is None or _validator is None:
-        raise HTTPException(status_code=503, detail="Model not loaded")
-
-    if len(body) < 1 or len(body) > 100:
-        raise HTTPException(status_code=422, detail="Batch size must be between 1 and 100")
-
-    X = np.array(
-        [
-            [
-                r.has_free,
-                r.has_win,
-                r.has_link,
-                r.has_exclamation,
-                r.has_meeting,
-                r.length_score,
-                r.has_caps,
-            ]
-            for r in body
-        ]
-    )
-
-    validation = _validator.validate(X)
-    if not validation.valid:
-        raise HTTPException(status_code=422, detail=validation.errors)
-
-    start = time.time()
-    try:
-        probas = _model.predict_proba(X)
-        predictions = _model.predict(X)
-        duration = time.time() - start
-        _metrics.record_prediction(model_version=_model_version, duration=duration)
-
-        # Track for drift detection
-        _recent_predictions.extend(X.tolist())
-        if len(_recent_predictions) > 1000:
-            _recent_predictions = _recent_predictions[-1000:]
-
-        responses = [
-            PredictResponse(
-                is_spam=bool(pred),
-                spam_probability=round(float(prob), 4),
-                label="SPAM" if pred else "NOT spam",
-                model_version=_model_version,
-                training_mode=_model.training_mode if _model else "unknown",
-            )
-            for pred, prob in zip(predictions, probas, strict=False)
-        ]
-        return BulkPredictResponse(predictions=responses, model_version=_model_version)
-    except Exception as e:
-        _metrics.record_error(model_version=_model_version, error_type="prediction")
-        logger.exception("Bulk classification failed", error=str(e))
-        raise HTTPException(status_code=500, detail="Bulk classification failed") from e
+... (truncated) ...
 ```
 
-### CLI Commands
+</details>
 
-```bash
-uv run python -m semi_supervised_email.train --model-dir ./artifacts/models
-```
+## 4. Monorepo Integration
 
-## 📊 Benchmarks
+This example is a first-class consumer of the shared `packages/ai-core` library.
+It reuses the following foundation modules instead of re-implementing infrastructure:
 
-Test results and performance metrics
+ai_core.drift
+ai_core.fastapi_middleware
+ai_core.logging
+ai_core.metrics
+ai_core.model_registry
+ai_core.validation
 
-Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+### How it plugs in
 
-### Related Apps
 
-- [self-supervised-monitoring](../self-supervised-monitoring/README.md)
 
-- [classification-email-spam](../classification-email-spam/README.md)
+- **Configuration** — 12-factor config from `ai_core.config`.
 
-Generated documentation for **semi-supervised-email**
+
+
+- **Observability** — structured logging + Prometheus metrics are wired in automatically.
+
+
+
+- **Validation** — input schema validation prevents bad data reaching the model.
+
+
+
+- **Registry** — trained artifacts are versioned and registered for reproducible serving.
+
+
+
+- **Serving** — the FastAPI app mounts shared observability middleware for tracing & metrics.
+
+Because every example shares `ai_core`, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.

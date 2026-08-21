@@ -1,63 +1,428 @@
 # gnn-social-networks
 
-## ∫ Mathematics & Theory
 
-Machine Learning Fundamentals — Underlying equations and derivations
 
-$$\hat{y} = f(x; \theta)$$
+Graph Neural Network (GNN) — AI engineering example · part of the MLOps monorepo
 
-$$\mathcal{L}(\theta) = \frac{1}{n} \sum_{i=1}^{n} \ell(y_i, \hat{y}_i)$$
+## 1. Mathematical Foundations
 
-$$\theta \leftarrow \theta - \alpha \nabla_\theta \mathcal{L}(\theta)$$
+This example is grounded in **Graph Neural Network (GNN)**. The equations below
+drive every forward and backward pass in the implementation.
 
-### Step-by-Step Derivation
+$$h_v^{(k+1)} = \sigma\left( W^{(k)} \cdot \text{AGGREGATE}_k \left( \{ h_u^{(k)} : u \in \mathcal{N}(v) \} \right) \right)$$
 
-Machine learning models learn parameters $\theta$ by minimizing a loss function $\mathcal{L}$. Gradient descent iteratively updates parameters in the direction of steepest descent. The learning rate $\alpha$ controls step size. Stochastic gradient descent (SGD) uses mini-batches for computational efficiency.
+$$\text{AGGREGATE}_k = \text{mean} \left( \{ h_u^{(k)} : u \in \mathcal{N}(v) \} \right)$$
 
-### Interactive Visualization
+$$\text{GAT}: \alpha_{uv} = \frac{\exp(\text{LeakyReLU}(a^T [Wh_u \| Wh_v]))}{\sum_{k \in \mathcal{N}(v)} \exp(\text{LeakyReLU}(a^T [Wh_u \| Wh_k]))}$$
 
-Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
+$$h_v^{(k+1)} = \sigma\left( \sum_{u \in \mathcal{N}(v)} \alpha_{uv} W h_u^{(k)} \right)$$
 
-## ⚙ Architecture
+### Derivation
 
-Model structure, data flow, and layer breakdown
+GNNs generalize convolutions to graph-structured data. Each node updates its representation by aggregating messages from neighbors. After $K$ rounds of message passing, each node embeds its $K$-hop neighborhood. GATs introduce attention weights $\alpha_{uv}$ to prioritize important neighbors.
 
-### Class Hierarchy
+### Worked Numerical Example
 
-```
-  GCNLayer
-  GNNSocialNetworks
-```
+$$z = w \cdot x + b$$
+
+Illustrative forward-pass evaluation (scalar example):
+
+Input  x        = 12.0   (e.g. pizza diameter, inches)
+Weights w       =  0.85
+Bias    b       =  0.30
+---------------------------------
+z = w*x + b
+  = 0.85 * 12.0 + 0.30
+  = 10.20 + 0.30
+  = 10.50   <- model output
+
+### Conceptual Diagram
+
+        Math concept (placeholder)
+   [ Input x ] --> ( w · x + b ) --> [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]
+
+![Math Explanation (placeholder)](./assets/math-concept.png)
+
+Interactive graph with animated message passing; node embedding t-SNE projection; attention weight heatmap.
+
+## 2. Core Logic & Architecture
+
+The example follows a consistent **data → train → evaluate → serve**
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.
+
+  Raw dataset→
+  load + validate (data.py)→
+  fit / transform (model.py)→
+  evaluate + persist (train.py)→
+  serve (api.py)
+
+### Primary Components
+
+| Class | Public methods | Responsibility |
+| --- | --- | --- |
+| `PredictRequest` | — |  |
+| `PredictResponse` | — |  |
+| `DriftResponse` | — |  |
+| `StatsResponse` | — |  |
+| `GCNLayer` | init_weights, forward, backward, update_params | Graph Convolutional Network layer.  Args:     input_dim: Input feature dimension     output_dim: Output feature dimension     random_seed: Random seed |
+| `GNNSocialNetworks` | _build, _forward, fit, predict_proba, predict, evaluate, save, load, to_dict | Graph Neural Network for social network analysis.  Uses Graph Convolution to process node features and adjacency relationships. Can perform node classification or graph-level prediction.  Args:     n_features: Number of input features per node     n_classes: Number of output classes (for node classification)     hidden_dim: Hidden dimension for GCN layers     learning_rate: Gradient descent step size     n_iterations: Number of training epochs     weight_decay: L2 regularization     clip_value: Gradient clipping threshold     random_seed: Random seed |
 
 ### Data Flow
 
-```mermaid
-graph TD
-  A[Input Data] --> B[Preprocessing]
-  B --> C[Model Training]
-  C --> D[Evaluation]
-  D --> E[Model Registry]
-  E --> F[Serving API]
+
+
+1. **Load** — `data.py` reads the source dataset and splits train/test.
+
+
+
+2. **Validate** — a Pydantic schema guards input shape/dtypes before training.
+
+
+
+3. **Fit / Transform** — `model.py` applies the mathematics from Section 1.
+
+
+
+4. **Evaluate** — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.
+
+
+
+5. **Persist** — weights/artifacts are saved and registered in the model registry.
+
+
+
+6. **Serve** — `api.py` exposes prediction endpoints with drift detection.
+
+### Design Patterns & Performance
+
+Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via `ai_core.validation`, structured JSON logging through `ai_core.logging`, Prometheus metrics from `ai_core.metrics`, and MLflow/model-registry persistence via `ai_core.model_registry`. The FastAPI service wraps the trained model with observability middleware from `ai_core.fastapi_middleware`.
+
+## 3. Detailed Code Walkthrough
+
+The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.
+
+### `GCNLayer.forward(H, A_norm)`
+
+Forward pass.
+
+Args:
+    H: Node features (n_nodes, input_dim)
+    A_norm: Normalized adjacency matrix (n_nodes, n_nodes)
+
+Returns:
+    Output features (n_nodes, output_dim)
+
+### `GNNSocialNetworks.fit(X, A, y, n_iterations)`
+
+Train the GNN on graph-structured data.
+
+Args:
+    X: Node features (n_nodes, n_features)
+    A: Adjacency matrix (n_nodes, n_nodes)
+    y: Node labels (n_nodes,)
+
+### Source Files
+
+<details>
+<summary>model.py</summary>
+
+```
+"""Graph Neural Network for social network analysis.
+
+Architecture:
+    Graph Convolution: H^{(l+1)} = sigma(A_norm * H^{(l)} * W^{(l)})
+    Where A_norm is the normalized adjacency matrix and W is learnable weights.
+
+    Input: node features (n_nodes, n_features) + adjacency matrix (n_nodes, n_nodes)
+    -> GCN layer (n_features -> hidden_dim, ReLU)
+    -> GCN layer (hidden_dim -> hidden_dim, ReLU)
+    -> Dense (hidden_dim -> n_classes, softmax)
+
+Loss: cross-entropy (node classification) or MSE (reconstruction)
+"""
+
+from dataclasses import dataclass, field
+
+import numpy as np
+
+def relu(z: np.ndarray) -> np.ndarray:
+    return np.maximum(0, z)
+
+def relu_derivative(z: np.ndarray) -> np.ndarray:
+    return (z > 0).astype(z.dtype)
+
+def softmax(z: np.ndarray) -> np.ndarray:
+    z_shifted = z - np.max(z, axis=-1, keepdims=True)
+    exp_z = np.exp(z_shifted)
+    return exp_z / np.sum(exp_z, axis=-1, keepdims=True)
+
+def normalize_adjacency(A: np.ndarray) -> np.ndarray:
+    """Compute normalized adjacency matrix: A_norm = (A + I) * D^{-1/2}"""
+    A_eye = A + np.eye(A.shape[0])
+    D = np.diag(np.sum(A_eye, axis=1))
+    D_inv_sqrt = np.diag(1.0 / np.sqrt(np.diag(D) + 1e-8))
+    return D_inv_sqrt @ A_eye @ D_inv_sqrt
+
+@dataclass
+class GCNLayer:
+    """Graph Convolutional Network layer.
+
+    Args:
+        input_dim: Input feature dimension
+        output_dim: Output feature dimension
+        random_seed: Random seed
+    """
+
+    input_dim: int = 32
+    output_dim: int = 16
+    random_seed: int = 42
+    W: np.ndarray | None = None
+    dW: np.ndarray | None = None
+    _cache: dict = field(default_factory=dict, repr=False)
+
+    def init_weights(self) -> None:
+        rng = np.random.default_rng(self.random_seed)
+        self.W = rng.normal(0, np.sqrt(2.0 / self.input_dim), (self.input_dim, self.output_dim))
+
+    def forward(self, H: np.ndarray, A_norm: np.ndarray) -> np.ndarray:
+        """Forward pass.
+
+        Args:
+            H: Node features (n_nodes, input_dim)
+            A_norm: Normalized adjacency matrix (n_nodes, n_nodes)
+
+        Returns:
+            Output features (n_nodes, output_dim)
+        """
+        if self.W is None:
+            self.init_weights()
+
+        out = A_norm @ H @ self.W
+        self._cache = {"H": H, "A_norm": A_norm}
+        return out
+
+    def backward(self, dout: np.ndarray) -> np.ndarray:
+        c = self._cache
+        H = c["H"]
+        A_norm = c["A_norm"]
+
+        self.dW = H.T @ (A_norm.T @ dout)
+        dH = A_norm @ dout @ self.W.T
+        return dH
+
+    def update_params(self, lr: float, weight_decay: float = 0.0) -> None:
+        if self.W is None:
+            return
+        self.W -= lr * (self.dW + weight_decay * self.W)
+
+@dataclass
+class GNNSocialNetworks:
+    """Graph Neural Network for social network analysis.
+
+    Uses Graph Convolution to process node features and adjacency relationships.
+    Can perform node classification or graph-level prediction.
+
+    Args:
+        n_features: Number of input features per node
+        n_classes: Number of output classes (for node classification)
+        hidden_dim: Hidden dimension for GCN layers
+        learning_rate: Gradient descent step size
+        n_iterations: Number of training epochs
+        weight_decay: L2 regularization
+        clip_value: Gradient clipping threshold
+        random_seed: Random seed
+    """
+
+    n_features: int = 32
+    n_classes: int = 2
+    hidden_dim: int = 16
+    learning_rate: float = 0.05
+    n_iterations: int = 200
+    weight_decay: float = 0.001
+    clip_value: float = 5.0
+    random_seed: int = 42
+
+    layers: list = field(default_factory=list, repr=False)
+    W_out: np.ndarray | None = None
+    b_out: np.ndarray | None = None
+    training_mode: str = "supervised"
+    loss_history: list[float] = field(default_factory=list)
+
+    def _build(self) -> None:
+        rng = np.random.default_rng(self.random_seed + 100)
+        self.layers = [
+            GCNLayer(input_dim=self.n_features, output_dim=self.hidden_dim, random_seed=self.random_seed),
+            "relu",
+            GCNLayer(input_dim=self.hidden_dim, output_dim=self.hidden_dim, random_seed=self.random_seed + 1),
+            "relu",
+        ]
+        self.W_out = rng.normal(0, np.sqrt(1.0 / self.hidden_dim), (self.hidden_dim, self.n_classes))
+        self.b_out = np.zeros(self.n_classes)
+
+    def _forward(self, X: np.ndarray, A_norm: np.ndarray) -> tuple[np.ndarray, dict]:
+        """Forward pass.
+
+        Args:
+            X: Node features (n_nodes, n_features)
+            A_norm: Normalized adjacency matrix (n_nodes, n_nodes)
+
+        Returns:
+            logits: Class logits per node (n_nodes, n_classes)
+            cache: intermediate values
+        """
+        gcn1: GCNLayer = self.layers[0]
+        h1 = gcn1.forward(X, A_norm)
+        h1 = relu(h1)
+
+        gcn2: GCNLayer = self.layers[2]
+        h2 = gcn2.forward(h1, A_norm)
+        h2 = relu(h2)
+
+        logits = h2 @ self.W_out + self.b_out
+
+        cache = {"X": X, "h1": h1, "h2": h2, "gcn1_cache": gcn1._cache, "gcn2_cache": gcn2._cache}
+        return logits, cache
+
+    def fit(
+        self,
+        X: np.ndarray,
+        A: np.ndarray,
+        y: np.ndarray,
+        n_iterations: int | None = None,
+    ) -> "GNNSocialNetworks":
+        """Train the GNN on graph-structured data.
+
+        Args:
+            X: Node features (n_nodes, n_features)
+            A: Adjacency matrix (n_nodes, n_nodes)
+            y: Node labels (n_nodes,)
+        """
+        if not self.layers:
+            self._build()
+
+        if n_iterations is None:
+            n_iterations = self.n_iterations
+
+        A_norm = normalize_adjacency(A)
+        n_nodes = X.shape[0]
+        eps = 1e-12
+
+        y_onehot = np.zeros((n_nodes, self.n_classes))
+        y_onehot[np.arange(n_nodes), y.astype(int)] = 1.0
+
+        for _epoch in range(n_iterations):
+            logits, cache = self._forward(X, A_norm)
+
+            probs = softmax(logits)
+            loss = -np.sum(y_onehot * np.log(np.clip(probs, eps, 1))) / n_nodes
+            self.loss_history.append(loss)
+
+            dlogits = (probs - y_onehot) / n_nodes
+
+            dW_out = cache["h2"].T @ dlogits
+            db_out = np.sum(dlogits, axis=0)
+            dh2 = dlogits @ self.W_out.T * relu_derivative(cache["h2"])
+
+            gcn2: GCNLayer = self.layers[2]
+            dh2_pre = gcn2.backward(dh2)
+            dh1 = dh2_pre @ gcn2.W.T * relu_derivative(cache["h1"])
+
+            gcn1: GCNLayer = self.layers[0]
+            _ = gcn1.backward(dh1)
+
+            grad_norm = np.sqrt(
+                np.sum(gcn1.dW**2) + np.sum(gcn2.dW**2) + np.sum(dW_out**2)
+            )
+            if grad_norm > self.clip_value:
+                scale = self.clip_value / (grad_norm + 1e-8)
+                gcn1.dW *= scale
+                gcn2.dW *= scale
+                dW_out *= scale
+
+            lr = self.learning_rate
+            wd = self.weight_decay
+            gcn1.W -= lr * (gcn1.dW + wd * gcn1.W)
+            gcn2.W -= lr * (gcn2.dW + wd * gcn2.W)
+            self.W_out -= lr * (dW_out + wd * self.W_out)
+            self.b_out -= lr * db_out
+
+        return self
+
+    def predict_proba(self, X: np.ndarray, A: np.ndarray) -> np.ndarray:
+        A_norm = normalize_adjacency(A)
+        logits, _ = self._forward(X, A_norm)
+        return softmax(logits)
+
+    def predict(self, X: np.ndarray, A: np.ndarray) -> np.ndarray:
+        probs = self.predict_proba(X, A)
+        return np.argmax(probs, axis=-1)
+
+    def evaluate(self, X: np.ndarray, A: np.ndarray, y: np.ndarray) -> dict[str, float]:
+        preds = self.predict(X, A)
+        accuracy = float(np.mean(preds == y))
+        return {"accuracy": accuracy, "n_nodes": float(len(y))}
+
+    def save(self, path: str) -> None:
+        arrays = {
+            "loss_history": np.array(self.loss_history),
+            "W_out": self.W_out, "b_out": self.b_out,
+            "gcn1_W": self.layers[0].W,
+            "gcn2_W": self.layers[2].W,
+            "n_features": np.array([self.n_features]),
+            "n_classes": np.array([self.n_classes]),
+            "hidden_dim": np.array([self.hidden_dim]),
+            "learning_rate": np.array([self.learning_rate]),
+            "n_iterations": np.array([self.n_iterations]),
+            "weight_decay": np.array([self.weight_decay]),
+        }
+        np.savez(path, **arrays)
+
+    @classmethod
+    def load(cls, path: str) -> "GNNSocialNetworks":
+        data = np.load(path, allow_pickle=True)
+        obj = cls(
+            n_features=int(data["n_features"].item()),
+            n_classes=int(data["n_classes"].item()),
+            hidden_dim=int(data["hidden_dim"].item()),
+            learning_rate=float(data["learning_rate"].item()),
+            n_iterations=int(data["n_iterations"].item()),
+            weight_decay=float(data["weight_decay"].item()),
+            random_seed=42,
+        )
+        obj._build()
+        obj.W_out = data["W_out"]
+        obj.b_out = data["b_out"]
+        obj.layers[0].W = data["gcn1_W"]
+        obj.layers[2].W = data["gcn2_W"]
+        obj.loss_history = list(data.get("loss_history", [0.0]))
+        return obj
+
+    def to_dict(self) -> dict:
+        return {
+            "n_features": self.n_features,
+            "n_classes": self.n_classes,
+            "hidden_dim": self.hidden_dim,
+            "learning_rate": self.learning_rate,
+            "n_iterations": self.n_iterations,
+            "weight_decay": self.weight_decay,
+            "training_mode": self.training_mode,
+            "n_epochs_run": len(self.loss_history),
+            "final_loss": self.loss_history[-1] if self.loss_history else 0.0,
+        }
 ```
 
-## ⚡ API Reference
+</details>
 
-FastAPI endpoints and model interfaces
+<details>
+<summary>train.py</summary>
 
-| Method | Endpoint |
-| --- | --- |
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/metrics` |
-| `POST` | `/reload` |
-
-## ▶ Usage
-
-Code examples and CLI commands
-
-### Training Script
-
-```python
+```
 """Training pipeline for GNN Social Network Analysis."""
 
 import argparse
@@ -204,9 +569,113 @@ if __name__ == "__main__":
     main()
 ```
 
-### API Server
+</details>
 
-```python
+<details>
+<summary>data.py</summary>
+
+```
+"""Data loading and preprocessing for GNN social network analysis."""
+
+from pathlib import Path
+
+import numpy as np
+
+N_FEATURES = 32
+N_CLASSES = 2
+N_NODES = 20
+
+DEFAULT_N_SAMPLES = 500
+
+def generate_synthetic_data(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    n_nodes: int = N_NODES,
+    n_features: int = N_FEATURES,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Generate synthetic social network data.
+
+    Creates a random graph with clustered node features where connected
+    nodes tend to share similar labels (community structure).
+
+    Returns:
+        X: (n_nodes, n_features) node features
+        A: (n_nodes, n_nodes) adjacency matrix
+        y: (n_nodes,) node labels
+    """
+    rng = np.random.default_rng(random_seed)
+    X = rng.random((n_nodes, n_features))
+
+    A = np.zeros((n_nodes, n_nodes))
+    n_communities = 4
+    nodes_per_comm = n_nodes // n_communities
+    for comm in range(n_communities):
+        start = comm * nodes_per_comm
+        end = start + nodes_per_comm
+        comm_nodes = list(range(start, end))
+        for i in range(len(comm_nodes)):
+            for j in range(i + 1, len(comm_nodes)):
+                if rng.random() > 0.3:
+                    A[comm_nodes[i], comm_nodes[j]] = 1.0
+                    A[comm_nodes[j], comm_nodes[i]] = 1.0
+
+    for i in range(n_nodes):
+        for j in range(i + 1, n_nodes):
+            if rng.random() > 0.9:
+                A[i, j] = 1.0
+                A[j, i] = 1.0
+
+    y = np.zeros(n_nodes, dtype=int)
+    for comm in range(n_communities):
+        start = comm * nodes_per_comm
+        end = start + nodes_per_comm
+        y[start:end] = comm % N_CLASSES
+
+    perm = rng.permutation(n_nodes)
+    X = X[perm]
+    y = y[perm]
+    A = A[np.ix_(perm, perm)]
+
+    return X, A, y
+
+def load_training_data(
+    data_path: Path | None = None,
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    if data_path and Path(data_path).exists():
+        data = np.load(data_path, allow_pickle=True)
+        return data["X"], data["A"], data["y"]
+    return generate_synthetic_data(n_samples=n_samples, random_seed=random_seed)
+
+def train_test_split_graph(
+    X: np.ndarray, A: np.ndarray, y: np.ndarray, test_ratio: float = 0.2, random_seed: int | None = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    n = len(X)
+    n_test = max(1, int(n * test_ratio))
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+    test_mask = np.zeros(n, dtype=bool)
+    test_mask[indices[:n_test]] = True
+    train_mask = ~test_mask
+
+    return X[train_mask], A[np.ix_(train_mask, train_mask)], y[train_mask], X[test_mask], A[np.ix_(test_mask, test_mask)], y[test_mask], train_mask, test_mask
+
+def save_training_data(X: np.ndarray, A: np.ndarray, y: np.ndarray, path: Path) -> None:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(path, X=X, A=A, y=y)
+```
+
+</details>
+
+<details>
+<summary>api.py</summary>
+
+```
 """Serving API for GNN Social Network Analysis."""
 
 import os
@@ -491,20 +960,41 @@ def predict(body: PredictRequest):
         raise HTTPException(status_code=500, detail="Prediction failed") from e
 ```
 
-### CLI Commands
+</details>
 
-```bash
-uv run python -m gnn_social_networks.train --model-dir ./artifacts/models
-```
+## 4. Monorepo Integration
 
-## 📊 Benchmarks
+This example is a first-class consumer of the shared `packages/ai-core` library.
+It reuses the following foundation modules instead of re-implementing infrastructure:
 
-Test results and performance metrics
+ai_core.drift
+ai_core.fastapi_middleware
+ai_core.logging
+ai_core.metrics
+ai_core.model_registry
+ai_core.validation
 
-Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+### How it plugs in
 
-### Related Apps
 
-- [deep-belief-networks](../deep-belief-networks/README.md)
 
-Generated documentation for **gnn-social-networks**
+- **Configuration** — 12-factor config from `ai_core.config`.
+
+
+
+- **Observability** — structured logging + Prometheus metrics are wired in automatically.
+
+
+
+- **Validation** — input schema validation prevents bad data reaching the model.
+
+
+
+- **Registry** — trained artifacts are versioned and registered for reproducible serving.
+
+
+
+- **Serving** — the FastAPI app mounts shared observability middleware for tracing & metrics.
+
+Because every example shares `ai_core`, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.

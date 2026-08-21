@@ -1,65 +1,324 @@
 # speech-audio-music
 
-## ∫ Mathematics & Theory
 
-Recurrent Neural Network (RNN) — Underlying equations and derivations
 
-$$h_t = \tanh(W_{hh}h_{t-1} + W_{xh}x_t + b_h)$$
+Machine Learning Fundamentals — AI engineering example · part of the MLOps monorepo
 
-$$\hat{y}_t = W_{hy}h_t + b_y$$
+## 1. Mathematical Foundations
 
-$$\mathcal{L} = \sum_{t=1}^{T} \mathcal{L}_t(y_t, \hat{y}_t)$$
+This example is grounded in **Machine Learning Fundamentals**. The equations below
+drive every forward and backward pass in the implementation.
 
-$$\frac{\partial \mathcal{L}}{\partial W_{hh}} = \sum_{t=1}^{T} \delta_t h_{t-1}^T$$
+$$\hat{y} = f(x; \theta)$$
 
-### Step-by-Step Derivation
+$$\mathcal{L}(\theta) = \frac{1}{n} \sum_{i=1}^{n} \ell(y_i, \hat{y}_i)$$
 
-RNNs process sequences by maintaining a hidden state $h_t$ that summarizes past inputs. At each timestep, the hidden state is updated via $h_t = \tanh(W_{hh}h_{t-1} + W_{xh}x_t)$. Backpropagation Through Time (BPTT) unrolls the network and computes gradients across all timesteps. Vanishing gradients are mitigated by gated architectures like LSTM and GRU.
+$$\theta \leftarrow \theta - \alpha \nabla_\theta \mathcal{L}(\theta)$$
 
-### Interactive Visualization
+### Derivation
 
-Interactive unfolded RNN diagram with gradient flow visualization; hidden state trajectory plot.
+Machine learning models learn parameters $\theta$ by minimizing a loss function $\mathcal{L}$. Gradient descent iteratively updates parameters in the direction of steepest descent. The learning rate $\alpha$ controls step size. Stochastic gradient descent (SGD) uses mini-batches for computational efficiency.
 
-## ⚙ Architecture
+### Worked Numerical Example
 
-Model structure, data flow, and layer breakdown
+$$z = w \cdot x + b$$
 
-### Class Hierarchy
+Illustrative forward-pass evaluation (scalar example):
 
-```
-  MusicGenerationRNN
-```
+Input  x        = 12.0   (e.g. pizza diameter, inches)
+Weights w       =  0.85
+Bias    b       =  0.30
+---------------------------------
+z = w*x + b
+  = 0.85 * 12.0 + 0.30
+  = 10.20 + 0.30
+  = 10.50   <- model output
+
+### Conceptual Diagram
+
+        Math concept (placeholder)
+   [ Input x ] --> ( w · x + b ) --> [ Output z ]
+                       |
+                  [ activation ]
+                       |
+                  [ prediction ]
+
+![Math Explanation (placeholder)](./assets/math-concept.png)
+
+Interactive loss landscape explorer; gradient descent trajectory; learning rate scheduler.
+
+## 2. Core Logic & Architecture
+
+The example follows a consistent **data → train → evaluate → serve**
+pipeline. Inputs are loaded and validated, transformed by the core algorithm, scored against
+held-out data, and exposed through a REST API.
+
+  Raw dataset→
+  load + validate (data.py)→
+  fit / transform (model.py)→
+  evaluate + persist (train.py)→
+  serve (api.py)
+
+### Primary Components
+
+| Class | Public methods | Responsibility |
+| --- | --- | --- |
+| `PredictRequest` | — |  |
+| `PredictBulkRequest` | — |  |
+| `PredictResponse` | — |  |
+| `BulkPredictResponse` | — |  |
+| `StatsResponse` | — |  |
+| `MusicGenerationRNN` | _to_onehot_seq, _to_onehot_batch, fit, predict_proba, predict, generate, perplexity, evaluate, save, load, to_dict | RNN language model for character-level music generation (many-to-many).  Args:     vocab_size: Number of possible note/rest tokens     seq_len: Length of input note sequences     hidden_dim: Number of hidden units     learning_rate: Gradient descent step size     n_iterations: Number of training epochs     weight_decay: L2 regularization strength     clip_value: Maximum gradient norm     random_seed: Random seed for reproducibility |
 
 ### Data Flow
 
-```mermaid
-graph TD
-  A[Input Data] --> B[Preprocessing]
-  B --> C[Model Training]
-  C --> D[Evaluation]
-  D --> E[Model Registry]
-  E --> F[Serving API]
+
+
+1. **Load** — `data.py` reads the source dataset and splits train/test.
+
+
+
+2. **Validate** — a Pydantic schema guards input shape/dtypes before training.
+
+
+
+3. **Fit / Transform** — `model.py` applies the mathematics from Section 1.
+
+
+
+4. **Evaluate** — metrics (MSE/RMSE/R², accuracy, etc.) are computed and logged.
+
+
+
+5. **Persist** — weights/artifacts are saved and registered in the model registry.
+
+
+
+6. **Serve** — `api.py` exposes prediction endpoints with drift detection.
+
+### Design Patterns & Performance
+
+Key design choices in this module: a pure-NumPy implementation (no PyTorch/TensorFlow), schema validation via `ai_core.validation`, structured JSON logging through `ai_core.logging`, Prometheus metrics from `ai_core.metrics`, and MLflow/model-registry persistence via `ai_core.model_registry`. The FastAPI service wraps the trained model with observability middleware from `ai_core.fastapi_middleware`.
+
+## 3. Detailed Code Walkthrough
+
+The most important behaviour is summarised below; full source for each module is collapsible
+so the page stays readable while remaining self-contained.
+
+### `MusicGenerationRNN.fit(X, y, X_val, y_val)`
+
+Train the RNN with BPTT.
+
+For music generation, y is derived from X by shifting by one position
+(predict next note).
+
+Args:
+    X: Note index sequences (n_samples, seq_len)
+    y: Optional explicit targets (n_samples, seq_len). If None, shift X.
+
+Returns:
+    self
+
+### `MusicGenerationRNN.predict(X_seq)`
+
+Greedy sampling: predict one note at each position.
+
+### Source Files
+
+<details>
+<summary>model.py</summary>
+
+```
+"""Recurrent neural network for music generation.
+
+A SimpleRNN (Elman network) trained with Backpropagation Through Time (BPTT).
+Built from scratch with NumPy, using the shared nn_utils.rnn.SimpleRNN base.
+
+Architecture:
+    Input (seq_len, vocab_size) -> Hidden (hidden_dim, tanh) -> Output (vocab_size, softmax)
+
+Loss: Cross-Entropy (many-to-many: predicts next note at each timestep)
+
+The model is trained to predict the next musical note (or rest) in a sequence,
+enabling autoregressive music composition.
+"""
+
+from dataclasses import dataclass, field
+
+import numpy as np
+from ai_core.nn_utils.rnn import SimpleRNN
+
+@dataclass
+class MusicGenerationRNN:
+    """RNN language model for character-level music generation (many-to-many).
+
+    Args:
+        vocab_size: Number of possible note/rest tokens
+        seq_len: Length of input note sequences
+        hidden_dim: Number of hidden units
+        learning_rate: Gradient descent step size
+        n_iterations: Number of training epochs
+        weight_decay: L2 regularization strength
+        clip_value: Maximum gradient norm
+        random_seed: Random seed for reproducibility
+    """
+
+    vocab_size: int = 40
+    seq_len: int = 20
+    hidden_dim: int = 32
+    learning_rate: float = 0.1
+    n_iterations: int = 500
+    weight_decay: float = 0.001
+    clip_value: float = 5.0
+    random_seed: int = 42
+
+    model: SimpleRNN | None = field(default=None, repr=False)
+    training_mode: str = "self-supervised"
+    loss_history: list[float] = field(default_factory=list)
+
+    def _to_onehot_seq(self, seq: np.ndarray, dim: int) -> np.ndarray:
+        seq = np.atleast_1d(seq).astype(int)
+        result = np.zeros((len(seq), dim))
+        result[np.arange(len(seq)), seq % dim] = 1.0
+        return result
+
+    def _to_onehot_batch(self, X: np.ndarray) -> np.ndarray:
+        n_samples = X.shape[0]
+        seq_len = X.shape[1]
+        result = np.zeros((n_samples, seq_len, self.vocab_size))
+        for i in range(n_samples):
+            result[i] = self._to_onehot_seq(X[i], self.vocab_size)
+        return result
+
+    def fit(
+        self,
+        X: np.ndarray,
+        y: np.ndarray | None = None,
+        X_val: np.ndarray | None = None,
+        y_val: np.ndarray | None = None,
+    ) -> "MusicGenerationRNN":
+        """Train the RNN with BPTT.
+
+        For music generation, y is derived from X by shifting by one position
+        (predict next note).
+
+        Args:
+            X: Note index sequences (n_samples, seq_len)
+            y: Optional explicit targets (n_samples, seq_len). If None, shift X.
+
+        Returns:
+            self
+        """
+        X_onehot = self._to_onehot_batch(X)
+
+        # Next-token prediction: target = input shifted by 1
+        y_shifted = np.roll(X, -1, axis=1) if y is None else y
+
+        y_onehot = np.zeros((X_onehot.shape[0], X_onehot.shape[1], self.vocab_size))
+        for i in range(X_onehot.shape[0]):
+            for t in range(X_onehot.shape[1]):
+                idx = int(y_shifted[i, t]) % self.vocab_size
+                y_onehot[i, t, idx] = 1.0
+
+        self.model = SimpleRNN(
+            input_dim=self.vocab_size,
+            hidden_dim=self.hidden_dim,
+            output_dim=self.vocab_size,
+            output_activation="softmax",
+            learning_rate=self.learning_rate,
+            weight_decay=self.weight_decay,
+            clip_value=self.clip_value,
+            random_seed=self.random_seed,
+            output_loss="cross_entropy",
+        )
+        self.model.fit(X_onehot, y_onehot, n_iterations=self.n_iterations)
+        self.loss_history = self.model.loss_history
+        return self
+
+    def predict_proba(self, X_seq: np.ndarray) -> np.ndarray:
+        """Predict next-note probabilities for each position."""
+        X_oh = self._to_onehot_seq(X_seq, self.vocab_size)
+        return self.model.predict_many_to_many(X_oh)
+
+    def predict(self, X_seq: np.ndarray) -> np.ndarray:
+        """Greedy sampling: predict one note at each position."""
+        probas = self.predict_proba(X_seq)
+        return np.argmax(probas, axis=1)
+
+    def generate(self, seed_seq: np.ndarray, n_tokens: int = 10) -> np.ndarray:
+        """Autoregressively generate n_tokens following a seed sequence."""
+        generated = list(seed_seq)
+        current_seq = seed_seq.copy()
+
+        for _ in range(n_tokens):
+            X_oh = self._to_onehot_seq(current_seq, self.vocab_size)
+            outputs = self.model.predict_many_to_many(X_oh)
+            next_probs = outputs[-1]
+            next_idx = int(np.argmax(next_probs))
+            generated.append(next_idx)
+            current_seq = np.array(generated[-self.seq_len :])
+
+        return np.array(generated)
+
+    def perplexity(self, X: np.ndarray) -> float:
+        total_loss = 0.0
+        n_tokens = 0
+        for i in range(X.shape[0]):
+            y_shifted = np.roll(X[i], -1)
+            probas = self.predict_proba(X[i])
+            for t in range(len(y_shifted) - 1):
+                idx = int(y_shifted[t]) % self.vocab_size
+                p = max(probas[t, idx], 1e-9)
+                total_loss += -np.log(p)
+                n_tokens += 1
+        avg_loss = total_loss / max(n_tokens, 1)
+        return float(np.exp(avg_loss))
+
+    def evaluate(self, X: np.ndarray) -> dict[str, float]:
+        return {"perplexity": self.perplexity(X), "n_sequences": float(X.shape[0])}
+
+    def save(self, path: str) -> None:
+        if self.model is None:
+            raise ValueError("Cannot save untrained model")
+        self.model.save(path)
+
+    @classmethod
+    def load(cls, path: str) -> "MusicGenerationRNN":
+        model = SimpleRNN.load(path)
+        obj = cls(
+            vocab_size=model.input_dim,
+            seq_len=20,
+            hidden_dim=model.hidden_dim,
+            learning_rate=model.learning_rate,
+            weight_decay=model.weight_decay,
+            clip_value=model.clip_value,
+            random_seed=model.random_seed,
+        )
+        obj.model = model
+        obj.loss_history = model.loss_history
+        return obj
+
+    def to_dict(self) -> dict:
+        return {
+            "vocab_size": self.vocab_size,
+            "seq_len": self.seq_len,
+            "hidden_dim": self.hidden_dim,
+            "learning_rate": self.learning_rate,
+            "n_iterations": self.n_iterations,
+            "weight_decay": self.weight_decay,
+            "random_seed": self.random_seed,
+            "training_mode": self.training_mode,
+            "n_epochs_run": len(self.loss_history),
+            "final_loss": self.loss_history[-1] if self.loss_history else 0.0,
+        }
 ```
 
-## ⚡ API Reference
+</details>
 
-FastAPI endpoints and model interfaces
+<details>
+<summary>train.py</summary>
 
-| Method | Endpoint |
-| --- | --- |
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/metrics` |
-| `POST` | `/reload` |
-| `GET` | `/drift` |
-
-## ▶ Usage
-
-Code examples and CLI commands
-
-### Training Script
-
-```python
+```
 """Training pipeline for music generation (RNN language model)."""
 
 import argparse
@@ -277,9 +536,151 @@ if __name__ == "__main__":
     main()
 ```
 
-### API Server
+</details>
 
-```python
+<details>
+<summary>data.py</summary>
+
+```
+"""Data loading and preprocessing for music generation (RNN).
+
+Generates synthetic musical note sequences for language-model-style generation.
+Notes are represented as MIDI-style integer indices (0-39).
+"""
+
+from pathlib import Path
+
+import numpy as np
+
+VOCAB_SIZE = 40
+SEQ_LEN = 20
+
+DEFAULT_N_SAMPLES = 500
+
+NOTE_NAMES = [
+    "C4",
+    "C#4",
+    "D4",
+    "D#4",
+    "E4",
+    "F4",
+    "F#4",
+    "G4",
+    "G#4",
+    "A4",
+    "A#4",
+    "B4",
+    "C5",
+    "C#5",
+    "D5",
+    "D#5",
+    "E5",
+    "F5",
+    "F#5",
+    "G5",
+    "rest",
+    "C3",
+    "D3",
+    "E3",
+    "F3",
+    "G3",
+    "A3",
+    "B3",
+    "C4b",
+    "pause",
+    "D5b",
+    "E5b",
+    "F5b",
+    "G5b",
+    "A5b",
+    "B5b",
+    "high_C",
+    "low_C",
+    "chord",
+    "end",
+]
+
+def generate_synthetic_data(
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> np.ndarray:
+    """Generate synthetic note-index sequences with musical patterns.
+
+    Sequences follow simple probabilistic patterns (e.g., stepwise motion,
+    repeated notes, chord progressions) so the RNN can learn next-note prediction.
+
+    Returns:
+        X: (n_samples, SEQ_LEN) note indices
+    """
+    rng = np.random.default_rng(random_seed)
+
+    X = np.zeros((n_samples, SEQ_LEN), dtype=int)
+
+    for i in range(n_samples):
+        seq = np.zeros(SEQ_LEN, dtype=int)
+        seq[0] = rng.integers(0, 20)  # start with a note
+        for t in range(1, SEQ_LEN):
+            r = rng.random()
+            if r < 0.5:
+                # Stepwise motion (step up/down)
+                seq[t] = (seq[t - 1] + rng.choice([-2, -1, 1, 2])) % VOCAB_SIZE
+            elif r < 0.7:
+                # Repeat the same note
+                seq[t] = seq[t - 1]
+            else:
+                # Random jump
+                seq[t] = rng.integers(0, VOCAB_SIZE)
+        X[i] = seq
+
+    return X
+
+def load_training_data(
+    data_path: Path | None = None,
+    n_samples: int = DEFAULT_N_SAMPLES,
+    random_seed: int = 42,
+) -> np.ndarray:
+    if data_path and Path(data_path).exists():
+        data = np.load(data_path, allow_pickle=True)
+        return data["X"]
+    return generate_synthetic_data(n_samples=n_samples, random_seed=random_seed)
+
+def save_training_data(X: np.ndarray, y: np.ndarray, path: Path) -> None:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(path, X=X, y=y)
+
+def train_test_split(
+    X: np.ndarray,
+    y: np.ndarray | None = None,
+    test_size: float = 0.2,
+    random_seed: int | None = None,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    n = len(X)
+    n_test = max(1, int(n * test_size))
+
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        indices = rng.permutation(n)
+    else:
+        indices = np.random.permutation(n)
+
+    test_idx = indices[:n_test]
+    train_idx = indices[n_test:]
+
+    return (
+        X[train_idx],
+        X[test_idx],
+        (X[train_idx] if y is None else y[train_idx]),
+        (X[test_idx] if y is None else y[test_idx]),
+    )
+```
+
+</details>
+
+<details>
+<summary>api.py</summary>
+
+```
 """Serving API for music generation (RNN language model)."""
 
 import os
@@ -583,20 +984,42 @@ def predict_bulk(body: PredictBulkRequest):
     return BulkPredictResponse(predictions=predictions, model_version=_model_version)
 ```
 
-### CLI Commands
+</details>
 
-```bash
-uv run python -m speech_audio_music.train --model-dir ./artifacts/models
-```
+## 4. Monorepo Integration
 
-## 📊 Benchmarks
+This example is a first-class consumer of the shared `packages/ai-core` library.
+It reuses the following foundation modules instead of re-implementing infrastructure:
 
-Test results and performance metrics
+ai_core.drift
+ai_core.fastapi_middleware
+ai_core.logging
+ai_core.metrics
+ai_core.model_registry
+ai_core.nn_utils
+ai_core.validation
 
-Run `pytest tests/test_models.py` and `pytest tests/test_apis.py` for detailed metrics.
+### How it plugs in
 
-### Related Apps
 
-- [speech-audio-recognition](../speech-audio-recognition/README.md)
 
-Generated documentation for **speech-audio-music**
+- **Configuration** — 12-factor config from `ai_core.config`.
+
+
+
+- **Observability** — structured logging + Prometheus metrics are wired in automatically.
+
+
+
+- **Validation** — input schema validation prevents bad data reaching the model.
+
+
+
+- **Registry** — trained artifacts are versioned and registered for reproducible serving.
+
+
+
+- **Serving** — the FastAPI app mounts shared observability middleware for tracing & metrics.
+
+Because every example shares `ai_core`, cross-cutting concerns (drift detection,
+logging, metrics, model registry) behave identically across the 47 examples in this monorepo.
