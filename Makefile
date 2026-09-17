@@ -7,6 +7,26 @@ NAMESPACE := mlops
 IMG_TRAIN := mlops/train
 IMG_SERVE := mlops/serve
 
+# --- Generic per-app targets (preferred; use with APP=<module>) ---
+# Example: make train APP=spam_classification
+# Example: make serve APP=pizza_price PORT=8001
+.PHONY: train
+train:
+	uv run python -m $(APP).train --model-dir ./artifacts/models --model-version $(V)
+
+.PHONY: serve
+serve:
+	uv run python scripts/serve_all.py --app $(APP) --port $(PORT)
+
+# --- Docker builds (parameterized; see docker/*.Dockerfile) ---
+.PHONY: docker-train
+docker-train:
+	docker build -f docker/train.Dockerfile --build-arg APP_MODULE=$(APP) -t $(IMG_TRAIN):$(APP) .
+
+.PHONY: docker-serve
+docker-serve:
+	docker build -f docker/serve.Dockerfile --build-arg APP_MODULE=$(APP) -t $(IMG_SERVE):$(APP) .
+
 # --- Python / uv ---
 .PHONY: install
 install:
