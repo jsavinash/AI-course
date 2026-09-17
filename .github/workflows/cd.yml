@@ -1,0 +1,121 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_TRAIN: ${{ github.repository }}/mlops/train
+  IMAGE_SERVE: ${{ github.repository }}/mlops/serve
+
+jobs:
+  build-and-push:
+    name: Build & Push Images
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - dockerfile: docker/train.Dockerfile
+            image: ${{ env.IMAGE_TRAIN }}
+            tag: latest
+          - dockerfile: docker/serve.Dockerfile
+            image: ${{ env.IMAGE_SERVE }}
+            tag: latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ matrix.image }}
+          tags: |
+            type=sha
+            type=ref,event=branch
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to Kubernetes
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Configure kubeconfig
+        run: |
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 --decode > kubeconfig
+          export KUBECONFIG=$(pwd)/kubeconfig
+
+      - name: Apply namespace and storage
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/storage.yaml
+          kubectl apply -f k8s/secrets.yaml
+
+      - name: Deploy MLflow
+        run: kubectl apply -f k8s/mlflow.yaml
+
+      - name: Train models
+        run: |
+          kubectl apply -f k8s/training-jobs.yaml
+          kubectl wait --for=condition=complete job/train-pizza-price job/train-spam-classification -n mlops --timeout=300s
+
+      - name: Deploy serving APIs (Helm)
+        run: |
+          helm upgrade --install pizza-price-api k8s/base \
+            --namespace mlops \
+            -f k8s/base/values.yaml \
+            -f k8s/overlays/${{ vars.DEPLOY_ENV || 'prod' }}/values.yaml \
+            --set image.repository=${{ env.IMAGE_SERVE }} \
+            --set image.tag=sha-${{ github.sha }} \
+            --set appName=pizza-price \
+            --set packageName=pizza_price \
+            --wait --timeout 300s
+          kubectl rollout status deployment/pizza-price-api -n mlops --timeout=300s
+
+      - name: Deploy spam-classification API (Helm)
+        run: |
+          helm upgrade --install spam-classification-api k8s/base \
+            --namespace mlops \
+            -f k8s/base/values.yaml \
+            -f k8s/overlays/${{ vars.DEPLOY_ENV || 'prod' }}/values.yaml \
+            --set image.repository=${{ env.IMAGE_SERVE }} \
+            --set image.tag=sha-${{ github.sha }} \
+            --set appName=spam-classification \
+            --set packageName=spam_classification \
+            --wait --timeout 300s
+          kubectl rollout status deployment/spam-classification-api -n mlops --timeout=300s
+
+      - name: Deploy monitoring
+        run: kubectl apply -f k8s/monitoring.yaml
+
+      - name: Verify deployment
+        run: |
+          kubectl get all -n mlops
+          kubectl get pods -n mlops -o wide

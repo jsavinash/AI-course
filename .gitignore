@@ -160,19 +160,18 @@ logs/
 log/
 *.log.*
 
+#################################################################################
+# Environment Files (secrets & local config — NEVER commit; use .env.example)  #
 ################################################################################
-# Environment Files
-################################################################################
+.env
+.env.*
 !.env.example
 
 ################################################################################
 # Docker
+# NOTE: Dockerfiles, compose files and .dockerignore are infrastructure code —
+# they MUST be version-controlled. Only build outputs are ignored.
 ################################################################################
-Dockerfile*
-*.dockerfile
-docker-compose*.yml
-docker-compose*.yaml
-.dockerignore
 .docker/
 
 ################################################################################
@@ -181,7 +180,6 @@ docker-compose*.yaml
 kubeconfig
 .kube/
 *.kube.yml
-config
 
 ################################################################################
 # Terraform
@@ -195,8 +193,9 @@ crash.log
 
 ################################################################################
 # CI/CD
+# Workflows are infrastructure code and MUST be version-controlled.
+# (Previous rule `.github/workflows/*.yml` was removed — it made CI untracked.)
 ################################################################################
-.github/workflows/*.yml
 
 ################################################################################
 # Secrets & Credentials
@@ -250,20 +249,15 @@ package-lock.json
 # Shell & PID files
 ################################################################################
 *.pid
-*.lock
+# NOTE: lock files (uv.lock) ARE committed for reproducible builds.
 
 ################################################################################
 # Postman
 ################################################################################
 # Keep committed - do NOT ignore: postman/
 
-################################################################################
-# Generated scripts and modules
-################################################################################
-scripts/generate_*.py
-scripts/gen_*.py
-shared/mlops_shared/cnn.py
-shared/mlops_shared/rnn.py
+# NOTE: scripts/generate_*.py are source code (doc/codegen tooling) and are
+# version-controlled. Removed the previous blanket ignore of scripts/.
 
 ################################################################################
 # Shared library egg-info
