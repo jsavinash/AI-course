@@ -10,6 +10,9 @@ IMG_SERVE := mlops/serve
 # --- Generic per-app targets (preferred; use with APP=<module>) ---
 # Example: make train APP=spam_classification
 # Example: make serve APP=pizza_price PORT=8001
+APP ?=
+V ?= 1.0.0
+PORT ?= 8000
 .PHONY: train
 train:
 	uv run python -m $(APP).train --model-dir ./artifacts/models --model-version $(V)
