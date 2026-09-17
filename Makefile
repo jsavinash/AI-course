@@ -16,7 +16,7 @@ train:
 
 .PHONY: serve
 serve:
-	uv run python scripts/serve_all.py --app $(APP) --port $(PORT)
+	uv run uvicorn $(APP).api:app --host 0.0.0.0 --port $(PORT)
 
 # --- Docker builds (parameterized; see docker/*.Dockerfile) ---
 .PHONY: docker-train

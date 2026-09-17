@@ -5,17 +5,18 @@ A **production-ready MLOps monorepo** built with `uv` workspace, containing 47 A
 ## Architecture
 
 ```
-├── pyproject.toml                 # Root uv workspace + shared tool config
-├── uv.lock                        # Locked, reproducible dependencies
-├── Makefile                       # Unified task runner
+├── pyproject.toml                 # Root uv workspace (no runtime deps) + shared tool config
+├── uv.lock                        # Locked, reproducible dependencies (committed)
+├── Makefile                       # Unified task runner (generic APP=<module> targets)
 ├── README.md                      # This file
 ├── .gitignore
-├── .env.example
+├── .env.example                   # Config template (secrets are NEVER committed)
 │
-├── packages/
+├── packages/                      # ── Shared libraries (workspace members) ──
 │   └── ai-core/                   # Shared AI/ML foundation library
-│       ├── pyproject.toml
+│       ├── pyproject.toml         # Common runtime deps (numpy, fastapi, mlflow, …) with upper bounds
 │       ├── README.md
+│       ├── tests/
 │       └── src/ai_core/
 │           ├── __init__.py
 │           ├── config.py
@@ -27,94 +28,19 @@ A **production-ready MLOps monorepo** built with `uv` workspace, containing 47 A
 │           ├── fastapi_middleware.py
 │           └── nn_utils/
 │
-├── apps/
-│   ├── machine-learning/
-│   │   ├── supervised/
-│   │   │   ├── pizza-price/
-│   │   │   └── spam-classification/
-│   │   ├── unsupervised/
-│   │   │   ├── market-segmentation/
-│   │   │   ├── recommendation-engine/
-│   │   │   └── anomaly-detection-pca/
-│   │   ├── reinforcement/
-│   │   │   └── robot-maze-navigation/
-│   │   ├── semi-supervised/
-│   │   │   └── semi-supervised-email/
-│   │   └── self-supervised/
-│   │       └── self-supervised-monitoring/
-│   │
-│   ├── neural-networks/
-│   │   ├── feedforward/
-│   │   │   ├── classification-email-spam/
-│   │   │   ├── regression-house-price/
-│   │   │   ├── anomaly-detection-fraud/
-│   │   │   └── pattern-recognition-digits/
-│   │   ├── recurrent/
-│   │   │   ├── nlp-language-translation/
-│   │   │   ├── nlp-sentiment-analysis/
-│   │   │   ├── nlp-text-generation/
-│   │   │   ├── speech-audio-recognition/
-│   │   │   ├── speech-audio-music/
-│   │   │   ├── time-series-stock/
-│   │   │   ├── time-series-weather/
-│   │   │   └── vision-image-captioning/
-│   │   ├── convolutional/
-│   │   │   ├── cnn-medical-imaging/
-│   │   │   ├── cnn-facial-recognition/
-│   │   │   ├── cnn-video-surveillance/
-│   │   │   ├── advanced-super-resolution/
-│   │   │   ├── advanced-semantic-segmentation/
-│   │   │   ├── advanced-generative-art/
-│   │   │   ├── capsnet-autonomous-driving/
-│   │   │   ├── capsnet-medical-scan/
-│   │   │   └── capsnet-text-recognition/
-│   │   ├── graph-physics-informed/
-│   │   │   ├── gnn-social-networks/
-│   │   │   ├── pinn-heat-equation/
-│   │   │   └── snn-image-classification/
-│   │   ├── attention-generative/
-│   │   │   ├── diffusion/
-│   │   │   ├── gan/
-│   │   │   ├── transformers/
-│   │   │   └── vae/
-│   │   └── unsupervised/
-│   │       ├── autoencoders-dimensionality-reduction/
-│   │       ├── deep-belief-networks/
-│   │       ├── restricted-boltzmann-machines/
-│   │       └── self-organizing-maps/
-│   │
-│   ├── deep-learning/
-│   │   ├── transformers-language-modeling/
-│   │   ├── attention-mechanism/
-│   │   ├── large-language-model/
-│   │   ├── pre-training-fine-tuning/
-│   │   ├── transfer-learning/
-│   │   └── multimodal-llm/
-│   │
+├── apps/                          # ── Independent ML projects (one deployable unit each) ──
+│   ├── machine-learning/          #   Each app: pyproject.toml (app-specific deps only),
+│   ├── neural-networks/           #   src/<package>/{model,data,train,api}.py, tests/
+│   ├── deep-learning/             #   Apps depend on `ai-core` via `tool.uv.sources (workspace = true)`
 │   └── generative-ai/
-│       ├── prompt-engineering/
-│       ├── code-generation/
-│       ├── text-generation/
-│       ├── image-generation/
-│       ├── video-generation/
-│       ├── retrieval-augmented-generation/
-│       └── tool-use-functional-calling/
 │
-├── tests/
-│   ├── conftest.py
-│   ├── unit/
-│   ├── integration/
-│   └── e2e/
-│
-├── artifacts/
-│   ├── models/
-│   ├── experiments/
-│   └── data/
+├── artifacts/                     # Local-only training outputs (gitignored — registry/s3 is the source of truth)
+│   ├── models/<model>/<version>/  # Canonical per-model registry layout
+│   └── _archive_duplicates/       # Superseded duplicate artifacts (do not use)
 │
 ├── docker/
-│   ├── base/
-│   ├── train.Dockerfile
-│   └── serve.Dockerfile
+│   ├── train.Dockerfile           # Parameterized: --build-arg APP_MODULE=<python_module>
+│   └── serve.Dockerfile           # Parameterized: --build-arg APP_MODULE=<python_module>
 │
 ├── k8s/
 │   ├── base/
@@ -124,29 +50,32 @@ A **production-ready MLOps monorepo** built with `uv` workspace, containing 47 A
 │   │   └── prod/
 │   └── scripts/
 │
-├── scripts/
-│   ├── train_all.sh
-│   ├── deploy.sh
-│   └── setup.sh
+├── scripts/                       # Operational CLIs (codegen, validation, serving) — version-controlled
 │
 └── .github/
-    └── workflows/
-        ├── ci.yml
-        ├── cd.yml
-        └── security.yml
+    └── workflows/                 # CI/CD pipelines — version-controlled
+        ├── ci.yml                 # lint + typecheck + pytest (uv sync --all-packages)
+        ├── cd.yml                 # build/push images, deploy serving per environment
+        └── security.yml           # dependency audit + secret scanning
 ```
 
 ## Quick Start
 
 ```bash
-# Install dependencies
-make install
+# Install all workspace members (apps + shared packages) into one environment
+make install          # = uv sync --all-packages
 
-# Train a model
-make train-pizza
+# Train a model (generic target, APP = python import module)
+make train APP=spam_classification
 
-# Run API locally
-make serve-pizza
+# Run an API locally
+make serve APP=spam_classification PORT=8001
+# ...or start every API at once (fixed port map, see scripts/serve_all.py)
+make serve-all
+
+# Build parameterized images
+make docker-train APP=spam_classification
+make docker-serve APP=spam_classification
 
 # Run tests
 make test
@@ -158,7 +87,7 @@ make typecheck
 
 ## Tech Stack
 
-- **Package Manager**: uv (workspace monorepo)
+- **Package Manager**: uv (workspace monorepo; all 54 members resolve from a single committed `uv.lock`)
 - **ML**: NumPy, SciPy, scikit-learn, pandas
 - **Deep Learning**: Pure NumPy implementations (no PyTorch/TensorFlow dependencies)
 - **Serving**: FastAPI + Uvicorn
@@ -169,19 +98,32 @@ make typecheck
 - **Linting**: ruff
 - **Type Checking**: mypy (strict mode)
 
+## Dependency Strategy
+
+The workspace uses a **two-tier dependency model** to avoid dependency drift across 54 members:
+
+- **`packages/ai-core`** owns the common runtime dependencies (numpy, pandas, fastapi, pydantic, mlflow, structlog, …) pinned with **upper bounds** (e.g. `numpy>=1.26,<3`) so a single upstream major release cannot silently break every app.
+- **Each app's `pyproject.toml`** declares only its app-specific extras and `ai-core` as a workspace dependency (`ai-core = { workspace = true }`).
+- **The root `pyproject.toml`** is not a package: it defines the workspace and the shared `dev` tool group (pytest, ruff, mypy). `uv sync --all-packages` installs every member into one environment; `uv sync` (in CI/Docker) uses the committed `uv.lock` for reproducible builds.
+
 ## Makefile Commands
 
 ```bash
-make install       # Install all dependencies
+make install       # Install all dependencies (uv sync --all-packages)
 make lint          # Ruff linting
 make format        # Ruff formatting
 make typecheck     # Mypy type checking
 make test          # Run pytest suite
-make train-all     # Train all models
+make test-cov      # Coverage report
+make train APP=<module>       # Train one model (e.g. APP=spam_classification)
+make serve APP=<module>       # Run one API locally
+make docker-train APP=<module>  # Build training image for one app
+make docker-serve APP=<module>  # Build serving image for one app
+make train-all     # Train all models (per-app targets also available)
 make serve-all     # Run all APIs locally
-make docker-build  # Build Docker images
 make k8s-apply     # Deploy to Kubernetes
 ```
+
 
 ## License
 
@@ -252,19 +194,17 @@ Each example below ships a self-contained `README.md` (generated by `scripts/gen
 
 ## Production Readiness
 
-This monorepo already follows the target `uv` workspace layout: a shared
-`packages/ai-core` library plus 53 kebab-case app members, each with
-`src/<package>/` (`model.py`, `data.py`, `train.py`, `api.py`).
-
 | Area | Status |
 | --- | --- |
-| Workspace / `uv` | ✅ 53 app members + `ai-core`, `uv.lock` present |
+| Workspace / `uv` | ✅ 53 app members + `ai-core`; committed `uv.lock` for reproducible builds; root has zero runtime deps, common deps centralized in `ai-core` with upper version bounds |
+| Secrets hygiene | ✅ `.env` untracked, `.env.example` template committed; workflows/Dockerfiles/scripts version-controlled (previously self-ignored by `.gitignore`) |
 | Observability | ✅ 53/53 apps expose `/health` + `/metrics` with structured logging |
 | Shared MLOps lib | ✅ config, logging, metrics, registry, validation, drift, FastAPI middleware; target namespaces `layers` / `api_base` / `losses` / `optim` / `train_loop` now re-exported |
 | API hardening | ✅ all 53 apps: structured 422/500 error envelopes, security headers, CORS, request-size limit (413), opt-in API-key auth (401) + per-IP rate limit (429) via `add_observability_middleware` |
-| CI/CD | ✅ `ci.yml` (lint/test), `cd.yml` (build/deploy), `security.yml` (dep + secret scan) |
-| Docker | ✅ multi-stage, non-root, `HEALTHCHECK`; `.dockerignore` added |
+| CI/CD | ✅ `ci.yml` (lint/test), `cd.yml` (build/deploy), `security.yml` (dep + secret scan) — all tracked in git |
+| Docker | ✅ multi-stage, non-root, `HEALTHCHECK`; **parameterized per app** via `--build-arg APP_MODULE`; installs all workspace members from the frozen lockfile; model artifacts come from registry/volumes, not baked into images |
 | Kubernetes | 🟡 Helm `k8s/base` chart + `overlays/{dev,staging,prod}`; `cd.yml` deploys serving via `helm` (dry-run pending cluster) |
-| Tests | 🟡 per-app smoke tests for all apps; `make test-cov` / `make test-app` added; >80% behavioral coverage gate pending |
+| Model/data lineage | 🟡 local registry layout `artifacts/models/<model>/<version>/` with `model_info.json`; migration to a hosted MLflow Model Registry + DVC/S3 data versioning is the next step |
+| Tests | 🟡 330 passing tests (ai-core + per-app smoke tests); `make test-cov` / `make test-app` available; >80% behavioral coverage gate pending |
 
 See `ANALYSIS.md` for the deep assessment and `MIGRATION.md` for the change log.
