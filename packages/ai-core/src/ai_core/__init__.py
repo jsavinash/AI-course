@@ -10,6 +10,14 @@ from ai_core.config import (
     load_config,
 )
 from ai_core.drift import DriftDetector, DriftResult
+from ai_core.export import (
+    SIGNING_KEY_ENV,
+    SignatureError,
+    export_signed_model,
+    get_git_sha,
+    sign_payload,
+    verify_signed_model,
+)
 from ai_core.layers import (
     Activation,
     Deconv2D,
@@ -147,6 +155,12 @@ __all__ = [
     "create_transfer_learning_schema",
     "DriftDetector",
     "DriftResult",
+    "SIGNING_KEY_ENV",
+    "SignatureError",
+    "export_signed_model",
+    "get_git_sha",
+    "sign_payload",
+    "verify_signed_model",
     "add_observability_middleware",
     "SimpleCNN",
     "Activation",

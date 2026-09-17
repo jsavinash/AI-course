@@ -2,6 +2,7 @@
 
 import os
 import re
+import tempfile
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -25,6 +26,7 @@ logger = get_logger(__name__)
 MODEL_DIR = Path(os.getenv("MODEL_DIR", "/models"))
 MODEL_VERSION = os.getenv("MODEL_VERSION", "latest")
 SPAM_THRESHOLD = float(os.getenv("SPAM_THRESHOLD", "0.5"))
+MODEL_SIGNING_KEY = os.getenv("MODEL_SIGNING_KEY")
 METRICS_PORT = int(os.getenv("METRICS_PORT", os.getenv("SPAM_METRICS_PORT", "8002")))
 DRIFT_THRESHOLD = float(os.getenv("DRIFT_THRESHOLD", "0.2"))
 
@@ -108,8 +110,53 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down spam-classification API")
 
 
+def _load_signed(signed_path: Path) -> tuple[LogisticRegression, str] | None:
+    """Verify and load a signed model package. Returns None if unusable."""
+    try:
+        from ai_core.export import verify_signed_model
+
+        require_key = os.getenv("REQUIRE_SIGNED_MODEL", "true").lower() == "true"
+        payload, manifest = verify_signed_model(
+            signed_path, signing_key=MODEL_SIGNING_KEY, require_key=require_key
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_npz = Path(tmp) / "model.npz"
+            tmp_npz.write_bytes(payload)
+            model = LogisticRegression.load(str(tmp_npz))
+        logger.info(
+            "Signed model verified and loaded",
+            path=str(signed_path),
+            sha256=manifest.get("payload_sha256"),
+            mlflow_run_id=manifest.get("mlflow_run_id"),
+            git_sha=manifest.get("git_sha"),
+        )
+        return model, str(manifest.get("model_version", "signed"))
+    except Exception as e:
+        logger.warning("Signed model load failed", path=str(signed_path), error=str(e))
+        return None
+
+
 def _load_model() -> tuple[LogisticRegression, str]:
-    """Load the latest model from the registry or model directory with resilient fallback."""
+    """Load the latest model from the registry or model directory with resilient fallback.
+
+    Preference order (lifecycle: export.py -> artifacts/ -> FastAPI):
+    0. Signed package (`model.signed`) — signature-verified before loading.
+    1. Model registry.
+    2. Direct model file in MODEL_DIR.
+    3. Bundled baseline artifacts.
+    4. In-memory baseline (never crash cold start).
+    """
+    # 0. Signed model package (preferred: signature-verified artifact)
+    if MODEL_VERSION == "latest":
+        signed_candidates = sorted(MODEL_DIR.glob("spam-classification/*/model.signed"))
+    else:
+        signed_candidates = [MODEL_DIR / "spam-classification" / MODEL_VERSION / "model.signed"]
+    for signed_path in signed_candidates:
+        if signed_path.exists():
+            result = _load_signed(signed_path)
+            if result is not None:
+                return result
+
     # 1. Try model registry
     registry = ModelRegistry(base_dir=MODEL_DIR)
     try:

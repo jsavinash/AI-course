@@ -1,6 +1,7 @@
 """Production training pipeline for spam email classification."""
 
 import argparse
+import json
 import os
 from pathlib import Path
 
@@ -126,7 +127,7 @@ def train(
     )
 
     if register_to_mlflow:
-        registry.log_to_mlflow(
+        run_id = registry.log_to_mlflow(
             model_name="spam-classification",
             model_version=model_version,
             metrics=metrics,
@@ -145,6 +146,16 @@ def train(
         logger.info(
             "Registered model to MLflow", model="spam-classification", version=model_version
         )
+
+        # Record the MLflow run id in the registry metadata so the export step
+        # can embed provenance (run id -> signed artifact) in the manifest.
+        if run_id:
+            info_path = model_dir / "spam-classification" / model_version / "model_info.json"
+            if info_path.exists():
+                info = json.loads(info_path.read_text())
+                info["mlflow_run_id"] = run_id
+                info_path.write_text(json.dumps(info, indent=2))
+                logger.info("MLflow run id recorded", run_id=run_id, path=str(info_path))
 
     return metrics
 
